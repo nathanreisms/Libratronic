@@ -1,0 +1,912 @@
+/* ============================================================
+   style.css — LibraTronic v3
+   Tema: Glassmorphism · Neon Blue · Futurista
+   Responsivo: Desktop e Mobile (≤768px e ≤400px)
+   ============================================================ */
+
+/* ── FONTES ─────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
+
+/* ── VARIÁVEIS GLOBAIS ──────────────────────────────────── */
+:root {
+  --bg-deep:     #020a14;               /* fundo mais escuro */
+  --bg-mid:      #061524;               /* fundo intermediário */
+  --bg-glass:    rgba(6,21,36,0.75);    /* fundo glassmorphism */
+  --neon-blue:   #00d4ff;               /* azul neon principal */
+  --neon-cyan:   #00ffea;               /* ciano neon */
+  --neon-purple: #a855f7;               /* roxo neon */
+  --neon-green:  #00ff88;               /* verde neon (conectado) */
+  --text-main:   #dff0ff;               /* texto principal */
+  --text-dim:    #4e7a95;               /* texto secundário */
+  --border:      rgba(0,212,255,0.22);  /* borda glass */
+  --shadow-neon: 0 0 18px rgba(0,212,255,0.45);
+  --shadow-lg:   0 0 40px rgba(0,212,255,0.70);
+  --radius:      16px;                  /* borda arredondada padrão */
+  --trans:       0.35s cubic-bezier(0.4,0,0.2,1); /* transição suave */
+}
+
+/* ── RESET ──────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── BODY ───────────────────────────────────────────────── */
+body {
+  background:  var(--bg-deep);
+  color:       var(--text-main);
+  font-family: 'Exo 2', sans-serif;
+  min-height:  100vh;
+  overflow-x:  hidden;
+  line-height: 1.6;
+}
+
+/* Grade de pontos no fundo — efeito futurista sutil */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(circle, rgba(0,212,255,0.055) 1px, transparent 1px);
+  background-size: 30px 30px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── CONTAINER PRINCIPAL ────────────────────────────────── */
+#app {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* ── TELAS (SCREENS) ────────────────────────────────────── */
+/* Todas ocultas por padrão (display:none, opacity:0) */
+.screen {
+  position:   absolute;
+  inset:      0;
+  min-height: 100vh;
+  display:    none;
+  opacity:    0;
+  transform:  translateY(18px);
+  transition: opacity var(--trans), transform var(--trans);
+  z-index:    1;
+  overflow-y: auto;
+}
+
+/* Tela ativa: visível com animação de entrada */
+.screen.active {
+  display:   flex;
+  opacity:   1;
+  transform: translateY(0);
+}
+
+/* ============================================================
+   TELA HOME
+   ============================================================ */
+#screen-home {
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  gap:     2rem;
+}
+
+/* Wrapper do logo + título */
+.logo-wrap {
+  text-align: center;
+  animation:  slideDown 0.8s ease both;
+}
+
+/* Círculo com SVG da mão robótica */
+.logo-circle {
+  width:  110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 38%, #0a3a5a, #020a14);
+  border:  2px solid var(--neon-blue);
+  box-shadow: var(--shadow-neon), inset 0 0 28px rgba(0,212,255,0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.4rem;
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Título principal LibraTronic — gradiente de texto */
+.app-title {
+  font-family: 'Orbitron', monospace;
+  font-size:   clamp(2rem, 8vw, 3.8rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.14em;
+  margin-bottom:  0.25rem;
+}
+
+/* Subtítulo / slogan */
+.app-subtitle {
+  font-family:     'Share Tech Mono', monospace;
+  font-size:       0.88rem;
+  color:           var(--text-dim);
+  letter-spacing:  0.22em;
+  text-transform:  uppercase;
+}
+
+/* Grade de botões da home */
+.home-buttons {
+  display:        flex;
+  flex-direction: column;
+  gap:       0.9rem;
+  width:     100%;
+  max-width: 400px;
+  animation: slideUp 0.8s 0.15s ease both;
+}
+
+/* Botão primário (texto e câmera) */
+.btn-primary {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.7rem;
+  padding:         0.95rem 1.8rem;
+  background:      rgba(0,212,255,0.09);
+  border:          1px solid var(--border);
+  border-radius:   var(--radius);
+  color:           var(--neon-blue);
+  font-family:     'Exo 2', sans-serif;
+  font-size:       1rem;
+  font-weight:     600;
+  cursor:          pointer;
+  transition:      all var(--trans);
+  text-transform:  uppercase;
+  letter-spacing:  0.08em;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efeito de luz deslizando no botão (hover) */
+.btn-primary::before {
+  content:    '';
+  position:   absolute; top: 0; left: -100%;
+  width:      100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.18), transparent);
+  transition: left 0.5s ease;
+}
+.btn-primary:hover::before { left: 100%; }
+
+.btn-primary:hover {
+  background:  rgba(0,212,255,0.20);
+  border-color: var(--neon-blue);
+  box-shadow:  var(--shadow-neon);
+  transform:   translateY(-2px);
+}
+.btn-primary:active { transform: translateY(0); box-shadow: none; }
+
+/* Botão secundário (Bluetooth — roxo) */
+.btn-secondary {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.7rem;
+  padding:         0.95rem 1.8rem;
+  background:      rgba(168,85,247,0.09);
+  border:          1px solid rgba(168,85,247,0.28);
+  border-radius:   var(--radius);
+  color:           var(--neon-purple);
+  font-family:     'Exo 2', sans-serif;
+  font-size:       1rem;
+  font-weight:     600;
+  cursor:          pointer;
+  transition:      all var(--trans);
+  text-transform:  uppercase;
+  letter-spacing:  0.08em;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.btn-secondary:hover {
+  background:   rgba(168,85,247,0.22);
+  border-color: var(--neon-purple);
+  box-shadow:   0 0 18px rgba(168,85,247,0.50);
+  transform:    translateY(-2px);
+}
+
+/* Indicador de status Bluetooth */
+.bt-status {
+  display:     flex;
+  align-items: center;
+  gap:         0.5rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size:   0.82rem;
+  color:       var(--text-dim);
+  animation:   slideUp 0.8s 0.3s ease both;
+}
+
+/* Ponto colorido de status BT */
+.bt-dot {
+  width:         10px; height: 10px;
+  border-radius: 50%;
+  background:    #ff3c3c; /* vermelho = desconectado */
+  transition:    background 0.3s, box-shadow 0.3s;
+  flex-shrink:   0;
+}
+/* Verde pulsante = conectado */
+.bt-dot.connected {
+  background: var(--neon-green);
+  box-shadow: 0 0 10px var(--neon-green);
+  animation:  btBlink 1.5s infinite;
+}
+/* Amarelo piscando = conectando */
+.bt-dot.connecting {
+  background: #ffcc00;
+  animation:  btBlink 0.45s infinite;
+}
+
+/* ============================================================
+   HEADER INTERNO (todas as telas internas)
+   ============================================================ */
+.screen-header {
+  display:     flex;
+  align-items: center;
+  gap:         0.9rem;
+  padding:     0.85rem 1.2rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;           /* não encolhe no flex */
+}
+
+.screen-header h2 {
+  font-family:    'Orbitron', monospace;
+  font-size:      1.10rem;
+  color:          var(--neon-blue);
+  letter-spacing: 0.10em;
+}
+
+/* Botão voltar (←) */
+.btn-back {
+  width:  38px; height: 38px;
+  background:  rgba(0,212,255,0.09);
+  border:      1px solid var(--border);
+  border-radius: 8px;
+  color:       var(--neon-blue);
+  font-size:   1.1rem;
+  cursor:      pointer;
+  display:     flex;
+  align-items: center;
+  justify-content: center;
+  transition:  all var(--trans);
+  flex-shrink: 0;
+}
+.btn-back:hover {
+  background:  rgba(0,212,255,0.22);
+  box-shadow:  var(--shadow-neon);
+  transform:   translateX(-2px);
+}
+
+/* ============================================================
+   TELA TEXTO
+   ============================================================ */
+#screen-text {
+  flex-direction: column;
+  padding: 0;
+}
+
+/* Corpo: painel-left + painel-right */
+.text-body {
+  display:  flex;
+  flex:     1;
+  gap:      1rem;
+  padding:  1rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Painel genérico com glassmorphism */
+.panel {
+  background:      var(--bg-glass);
+  border:          1px solid var(--border);
+  border-radius:   var(--radius);
+  padding:         1.2rem;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display:         flex;
+  flex-direction:  column;
+  gap:             0.85rem;
+}
+
+/* Painel esquerdo: scroll vertical se necessário */
+.panel-left {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+/* Painel direito: contém o canvas 3D */
+.panel-right {
+  flex:       1.2;
+  min-width:  0;
+  align-items: center;
+  overflow:   hidden;
+  padding:    0.8rem;
+}
+
+/* Label de seção dentro dos painéis */
+.panel-label {
+  font-family:    'Share Tech Mono', monospace;
+  font-size:      0.72rem;
+  color:          var(--neon-cyan);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  flex-shrink:    0;
+}
+
+/* Textarea de entrada de texto */
+.text-input {
+  background:    rgba(0,18,35,0.85);
+  border:        1px solid var(--border);
+  border-radius: 8px;
+  color:         var(--text-main);
+  font-family:   'Exo 2', sans-serif;
+  font-size:     1.05rem;
+  padding:       0.9rem;
+  resize:        vertical;
+  min-height:    100px;
+  width:         100%;
+  outline:       none;
+  transition:    border-color 0.3s, box-shadow 0.3s;
+  text-transform: uppercase;
+}
+.text-input:focus {
+  border-color: var(--neon-blue);
+  box-shadow:   0 0 0 2px rgba(0,212,255,0.14);
+}
+
+/* Grade de 2 botões lado a lado */
+.btn-row {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   0.65rem;
+}
+
+/* Botão de ação genérico (Traduzir, Limpar etc.) */
+.btn-act {
+  padding:        0.70rem 0.8rem;
+  border:         1px solid var(--border);
+  border-radius:  8px;
+  cursor:         pointer;
+  font-family:    'Exo 2', sans-serif;
+  font-weight:    600;
+  font-size:      0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition:     all var(--trans);
+}
+
+/* Variante azul (Traduzir, Conectar) */
+.btn-act.blue {
+  background: rgba(0,212,255,0.12);
+  color:      var(--neon-blue);
+}
+.btn-act.blue:hover {
+  background: rgba(0,212,255,0.26);
+  box-shadow: var(--shadow-neon);
+  transform:  translateY(-1px);
+}
+.btn-act.blue:disabled {
+  opacity: 0.5;
+  cursor:  not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Variante cinza (Limpar, Desconectar) */
+.btn-act.gray {
+  background: rgba(255,255,255,0.05);
+  color:      var(--text-dim);
+}
+.btn-act.gray:hover {
+  background: rgba(255,255,255,0.10);
+  color:      var(--text-main);
+}
+
+/* Botões de palavras-chave (gestos rápidos) */
+.palavras-rapidas {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       0.38rem;
+  flex-shrink: 0;
+}
+
+.btn-palavra {
+  padding:       0.35rem 0.65rem;
+  background:    rgba(168,85,247,0.10);
+  border:        1px solid rgba(168,85,247,0.28);
+  border-radius: 6px;
+  color:         var(--neon-purple);
+  font-family:   'Exo 2', sans-serif;
+  font-size:     0.75rem;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    all var(--trans);
+  text-transform: uppercase;
+}
+.btn-palavra:hover {
+  background: rgba(168,85,247,0.26);
+  box-shadow: 0 0 12px rgba(168,85,247,0.40);
+  transform:  translateY(-1px);
+}
+
+/* Fila de chips de letras */
+.queue-box {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       0.38rem;
+  min-height: 38px;
+  padding:   0.5rem;
+  background: rgba(0,0,0,0.30);
+  border-radius: 8px;
+  border:    1px solid var(--border);
+}
+
+/* Chip individual de letra */
+.chip {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:  30px; height: 30px;
+  border-radius: 6px;
+  background:    rgba(0,212,255,0.08);
+  border:        1px solid var(--border);
+  font-family:   'Orbitron', monospace;
+  font-size:     0.80rem;
+  color:         var(--text-dim);
+  transition:    all 0.28s;
+}
+
+/* Chip ativo — letra sendo traduzida agora */
+.chip.active {
+  background:   rgba(0,212,255,0.28);
+  border-color: var(--neon-blue);
+  color:        var(--neon-blue);
+  box-shadow:   var(--shadow-neon);
+  transform:    scale(1.12);
+  animation:    chipGlow 0.5s infinite alternate;
+}
+
+/* Chip enviado — letra já traduzida */
+.chip.sent {
+  background:   rgba(0,255,136,0.12);
+  border-color: rgba(0,255,136,0.40);
+  color:        var(--neon-green);
+}
+
+/* Caixa de log */
+.log-box {
+  background:    rgba(0,0,0,0.38);
+  border:        1px solid var(--border);
+  border-radius: 8px;
+  padding:       0.65rem;
+  font-family:   'Share Tech Mono', monospace;
+  font-size:     0.76rem;
+  color:         var(--text-dim);
+  min-height:    54px;
+  max-height:    110px;
+  overflow-y:    auto;
+  flex-shrink:   0;
+}
+
+/* Cores das linhas do log */
+.log-line          { margin-bottom: 0.18rem; }
+.log-line.success  { color: var(--neon-green);  }
+.log-line.error    { color: #ff4444;            }
+.log-line.info     { color: var(--neon-blue);   }
+
+/* Container Three.js — canvas inserido aqui pelo hand3d.js */
+#hand3d-container {
+  width:         100%;
+  flex:          1;
+  min-height:    280px;
+  border-radius: 10px;
+  overflow:      hidden;
+  background:    rgba(0,5,14,0.85);
+  border:        1px solid var(--border);
+  position:      relative; /* para o spinner de loading */
+}
+
+/* Display grande da letra atual sendo traduzida */
+#letra-atual {
+  font-family:    'Orbitron', monospace;
+  font-size:      2.8rem;
+  font-weight:    900;
+  color:          var(--neon-blue);
+  text-shadow:    var(--shadow-neon);
+  text-align:     center;
+  min-height:     3.5rem;
+  transition:     all 0.30s;
+  flex-shrink:    0;
+}
+
+/* Feedback do modo de tradução */
+#feedback-modo {
+  font-family:    'Share Tech Mono', monospace;
+  font-size:      0.72rem;
+  color:          var(--neon-cyan);
+  text-align:     center;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  min-height:     1.2rem;
+  transition:     opacity 0.25s;
+  flex-shrink:    0;
+}
+
+/* Controles de câmera 3D */
+.controles-3d {
+  display:         flex;
+  gap:             0.5rem;
+  justify-content: center;
+  flex-shrink:     0;
+}
+
+/* Botão de controle 3D */
+.btn-ctrl3d {
+  padding:       0.40rem 0.75rem;
+  background:    rgba(0,212,255,0.08);
+  border:        1px solid var(--border);
+  border-radius: 6px;
+  color:         var(--neon-blue);
+  font-family:   'Share Tech Mono', monospace;
+  font-size:     0.72rem;
+  cursor:        pointer;
+  transition:    all var(--trans);
+  text-transform: uppercase;
+}
+.btn-ctrl3d:hover { background: rgba(0,212,255,0.22); box-shadow: var(--shadow-neon); }
+.btn-ctrl3d.ativo { background: rgba(0,212,255,0.30); border-color: var(--neon-blue); }
+
+/* Dica de uso (texto pequeno) */
+.tip {
+  font-family: 'Share Tech Mono', monospace;
+  font-size:   0.72rem;
+  color:       var(--text-dim);
+  text-align:  center;
+  flex-shrink: 0;
+}
+
+/* Separador horizontal */
+.sep {
+  width:      100%;
+  height:     1px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   TELA CÂMERA
+   ============================================================ */
+#screen-camera {
+  flex-direction: column;
+  padding: 0;
+}
+
+/* Corpo da câmera com scroll */
+.camera-body {
+  flex:    1;
+  display: flex;
+  flex-direction: column;
+  gap:     0.8rem;
+  padding: 0.8rem;
+  overflow: auto;
+}
+
+/* Container do vídeo + canvas overlay */
+.camera-wrap {
+  position:      relative;
+  border-radius: var(--radius);
+  overflow:      hidden;
+  border:        1px solid var(--border);
+  box-shadow:    var(--shadow-neon);
+  width:         100%;
+  max-width:     700px;
+  margin:        0 auto;
+  aspect-ratio:  16/9;
+  background:    #000;
+  flex-shrink:   0;
+}
+
+/* Elemento de vídeo */
+#cameraVideo {
+  width:      100%; height: 100%;
+  object-fit: cover;
+  display:    block;
+}
+
+/* Canvas overlay transparente sobre o vídeo */
+#cameraCanvas {
+  position:       absolute; top: 0; left: 0;
+  width:          100%; height: 100%;
+  pointer-events: none; /* não bloqueia cliques */
+}
+
+/* Linha de scanner animada sobre o vídeo */
+.camera-wrap::after {
+  content:    '';
+  position:   absolute; left: 0;
+  width:      100%; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+  animation:  scanner 2.8s linear infinite;
+  pointer-events: none;
+}
+
+/* Botão ligar/desligar câmera */
+.btn-cam {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.5rem;
+  padding:         0.70rem 1.4rem;
+  background:      rgba(0,255,234,0.09);
+  border:          1px solid rgba(0,255,234,0.28);
+  border-radius:   8px;
+  color:           var(--neon-cyan);
+  font-family:     'Exo 2', sans-serif;
+  font-weight:     600;
+  font-size:       0.88rem;
+  cursor:          pointer;
+  transition:      all var(--trans);
+  text-transform:  uppercase;
+  margin:          0 auto;
+}
+.btn-cam:hover {
+  background: rgba(0,255,234,0.20);
+  box-shadow: 0 0 18px rgba(0,255,234,0.40);
+}
+.btn-cam:disabled {
+  opacity: 0.5;
+  cursor:  not-allowed;
+}
+
+/* Painel de resultado da câmera */
+.camera-result {
+  background:      var(--bg-glass);
+  border:          1px solid var(--border);
+  border-radius:   var(--radius);
+  padding:         1.1rem;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  max-width:       700px;
+  width:           100%;
+  margin:          0 auto;
+  display:         flex;
+  flex-direction:  column;
+  gap:             0.5rem;
+}
+
+/* Letra detectada grande */
+.letra-cam-big {
+  font-family:    'Orbitron', monospace;
+  font-size:      3.5rem;
+  font-weight:    900;
+  color:          var(--neon-blue);
+  text-shadow:    var(--shadow-neon);
+  text-align:     center;
+  min-height:     4rem;
+  line-height:    1;
+  letter-spacing: 0.15em;
+  animation:      none;
+  transition:     color 0.2s;
+}
+
+/* Label de porcentagem de confiança */
+.lbl-conf {
+  font-family:    'Share Tech Mono', monospace;
+  font-size:      0.85rem;
+  color:          var(--neon-cyan);
+  text-align:     center;
+  min-height:     1.2rem;
+}
+
+/* Barra de confiança */
+.conf-bar {
+  height:        6px;
+  background:    rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow:      hidden;
+}
+
+.conf-fill {
+  height:        100%;
+  background:    linear-gradient(90deg, var(--neon-blue), var(--neon-cyan));
+  border-radius: 3px;
+  transition:    width 0.45s ease;
+  width:         0%;
+}
+
+/* Texto acumulado das letras detectadas */
+.detected-text {
+  font-family:    'Orbitron', monospace;
+  font-size:      1.5rem;
+  color:          var(--neon-cyan);
+  text-align:     center;
+  min-height:     2.2rem;
+  word-break:     break-all;
+  letter-spacing: 0.12em;
+}
+
+/* ============================================================
+   TELA BLUETOOTH
+   ============================================================ */
+#screen-bluetooth {
+  flex-direction: column;
+  align-items:    center;
+  justify-content: center;
+  padding: 1.5rem 1rem;
+  gap:     1.2rem;
+}
+
+/* Card glassmorphism de Bluetooth */
+.bt-card {
+  background:      var(--bg-glass);
+  border:          1px solid var(--border);
+  border-radius:   var(--radius);
+  padding:         1.8rem 1.5rem;
+  width:           100%;
+  max-width:       460px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  gap:             1.2rem;
+  text-align:      center;
+}
+
+/* Ícone BT grande que gira */
+.bt-icon-big {
+  width:  72px; height: 72px;
+  animation: rotSlow 10s linear infinite;
+}
+
+/* Nome do dispositivo conectado */
+.bt-device-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size:   0.95rem;
+  color:       var(--neon-blue);
+}
+
+/* Instruções de texto */
+.bt-instrucoes {
+  font-size:   0.83rem;
+  color:       var(--text-dim);
+  text-align:  left;
+  line-height: 1.9;
+  width:       100%;
+}
+.bt-instrucoes strong { color: var(--neon-cyan); }
+
+/* Dois botões lado a lado */
+.bt-btn-row {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   0.65rem;
+  width:                 100%;
+}
+
+/* Grade de chips do alfabeto de referência */
+.ref-alfabeto {
+  display:         flex;
+  flex-wrap:       wrap;
+  gap:             0.38rem;
+  justify-content: center;
+}
+
+/* ============================================================
+   SCROLLBAR CUSTOMIZADA
+   ============================================================ */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track  { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb  { background: rgba(0,212,255,0.28); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,212,255,0.55); }
+
+/* ============================================================
+   ANIMAÇÕES KEYFRAMES
+   ============================================================ */
+
+/* Entrada de cima */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Entrada de baixo */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulso do logo */
+@keyframes pulseGlow {
+  0%,100% { box-shadow: var(--shadow-neon), inset 0 0 28px rgba(0,212,255,0.10); }
+  50%     { box-shadow: var(--shadow-lg),   inset 0 0 40px rgba(0,212,255,0.18); }
+}
+
+/* Piscar do ponto BT */
+@keyframes btBlink {
+  0%,100% { opacity: 1;    }
+  50%     { opacity: 0.35; }
+}
+
+/* Chip ativo brilhando */
+@keyframes chipGlow {
+  from { box-shadow: 0 0 8px  var(--neon-blue); }
+  to   { box-shadow: 0 0 22px var(--neon-blue), 0 0 45px rgba(0,212,255,0.28); }
+}
+
+/* Linha de scanner na câmera */
+@keyframes scanner {
+  0%   { top: 0;    opacity: 0.9; }
+  100% { top: 100%; opacity: 0;   }
+}
+
+/* Rotação lenta do ícone BT */
+@keyframes rotSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   RESPONSIVIDADE — MOBILE (≤ 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* Home: menos espaço */
+  #screen-home { padding: 1.2rem 1rem; gap: 1.4rem; }
+  .home-buttons { max-width: 100%; }
+
+  /* Texto: painéis empilhados verticalmente */
+  .text-body {
+    flex-direction: column;
+    overflow: auto;
+    padding:  0.7rem;
+  }
+
+  /* Painel direito com altura fixa no mobile */
+  .panel-right { min-height: 320px; flex: none; }
+
+  /* Canvas 3D menor no mobile */
+  #hand3d-container { min-height: 220px; }
+
+  /* Letra grande menor */
+  #letra-atual { font-size: 2.2rem; }
+
+  /* Grade de botões vira coluna */
+  .btn-row { grid-template-columns: 1fr; }
+
+  /* Grade BT vira coluna */
+  .bt-btn-row { grid-template-columns: 1fr; }
+
+  /* Câmera: proporção 4:3 no mobile */
+  .camera-wrap { aspect-ratio: 4/3; }
+
+  /* Título menor */
+  .app-title { font-size: 2.2rem; }
+
+  /* Letra detectada pela câmera menor */
+  .letra-cam-big { font-size: 2.8rem; }
+}
+
+/* ============================================================
+   RESPONSIVIDADE — MOBILE PEQUENO (≤ 400px)
+   ============================================================ */
+@media (max-width: 400px) {
+  .logo-circle { width: 85px; height: 85px; }
+  #letra-atual { font-size: 2rem; }
+  .chip { width: 26px; height: 26px; font-size: 0.72rem; }
+  .letra-cam-big { font-size: 2.2rem; }
+  .app-title { font-size: 1.9rem; }
+}
+
+/* ============================================================
+   UTILITÁRIOS
+   ============================================================ */
+/* Oculta elemento com !important */
+.hidden { display: none !important; }

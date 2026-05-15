@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  LibraTronic v3 — index.html
+  Tradução Libras oficial · Mão Robótica 3D · ESP32 Bluetooth
+  Integrado com: style.css · hand3d.js · script.js · Three.js
+  Responsivo Desktop e Mobile | Glassmorphism | Neon Blue
+  ============================================================
+-->
+<html lang="pt-BR">
+<head>
+
+  <!-- Codificação UTF-8 — suporte a acentos e símbolos -->
+  <meta charset="UTF-8" />
+
+  <!-- Viewport responsivo — adapta ao dispositivo -->
+  <!-- viewport-fit=cover cobre o notch do iPhone -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- Título da aba do browser -->
+  <title>LibraTronic — Mão Robótica Libras</title>
+
+  <!-- Cor da barra de status no Chrome Android -->
+  <meta name="theme-color" content="#020a14" />
+
+  <!-- PWA: modo standalone no iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="LibraTronic" />
+
+  <!-- Descrição para SEO -->
+  <meta name="description" content="Sistema de tradução Libras com mão robótica 3D articulada e controle via Bluetooth ESP32." />
+
+  <!-- ============================================================
+       CSS PRINCIPAL — carregado no head para evitar FOUC
+       ============================================================ -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ============================================================
+       THREE.JS r128 — motor de renderização 3D WebGL
+       Deve vir ANTES de hand3d.js (que usa THREE global)
+       ============================================================ -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer">
+  </script>
+
+  <!-- ============================================================
+       POLYFILL — CanvasRenderingContext2D.roundRect
+       Browsers antigos não têm roundRect; adicionamos aqui.
+       ============================================================ -->
+  <script>
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        var radii = typeof r === 'number' ? [r, r, r, r] : (r || [0,0,0,0]);
+        this.beginPath();
+        this.moveTo(x + radii[0], y);
+        this.lineTo(x + w - radii[1], y);
+        this.arcTo(x + w, y,     x + w, y + radii[1], radii[1]);
+        this.lineTo(x + w, y + h - radii[2]);
+        this.arcTo(x + w, y + h, x + w - radii[2], y + h, radii[2]);
+        this.lineTo(x + radii[3], y + h);
+        this.arcTo(x,     y + h, x, y + h - radii[3], radii[3]);
+        this.lineTo(x, y + radii[0]);
+        this.arcTo(x,     y,     x + radii[0], y, radii[0]);
+        this.closePath();
+        return this;
+      };
+    }
+  </script>
+
+</head>
+<body>
+
+<!-- ============================================================
+     #app — Container raiz.
+     Todas as telas (.screen) ficam aqui com position:absolute,
+     empilhadas. Apenas a .screen.active fica visível.
+     ============================================================ -->
+<div id="app">
+
+
+  <!-- ===========================================================
+       TELA 1 — HOME
+       ID: screen-home | Ativada por: mostrarTela('home')
+       =========================================================== -->
+  <section id="screen-home" class="screen" aria-label="Tela inicial LibraTronic">
+
+    <!-- ── LOGO + TÍTULO ──────────────────────────────────── -->
+    <div class="logo-wrap">
+
+      <!-- Círculo do logo com SVG de mão robótica -->
+      <div class="logo-circle" role="img" aria-label="Logo LibraTronic">
+        <svg width="68" height="68" viewBox="0 0 68 68"
+             fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Palma -->
+          <rect x="14" y="34" width="40" height="26" rx="7"
+                fill="rgba(0,212,255,0.18)" stroke="#00d4ff" stroke-width="1.5"/>
+          <!-- Polegar -->
+          <rect x="7" y="27" width="10" height="19" rx="5"
+                fill="rgba(0,212,255,0.25)" stroke="#00d4ff" stroke-width="1.5"/>
+          <!-- Indicador -->
+          <rect x="19" y="10" width="9" height="27" rx="4"
+                fill="rgba(0,212,255,0.25)" stroke="#00d4ff" stroke-width="1.5"/>
+          <!-- Médio (destacado em ciano) -->
+          <rect x="30" y="6" width="9" height="31" rx="4"
+                fill="rgba(0,255,234,0.35)" stroke="#00ffea" stroke-width="1.5"/>
+          <!-- Anelar -->
+          <rect x="41" y="10" width="9" height="27" rx="4"
+                fill="rgba(0,212,255,0.25)" stroke="#00d4ff" stroke-width="1.5"/>
+          <!-- Mindinho -->
+          <rect x="52" y="18" width="8" height="21" rx="4"
+                fill="rgba(0,212,255,0.18)" stroke="#00d4ff" stroke-width="1.5"/>
+          <!-- Articulações neon -->
+          <circle cx="23" cy="35" r="2.8" fill="#00d4ff" opacity="0.85"/>
+          <circle cx="34" cy="35" r="2.8" fill="#00ffea" opacity="0.85"/>
+          <circle cx="45" cy="35" r="2.8" fill="#00d4ff" opacity="0.85"/>
+        </svg>
+      </div>
+
+      <!-- Nome do projeto -->
+      <h1 class="app-title">LibraTronic</h1>
+
+      <!-- Slogan -->
+      <p class="app-subtitle">Mão Robótica Tradutora de Libras</p>
+
+    </div><!-- /.logo-wrap -->
+
+    <!-- ── BOTÕES PRINCIPAIS ──────────────────────────────── -->
+    <nav class="home-buttons" aria-label="Menu principal">
+
+      <!-- Tradução por Texto: abre screen-text -->
+      <button id="btn-ir-texto" class="btn-primary"
+              aria-label="Abrir tradução por texto">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/>
+          <line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        Tradução por Texto
+      </button>
+
+      <!-- Tradução por Câmera: abre screen-camera -->
+      <button id="btn-ir-camera" class="btn-primary"
+              aria-label="Abrir tradução por câmera">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Tradução por Câmera
+      </button>
+
+      <!-- Conectar Bluetooth: abre screen-bluetooth -->
+      <button id="btn-ir-bluetooth" class="btn-secondary"
+              aria-label="Conectar à mão robótica via Bluetooth">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+        </svg>
+        Conectar à Mão Robótica
+      </button>
+
+    </nav><!-- /.home-buttons -->
+
+    <!-- ── STATUS BLUETOOTH ──────────────────────────────── -->
+    <!-- bt-dot e bt-status-text são sincronizados por atualizarBTUI() -->
+    <div class="bt-status" role="status" aria-live="polite">
+      <span class="bt-dot" aria-hidden="true"></span>
+      <span class="bt-status-text">Bluetooth desconectado</span>
+    </div>
+
+  </section>
+  <!-- FIM screen-home -->
+
+
+  <!-- ===========================================================
+       TELA 2 — TRADUÇÃO POR TEXTO
+       ID: screen-text | Ativada por: mostrarTela('text')
+       Layout: header fixo + text-body (painel-left | painel-right)
+       =========================================================== -->
+  <section id="screen-text" class="screen" aria-label="Tradução por texto">
+
+    <!-- ── HEADER ──────────────────────────────────────────── -->
+    <header class="screen-header">
+      <!-- btn-back dispara mostrarTela('home') via querySelectorAll -->
+      <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
+      <h2>Tradução por Texto</h2>
+      <!-- Indicador BT no header (sincronizado com atualizarBTUI) -->
+      <div class="bt-status" style="margin-left:auto;font-size:0.75rem;" role="status" aria-live="polite">
+        <span class="bt-dot" aria-hidden="true"></span>
+        <span class="bt-status-text" style="display:none;">BT</span>
+      </div>
+    </header>
+
+    <!-- ── CORPO DIVIDIDO ─────────────────────────────────── -->
+    <div class="text-body">
+
+      <!-- ════════════════════════════════════════════════════
+           PAINEL ESQUERDO — entrada de texto e controles
+           ════════════════════════════════════════════════════ -->
+      <div class="panel panel-left">
+
+        <p class="panel-label">&#9998;&nbsp; Entrada de Texto</p>
+
+        <!-- Campo de texto principal.
+             Letras são convertidas para maiúsculo automaticamente.
+             Enter inicia tradução (sem Shift). -->
+        <textarea
+          id="input-texto"
+          class="text-input"
+          placeholder="Digite aqui... (ex: OLA ou AJUDA)"
+          rows="4"
+          aria-label="Texto a traduzir em Libras"
+          spellcheck="false"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="characters"
+        ></textarea>
+
+        <p class="tip">Digite A–Z &middot; <kbd>Enter</kbd> para traduzir &middot; Palavras-chave ativam gesto real</p>
+
+        <!-- Botões Traduzir / Limpar -->
+        <div class="btn-row">
+          <button id="btn-traduzir" class="btn-act blue" aria-label="Iniciar tradução">
+            &#9654;&nbsp; Traduzir
+          </button>
+          <button id="btn-limpar" class="btn-act gray" aria-label="Limpar campo">
+            &#10005;&nbsp; Limpar
+          </button>
+        </div>
+
+        <!-- ── GESTOS RÁPIDOS ──
+             Cada botão preenche input-texto + chama iniciarTraducao()
+             via data-p="PALAVRA" capturado por querySelectorAll('.btn-palavra') -->
+        <div class="sep" aria-hidden="true"></div>
+        <p class="panel-label">&#9889;&nbsp; Gestos Rápidos Libras</p>
+
+        <div class="palavras-rapidas" role="group" aria-label="Gestos rápidos em Libras">
+          <button class="btn-palavra" data-p="AJUDA"      aria-label="Gesto AJUDA">AJUDA</button>
+          <button class="btn-palavra" data-p="SOCORRO"    aria-label="Gesto SOCORRO">SOCORRO</button>
+          <button class="btn-palavra" data-p="OBRIGADO"   aria-label="Gesto OBRIGADO">OBRIGADO</button>
+          <button class="btn-palavra" data-p="AGUA"       aria-label="Gesto AGUA">ÁGUA</button>
+          <button class="btn-palavra" data-p="COMIDA"     aria-label="Gesto COMIDA">COMIDA</button>
+          <button class="btn-palavra" data-p="BANHEIRO"   aria-label="Gesto BANHEIRO">BANHEIRO</button>
+          <button class="btn-palavra" data-p="PERIGO"     aria-label="Gesto PERIGO">PERIGO</button>
+          <button class="btn-palavra" data-p="SIM"        aria-label="Gesto SIM">SIM</button>
+          <button class="btn-palavra" data-p="NAO"        aria-label="Gesto NAO">NÃO</button>
+          <button class="btn-palavra" data-p="POR FAVOR"  aria-label="Gesto POR FAVOR">POR FAVOR</button>
+        </div>
+
+        <!-- ── FILA DE LETRAS ──
+             Chips criados dinamicamente por renderizarChips()
+             e controlados por marcarChip() -->
+        <div class="sep" aria-hidden="true"></div>
+        <p class="panel-label">&#8677;&nbsp; Fila de Envio</p>
+
+        <div id="fila-chips" class="queue-box"
+             role="list" aria-label="Letras na fila de tradução" aria-live="polite">
+          <!-- inserido dinamicamente -->
+        </div>
+
+        <!-- ── LOG DE STATUS ──
+             Linhas adicionadas por log(msg, tipo) -->
+        <div class="sep" aria-hidden="true"></div>
+        <p class="panel-label">&#9776;&nbsp; Log do Sistema</p>
+
+        <div id="log-box" class="log-box"
+             role="log" aria-live="polite" aria-label="Log de status do sistema">
+          <!-- inserido dinamicamente -->
+        </div>
+
+      </div><!-- /.panel.panel-left -->
+
+
+      <!-- ════════════════════════════════════════════════════
+           PAINEL DIREITO — Mão Robótica 3D (Three.js)
+           ════════════════════════════════════════════════════ -->
+      <div class="panel panel-right">
+
+        <p class="panel-label">&#9881;&nbsp; Mão Robótica 3D — Libras Oficial</p>
+
+        <!-- Container onde o renderer Three.js injeta o <canvas>.
+             LibraHand3D('hand3d-container') em script.js → inicializar3D() -->
+        <div id="hand3d-container"
+             role="img"
+             aria-label="Visualização 3D interativa da mão robótica">
+
+          <!-- Spinner de carregamento — removido por removerLoading3D() -->
+          <div id="hand3d-loading" style="
+            position:absolute; inset:0;
+            display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            color:rgba(0,212,255,0.50);
+            font-family:'Share Tech Mono',monospace;
+            font-size:0.78rem; gap:0.8rem;
+            pointer-events:none;
+          " aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"
+                 style="animation:rotSlow 2s linear infinite; opacity:0.6;">
+              <circle cx="20" cy="20" r="17"
+                      stroke="rgba(0,212,255,0.25)" stroke-width="2"/>
+              <path d="M20 3 A17 17 0 0 1 37 20"
+                    stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            <span>Carregando mão 3D...</span>
+          </div>
+
+        </div><!-- /#hand3d-container -->
+
+        <!-- Display grande da letra/palavra sendo traduzida.
+             Atualizado por setLetraAtual() e setLetraAtualGrande() -->
+        <div id="letra-atual"
+             role="status" aria-live="polite"
+             aria-label="Letra atual sendo traduzida"></div>
+
+        <!-- Modo de tradução atual (soletração / gesto).
+             Atualizado por setFeedbackModo() -->
+        <p id="feedback-modo" role="status" aria-live="polite">
+          Aguardando entrada...
+        </p>
+
+        <!-- Controles de visualização 3D -->
+        <div class="controles-3d" role="group" aria-label="Controles da visualização 3D">
+          <!-- Toggle rotação automática da câmera 3D -->
+          <button id="btn-3d-rotacionar" class="btn-ctrl3d ativo"
+                  title="Ligar/desligar rotação automática"
+                  aria-label="Alternar rotação automática da câmera 3D">
+            &#8635;&nbsp; Rotação
+          </button>
+          <!-- Resetar câmera para posição inicial -->
+          <button id="btn-3d-resetar" class="btn-ctrl3d"
+                  title="Resetar câmera 3D"
+                  aria-label="Resetar câmera 3D para posição inicial">
+            &#8962;&nbsp; Resetar
+          </button>
+        </div>
+
+        <p class="tip">Arraste para girar &middot; Scroll para zoom</p>
+
+      </div><!-- /.panel.panel-right -->
+
+    </div><!-- /.text-body -->
+
+  </section>
+  <!-- FIM screen-text -->
+
+
+  <!-- ===========================================================
+       TELA 3 — TRADUÇÃO POR CÂMERA
+       ID: screen-camera | Ativada por: mostrarTela('camera')
+       MediaPipe Hands detecta configurações da mão em tempo real.
+       Se indisponível, ativa modo demonstração simulado.
+       =========================================================== -->
+  <section id="screen-camera" class="screen" aria-label="Tradução por câmera">
+
+    <!-- ── HEADER ──────────────────────────────────────────── -->
+    <header class="screen-header">
+      <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
+      <h2>Tradução por Câmera</h2>
+    </header>
+
+    <!-- ── CORPO ────────────────────────────────────────────── -->
+    <div class="camera-body">
+
+      <!-- Container do vídeo + canvas overlay.
+           position:relative permite sobrepor o canvas ao vídeo. -->
+      <div class="camera-wrap">
+
+        <!-- Stream da câmera do dispositivo.
+             Mobile: câmera traseira (environment) por padrão.
+             Desktop: webcam (user). -->
+        <video
+          id="cameraVideo"
+          autoplay
+          playsinline
+          muted
+          aria-label="Feed ao vivo da câmera"
+        ></video>
+
+        <!-- Canvas sobreposto transparente.
+             Usado por desenharLandmarks() para pintar os 21 pontos
+             MediaPipe sobre o vídeo em tempo real. -->
+        <canvas id="cameraCanvas"
+                aria-hidden="true"
+                title="Pontos de rastreamento da mão detectada"></canvas>
+
+      </div><!-- /.camera-wrap -->
+
+      <!-- Botão ligar/desligar câmera.
+           toggleCamera() → ligarCamera() ou pararCamera() -->
+      <button id="btn-toggle-camera" class="btn-cam"
+              aria-label="Ligar ou desligar a câmera do dispositivo">
+        &#128247;&nbsp; Ligar Câmera
+      </button>
+
+      <!-- Mensagem de erro de câmera (oculta por padrão).
+           Exibida por mostrarErroCameraUI() com mensagem amigável. -->
+      <p id="camera-erro" style="
+        display:none;
+        color:#ff6644;
+        font-family:'Share Tech Mono',monospace;
+        font-size:0.80rem;
+        text-align:center;
+        padding:0.6rem 1rem;
+        background:rgba(255,60,0,0.08);
+        border:1px solid rgba(255,60,0,0.25);
+        border-radius:8px;
+        max-width:600px;
+        margin:0 auto;
+      " role="alert" aria-live="assertive"></p>
+
+      <!-- ── PAINEL DE RESULTADO DA DETECÇÃO ─────────────── -->
+      <div class="camera-result">
+
+        <p class="panel-label">&#128065;&nbsp; Reconhecimento em Tempo Real</p>
+
+        <!-- Letra detectada grande — atualizada por atualizarResultadoCamera() -->
+        <div id="letra-camera-detectada"
+             class="letra-cam-big"
+             role="status" aria-live="polite"
+             aria-label="Letra Libras detectada pela câmera">—</div>
+
+        <!-- Label de porcentagem de confiança -->
+        <p id="lbl-confianca" class="lbl-conf" aria-live="polite"></p>
+
+        <!-- Barra de confiança 0–100%.
+             id="conf-fill" → width atualizado por atualizarResultadoCamera() -->
+        <div class="conf-bar"
+             role="progressbar" aria-valuemin="0" aria-valuemax="100"
+             title="Confiança da detecção">
+          <div id="conf-fill" class="conf-fill"></div>
+        </div>
+
+        <!-- Texto acumulado com todas as letras detectadas -->
+        <div class="sep" aria-hidden="true" style="margin:0.6rem 0 0.4rem;"></div>
+        <p class="panel-label">&#128172;&nbsp; Texto Acumulado</p>
+
+        <div id="texto-detectado"
+             class="detected-text"
+             role="status" aria-live="polite"
+             aria-label="Texto acumulado das letras detectadas"></div>
+
+        <p class="tip" style="margin-top:0.5rem;">
+          Mostre um gesto Libras para a câmera &middot; O sistema reconhece e fala a letra
+        </p>
+
+        <!-- Limpar texto acumulado -->
+        <button id="btn-limpar-cam"
+                class="btn-act gray"
+                style="width:100%; margin-top:0.7rem;"
+                aria-label="Limpar texto detectado pela câmera">
+          &#10005;&nbsp; Limpar
+        </button>
+
+      </div><!-- /.camera-result -->
+
+      <p class="tip" style="font-size:0.68rem; text-align:center; margin-top:0.4rem;">
+        Reconhecimento via MediaPipe Hands &middot; Requer internet para carregar o modelo
+      </p>
+
+    </div><!-- /.camera-body -->
+
+  </section>
+  <!-- FIM screen-camera -->
+
+
+  <!-- ===========================================================
+       TELA 4 — BLUETOOTH
+       ID: screen-bluetooth | Ativada por: mostrarTela('bluetooth')
+       Gerencia a conexão BLE com o ESP32 LibraTronic.
+       =========================================================== -->
+  <section id="screen-bluetooth" class="screen" aria-label="Conexão Bluetooth com a mão robótica">
+
+    <!-- ── HEADER ──────────────────────────────────────────── -->
+    <header class="screen-header" style="width:100%;max-width:480px;align-self:center;">
+      <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
+      <h2>Conexão Bluetooth</h2>
+    </header>
+
+    <!-- ── CARD PRINCIPAL DE BLUETOOTH ─────────────────────── -->
+    <div class="bt-card">
+
+      <!-- Ícone BT animado (gira lentamente pelo CSS) -->
+      <svg class="bt-icon-big" viewBox="0 0 24 24"
+           fill="none" stroke="#00d4ff" stroke-width="1.5"
+           stroke-linecap="round" stroke-linejoin="round"
+           role="img" aria-label="Ícone Bluetooth">
+        <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+      </svg>
+
+      <!-- Status de conexão.
+           id="bt-device-name" → atualizado por atualizarBTUI() -->
+      <div class="bt-status" style="justify-content:center;"
+           role="status" aria-live="polite">
+        <span class="bt-dot" aria-hidden="true"></span>
+        <span id="bt-device-name" class="bt-device-name">Aguardando conexão...</span>
+      </div>
+
+      <!-- Instruções de uso -->
+      <div class="bt-instrucoes" aria-label="Instruções de conexão Bluetooth">
+        <p><strong>Como conectar:</strong></p>
+        <p>1&nbsp;&nbsp; Ligue o ESP32 (LibraTronic)</p>
+        <p>2&nbsp;&nbsp; Clique em <em>Conectar</em> abaixo</p>
+        <p>3&nbsp;&nbsp; Selecione <strong>"LibraTronic"</strong> na lista do browser</p>
+        <p>4&nbsp;&nbsp; Aguarde o indicador ficar verde</p>
+        <br/>
+        <p style="color:#ff9944;font-size:0.78rem;">
+          &#9888;&nbsp; Requer Chrome no Android ou Chrome Desktop<br/>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;iOS Safari não suporta Web Bluetooth
+        </p>
+      </div>
+
+      <!-- Botões conectar / desconectar -->
+      <div class="bt-btn-row">
+        <button id="btn-bt-conectar" class="btn-act blue"
+                aria-label="Iniciar conexão Bluetooth com o ESP32">
+          &#128275;&nbsp; Conectar
+        </button>
+        <button id="btn-bt-desconectar" class="btn-act gray"
+                aria-label="Encerrar conexão Bluetooth">
+          &#128274;&nbsp; Desconectar
+        </button>
+      </div>
+
+      <!-- Separador -->
+      <div class="sep" style="width:100%;" aria-hidden="true"></div>
+
+      <!-- Informações técnicas dos UUIDs BLE -->
+      <div style="
+        font-family:'Share Tech Mono',monospace;
+        font-size:0.70rem;
+        color:var(--text-dim);
+        text-align:left;
+        width:100%;
+        line-height:2.0;
+      " aria-label="Informações técnicas do serviço Bluetooth">
+        <p>Serviço BLE&nbsp;&nbsp;: <span style="color:var(--neon-blue);">FFE0</span></p>
+        <p>Característica: <span style="color:var(--neon-blue);">FFE1</span></p>
+        <p>Baud Rate&nbsp;&nbsp;&nbsp;: <span style="color:var(--neon-blue);">115200</span></p>
+        <p>Protocolo&nbsp;&nbsp;&nbsp;: <span style="color:var(--neon-blue);">&lt;CMD_LETRA&gt;</span></p>
+      </div>
+
+    </div><!-- /.bt-card -->
+
+    <!-- ── REFERÊNCIA DO ALFABETO LIBRAS ─────────────────── -->
+    <div class="bt-card" style="padding:1.2rem;" aria-label="Referência do alfabeto Libras">
+
+      <p class="panel-label">&#9997;&nbsp; Datilologia Libras — A a Z</p>
+
+      <!-- 26 chips estáticos (somente referência visual) -->
+      <div class="ref-alfabeto" role="list" aria-label="Letras A a Z do alfabeto Libras">
+        <span class="chip sent" role="listitem" title="A - Punho fechado">A</span>
+        <span class="chip sent" role="listitem" title="B - Mão aberta, 4 dedos">B</span>
+        <span class="chip sent" role="listitem" title="C - Arco em C">C</span>
+        <span class="chip sent" role="listitem" title="D - Indicador+polegar">D</span>
+        <span class="chip sent" role="listitem" title="E - Pontas na palma">E</span>
+        <span class="chip sent" role="listitem" title="F - Pinça indicador+polegar">F</span>
+        <span class="chip sent" role="listitem" title="G - Horizontal">G</span>
+        <span class="chip sent" role="listitem" title="H - Dois dedos horizontais">H</span>
+        <span class="chip sent" role="listitem" title="I - Mindinho estendido">I</span>
+        <span class="chip sent" role="listitem" title="J - I com traçado J">J</span>
+        <span class="chip sent" role="listitem" title="K - Indicador+médio+polegar">K</span>
+        <span class="chip sent" role="listitem" title="L - Ângulo reto">L</span>
+        <span class="chip sent" role="listitem" title="M - 3 dedos sobre polegar">M</span>
+        <span class="chip sent" role="listitem" title="N - 2 dedos sobre polegar">N</span>
+        <span class="chip sent" role="listitem" title="O - Círculo">O</span>
+        <span class="chip sent" role="listitem" title="P - Indicador para baixo">P</span>
+        <span class="chip sent" role="listitem" title="Q - G para baixo">Q</span>
+        <span class="chip sent" role="listitem" title="R - Dedos cruzados">R</span>
+        <span class="chip sent" role="listitem" title="S - Punho com polegar">S</span>
+        <span class="chip sent" role="listitem" title="T - Polegar entre dedos">T</span>
+        <span class="chip sent" role="listitem" title="U - Dois dedos unidos">U</span>
+        <span class="chip sent" role="listitem" title="V - V de vitória">V</span>
+        <span class="chip sent" role="listitem" title="W - Três dedos abertos">W</span>
+        <span class="chip sent" role="listitem" title="X - Indicador em gancho">X</span>
+        <span class="chip sent" role="listitem" title="Y - Polegar+mindinho">Y</span>
+        <span class="chip sent" role="listitem" title="Z - Indicador traça Z">Z</span>
+      </div>
+
+      <p class="tip" style="margin-top:0.6rem;">
+        26 letras · J e Z possuem movimento · 10 gestos de palavras completas
+      </p>
+
+    </div><!-- /.bt-card alfabeto -->
+
+  </section>
+  <!-- FIM screen-bluetooth -->
+
+
+</div><!-- /#app -->
+
+
+<!-- ============================================================
+     MEDIAPIPE — carregado de forma não-bloqueante
+     Se a CDN falhar (sem internet), o sistema entra em
+     modo demonstração simulado automaticamente.
+     ============================================================ -->
+<script>
+  (function() {
+    function carregarScript(src) {
+      var s       = document.createElement('script');
+      s.src         = src;
+      s.async       = true;
+      s.crossOrigin = 'anonymous';
+      document.head.appendChild(s);
+    }
+    // Camera Utils — necessário para a classe Camera() do MediaPipe
+    carregarScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js');
+    // Hands — modelo de detecção de 21 landmarks da mão
+    carregarScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js');
+  })();
+</script>
+
+<!-- ============================================================
+     hand3d.js — Mão robótica 3D
+     Deve vir DEPOIS de Three.js (no head) e
+     ANTES de script.js (que instancia LibraHand3D)
+     ============================================================ -->
+<script src="hand3d.js"></script>
+
+<!-- ============================================================
+     script.js — Lógica principal da aplicação
+     Carregado por último: DOM pronto, Three.js e hand3d.js já carregados
+     ============================================================ -->
+<script src="script.js"></script>
+
+<!-- ============================================================
+     LOADING REMOVER — remove o spinner do container 3D
+     quando a cena Three.js terminar de inicializar.
+     Fallback de 5s caso a inicialização demore.
+     ============================================================ -->
+<script>
+  function removerLoading3D() {
+    var el = document.getElementById('hand3d-loading');
+    if (!el) return;
+    el.style.transition = 'opacity 0.4s';
+    el.style.opacity    = '0';
+    setTimeout(function() {
+      if (el && el.parentNode) el.parentNode.removeChild(el);
+    }, 450);
+  }
+  // Fallback: remove em 5s se ainda existir
+  setTimeout(removerLoading3D, 5000);
+  // Expõe para hand3d.js / script.js chamarem quando prontos
+  window.removerLoading3D = removerLoading3D;
+</script>
+
+</body>
+</html>
