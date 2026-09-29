@@ -503,6 +503,16 @@ var LibraHand3D = (function() {
     var self = this;
     window.addEventListener('resize', function() { self._resize(); });
 
+    // ── PAUSA RENDER QUANDO INVISÍVEL ──
+    document.addEventListener("visibilitychange", function() {
+      if (document.hidden) {
+        if (self.rafId) cancelAnimationFrame(self.rafId);
+      } else {
+        self.clock.getDelta(); // Limpa o delta acumulado
+        self._loop(); // Retoma a renderização
+      }
+    });
+
     // ── INICIA LOOP ──
     this.pronto = true;
     this._loop();
