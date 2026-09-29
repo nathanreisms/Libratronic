@@ -28,12 +28,16 @@ var BT_UUID_CARAC   = '0000ffe1-0000-1000-8000-00805f9b34fb';
 var traduzindo      = false;
 var abortarTraducao = false;
 
-// ── CÂMERA ─────────────────────────────────────────────────
+// ── CÂMERA E BUFFER DE ESTABILIDADE ────────────────────────
 var cameraStream = null;   // MediaStream ativo
 var cameraAtiva  = false;
 var camRafId     = null;   // loop do modo simulado
 var mpHands      = null;   // instância MediaPipe Hands
 var mpCamera     = null;   // instância MediaPipe Camera
+
+var frameBufferLetra = ''; // Buffer para estabilizar a letra
+var frameBufferContador = 0;
+var FRAMES_NECESSARIOS = 15; // Exige 15 frames iguais antes de registrar a letra
 
 // ── DEBOUNCE DE RECONHECIMENTO ─────────────────────────────
 // Evita repetir o áudio da mesma letra continuamente
@@ -76,10 +80,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); iniciarTraducao(); }
   });
 
-  // Força maiúsculo e filtra caracteres inválidos
+  // Força maiúsculo e filtra caracteres inválidos (com suporte a remoção de acentos)
   document.getElementById('input-texto').addEventListener('input', function() {
     var pos = this.selectionStart;
-    this.value = this.value.toUpperCase().replace(/[^A-Z \n]/g, '');
+    this.value = this.value
+      .normalize('NFD')                     // Separa letras de acentos
+      .replace(/[\u0300-\u036f]/g, '')      // Remove as marcas de acento
+      .toUpperCase()                        // Força caixa alta
+      .replace(/[^A-Z \n]/g, '');           // Mantém apenas A-Z, espaços e quebras
     try { this.setSelectionRange(pos, pos); } catch(e) {}
   });
 
@@ -161,7 +169,6 @@ function buscarPalavra(p) {
   return bancoDados.palavras[p] || null;
 }
 
-// Verifica se o texto inteiro é uma palavra-chave exata
 function detectarPalavraChave(texto) {
   var t = texto.trim().toUpperCase();
   for (var i = 0; i < PALAVRAS_CHAVE.length; i++) {
@@ -208,7 +215,6 @@ function resetar3DCamera() {
 
 function iniciarTraducao() {
   if (traduzindo) {
-    // Para a tradução em andamento
     abortarTraducao = true;
     traduzindo      = false;
     var b = document.getElementById('btn-traduzir');
@@ -221,7 +227,6 @@ function iniciarTraducao() {
   var texto   = inputEl ? inputEl.value.trim().toUpperCase() : '';
   if (!texto) { log('⚠ Digite algum texto!', 'error'); return; }
 
-  // Palavra-chave = gesto completo; caso contrário = soletração
   var pk = detectarPalavraChave(texto);
   if (pk) {
     traduzirGestoCompleto(pk);
@@ -230,13 +235,7 @@ function iniciarTraducao() {
   }
 }
 
-// ----------------------------------------------------------
-// traduzirSoletrado(texto)
-// Soletra letra a letra. Trata espaços com pausa visual.
-// Usa async/await para encadear sequencialmente.
-// ----------------------------------------------------------
 async function traduzirSoletrado(texto) {
-  // Monta tokens: letras A-Z e espaços
   var tokens = [];
   for (var i = 0; i < texto.length; i++) {
     var c = texto[i];
@@ -275,19 +274,15 @@ async function traduzirSoletrado(texto) {
     var dados = buscarLetra(letra);
     var cmd   = dados ? dados.comando : null;
 
-    // Chip visual ativo
     marcarChip(chipIdx, 'active');
     setLetraAtual(letra);
 
-    // Anima mão 3D com configuração Libras oficial
     if (libraHand3D && libraHand3D.pronto && dados && dados.rotacoes3d) {
       libraHand3D.animarLetra(dados.rotacoes3d);
     }
 
-    // Fala a letra
     falar(letra);
 
-    // Bluetooth
     if (btConectado && btCarac && cmd) {
       enviarBT(cmd);
       log('↗ ' + letra + ' → ' + cmd, 'success');
@@ -310,14 +305,9 @@ async function traduzirSoletrado(texto) {
   }
 }
 
-// ----------------------------------------------------------
-// traduzirGestoCompleto(palavra)
-// Executa o gesto oficial Libras para a palavra-chave.
-// ----------------------------------------------------------
 async function traduzirGestoCompleto(palavra) {
   var dados = buscarPalavra(palavra);
   if (!dados) {
-    // Fallback: soletra se o gesto não estiver no banco
     log('ℹ Gesto de "' + palavra + '" não encontrado — soletração', 'info');
     traduzirSoletrado(palavra);
     return;
@@ -334,21 +324,17 @@ async function traduzirGestoCompleto(palavra) {
   setLetraAtualGrande(palavra);
   log('🤲 ' + palavra + ' — ' + (dados.descricao || ''), 'info');
 
-  // Anima mãos 3D
   if (libraHand3D && libraHand3D.pronto) {
     libraHand3D.animarPalavra(dados);
   }
 
-  // Fala a palavra em português
   falar(palavra.toLowerCase());
 
-  // Bluetooth
   if (btConectado && btCarac && dados.comando) {
     enviarBT(dados.comando);
     log('↗ BT: ' + dados.comando, 'success');
   }
 
-  // Exibe o gesto por 2.5s
   await esperar(2500);
 
   if (libraHand3D && libraHand3D.pronto) libraHand3D.posicaoNeutra();
@@ -358,10 +344,6 @@ async function traduzirGestoCompleto(palavra) {
   finalizarTraducao();
 }
 
-// ----------------------------------------------------------
-// tratarEspaco()
-// Pose neutra + feedback visual + pausa de 800ms
-// ----------------------------------------------------------
 async function tratarEspaco() {
   if (libraHand3D && libraHand3D.pronto) libraHand3D.posicaoNeutra();
   setLetraAtual('⎵');
@@ -415,24 +397,14 @@ function toggleCamera() {
   else             ligarCamera();
 }
 
-// ----------------------------------------------------------
-// ligarCamera()
-// Solicita acesso à câmera do dispositivo.
-// Mobile: câmera traseira (environment)
-// Desktop: webcam (user)
-// ----------------------------------------------------------
 async function ligarCamera() {
   var btn = document.getElementById('btn-toggle-camera');
   if (btn) { btn.textContent = '⏳ Aguardando permissão...'; btn.disabled = true; }
 
-  // Oculta erro anterior
   var errEl = document.getElementById('camera-erro');
   if (errEl) errEl.style.display = 'none';
 
-  // Detecta mobile pelo userAgent
   var ehMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-
-  // Tenta câmera preferida; se falhar, tenta a alternativa
   var constraints = ehMobile
     ? [{ facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
        { facingMode: 'user' }]
@@ -444,14 +416,13 @@ async function ligarCamera() {
   for (var i = 0; i < constraints.length; i++) {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: constraints[i] });
-      break; // sucesso: sai do loop
+      break; 
     } catch (e) {
       ultimoErro = e;
     }
   }
 
   if (!stream) {
-    // Todas as tentativas falharam
     if (btn) { btn.textContent = '📷 Ligar Câmera'; btn.disabled = false; }
     var msg = traduzirErroCameraApi(ultimoErro);
     log('✗ ' + msg, 'error');
@@ -471,7 +442,6 @@ async function ligarCamera() {
   iniciarReconhecimento();
 }
 
-// Traduz erro da API para mensagem amigável
 function traduzirErroCameraApi(e) {
   if (!e) return 'Erro desconhecido ao acessar câmera.';
   switch (e.name) {
@@ -503,10 +473,13 @@ function pararCamera() {
     cameraStream.getTracks().forEach(function(t) { t.stop(); });
     cameraStream = null;
   }
-  if (camRafId)   { cancelAnimationFrame(camRafId); camRafId = null; }
-  if (mpCamera)   { try { mpCamera.stop(); } catch(e) {} mpCamera = null; }
+  if (camRafId) { cancelAnimationFrame(camRafId); camRafId = null; }
+  if (mpCamera) { try { mpCamera.stop(); } catch(e) {} mpCamera = null; }
+  if (mpHands)  { try { mpHands.close(); } catch(e) {} mpHands = null; } // Previne memory leak
 
   cameraAtiva = false;
+  frameBufferLetra = '';
+  frameBufferContador = 0;
 
   var camCanvas = document.getElementById('cameraCanvas');
   if (camCanvas) {
@@ -521,10 +494,6 @@ function pararCamera() {
   log('⏹ Câmera desligada', 'info');
 }
 
-// ----------------------------------------------------------
-// iniciarReconhecimento()
-// Usa MediaPipe se disponível; fallback = modo demonstração
-// ----------------------------------------------------------
 function iniciarReconhecimento() {
   if (typeof Hands !== 'undefined' && typeof Camera !== 'undefined') {
     iniciarMediaPipe();
@@ -534,10 +503,6 @@ function iniciarReconhecimento() {
   }
 }
 
-// ----------------------------------------------------------
-// iniciarMediaPipe()
-// Configura MediaPipe Hands e inicia captura de frames.
-// ----------------------------------------------------------
 function iniciarMediaPipe() {
   var video     = document.getElementById('cameraVideo');
   var camCanvas = document.getElementById('cameraCanvas');
@@ -550,14 +515,13 @@ function iniciarMediaPipe() {
   });
 
   mpHands.setOptions({
-    maxNumHands:            1,     // 1 mão para maior precisão
-    modelComplexity:        1,     // modelo completo
+    maxNumHands:            1,     
+    modelComplexity:        1,     
     minDetectionConfidence: 0.72,
     minTrackingConfidence:  0.60,
   });
 
   mpHands.onResults(function(res) {
-    // Sincroniza canvas com vídeo
     if (camCanvas.width  !== video.videoWidth)  camCanvas.width  = video.videoWidth  || 640;
     if (camCanvas.height !== video.videoHeight) camCanvas.height = video.videoHeight || 480;
 
@@ -568,7 +532,8 @@ function iniciarMediaPipe() {
       desenharLandmarks(camCtx, lm, camCanvas.width, camCanvas.height);
       processarLandmarks(lm);
     } else {
-      atualizarResultadoCamera('', 0); // sem mão detectada
+      frameBufferContador = 0;
+      atualizarResultadoCamera('', 0); 
     }
   });
 
@@ -582,24 +547,17 @@ function iniciarMediaPipe() {
   log('✓ MediaPipe Hands ativo — reconhecimento em tempo real', 'success');
 }
 
-// ----------------------------------------------------------
-// desenharLandmarks(ctx, lm, w, h)
-// Desenha 21 pontos + conexões da mão sobre o vídeo
-// ----------------------------------------------------------
 function desenharLandmarks(ctx, lm, w, h) {
-  // Pares de conexões do esqueleto MediaPipe (conexões oficiais)
   var CONEXOES = [
-    [0,1],[1,2],[2,3],[3,4],        // polegar
-    [0,5],[5,6],[6,7],[7,8],        // indicador
-    [0,9],[9,10],[10,11],[11,12],   // médio
-    [0,13],[13,14],[14,15],[15,16], // anelar
-    [0,17],[17,18],[18,19],[19,20], // mindinho
-    [5,9],[9,13],[13,17],           // metacarpos
+    [0,1],[1,2],[2,3],[3,4],        
+    [0,5],[5,6],[6,7],[7,8],        
+    [0,9],[9,10],[10,11],[11,12],   
+    [0,13],[13,14],[14,15],[15,16], 
+    [0,17],[17,18],[18,19],[19,20], 
+    [5,9],[9,13],[13,17],           
   ];
 
   ctx.save();
-
-  // Conexões (ossos)
   ctx.strokeStyle = 'rgba(0,212,255,0.85)';
   ctx.lineWidth   = 2.5;
   CONEXOES.forEach(function(par) {
@@ -610,7 +568,6 @@ function desenharLandmarks(ctx, lm, w, h) {
     ctx.stroke();
   });
 
-  // Pontos (articulações)
   lm.forEach(function(pt, idx) {
     var isPonta = [4,8,12,16,20].indexOf(idx) >= 0;
     var isPalma = idx === 0;
@@ -622,178 +579,101 @@ function desenharLandmarks(ctx, lm, w, h) {
     ctx.lineWidth   = 1;
     ctx.stroke();
   });
-
   ctx.restore();
 }
 
-// ----------------------------------------------------------
-// processarLandmarks(lm)
-// Analisa landmarks, reconhece letra, aplica debounce, fala.
-// ----------------------------------------------------------
+// Estabilizador para evitar flicker no MediaPipe
 function processarLandmarks(lm) {
   var resultado = reconhecerConfiguracao(lm);
 
-  if (resultado) {
+  // Exige confiança superior a 75%
+  if (resultado && resultado.confianca > 0.75) {
     var letra     = resultado.letra;
     var confianca = resultado.confianca;
     var agora     = Date.now();
 
-    atualizarResultadoCamera(letra, confianca);
+    if (letra === frameBufferLetra) {
+      frameBufferContador++;
+    } else {
+      frameBufferLetra = letra;
+      frameBufferContador = 1;
+    }
 
-    // Debounce: só fala se letra mudou OU passou o intervalo mínimo
-    var novaLetra   = letra !== ultimaLetra;
-    var tempoOk     = (agora - tsUltimaLetra) >= DEBOUNCE_MS;
+    // A letra se estabilizou no buffer
+    if (frameBufferContador >= FRAMES_NECESSARIOS) {
+      atualizarResultadoCamera(letra, confianca);
 
-    if (novaLetra || tempoOk) {
-      ultimaLetra   = letra;
-      tsUltimaLetra = agora;
-      falar(letra);
+      var novaLetra   = letra !== ultimaLetra;
+      var tempoOk     = (agora - tsUltimaLetra) >= DEBOUNCE_MS;
 
-      // Adiciona ao texto acumulado apenas se letra nova
-      if (novaLetra) {
-        var textoEl = document.getElementById('texto-detectado');
-        if (textoEl) textoEl.textContent += letra;
+      if (novaLetra || tempoOk) {
+        ultimaLetra   = letra;
+        tsUltimaLetra = agora;
+        falar(letra);
+
+        if (novaLetra) {
+          var textoEl = document.getElementById('texto-detectado');
+          if (textoEl) textoEl.textContent += letra;
+        }
       }
     }
   } else {
+    frameBufferContador = 0;
     atualizarResultadoCamera('', 0);
   }
 }
 
-// ----------------------------------------------------------
-// reconhecerConfiguracao(lm)
-// Analisa 21 landmarks MediaPipe e retorna {letra, confianca}
-// baseado nas configurações reais da datilologia Libras.
-//
-// Princípio:
-//   • Para dedos 2-5: se ponta (y) < base (y) → dedo estendido
-//     (na imagem o eixo Y cresce para baixo, então y menor = mais alto)
-//   • Para polegar: compara x da ponta com x da 2ª falange
-//   • Calcula distância normalizada para detectar pinças (O, F)
-// ----------------------------------------------------------
 function reconhecerConfiguracao(lm) {
-  // Estado de cada dedo (true = estendido)
-  var polEst = lm[4].x  < lm[3].x;   // polegar: comparação horizontal
-  var indEst = lm[8].y  < lm[6].y;   // indicador
-  var medEst = lm[12].y < lm[10].y;  // médio
-  var aneEst = lm[16].y < lm[14].y;  // anelar
-  var minEst = lm[20].y < lm[18].y;  // mindinho
+  var polEst = lm[4].x  < lm[3].x;   
+  var indEst = lm[8].y  < lm[6].y;   
+  var medEst = lm[12].y < lm[10].y;  
+  var aneEst = lm[16].y < lm[14].y;  
+  var minEst = lm[20].y < lm[18].y;  
 
-  // Distância normalizada polegar↔indicador (para detectar pinça)
   var dx = lm[4].x - lm[8].x;
   var dy = lm[4].y - lm[8].y;
   var distPI   = Math.sqrt(dx * dx + dy * dy);
-  var tamMao   = Math.sqrt(
-    Math.pow(lm[0].x - lm[9].x, 2) + Math.pow(lm[0].y - lm[9].y, 2)
-  );
+  var tamMao   = Math.sqrt(Math.pow(lm[0].x - lm[9].x, 2) + Math.pow(lm[0].y - lm[9].y, 2));
   var distNorm = tamMao > 0 ? distPI / tamMao : 1;
 
-  // Distância indicador↔médio (para V vs U)
   var dx2 = lm[8].x - lm[12].x;
   var dy2 = lm[8].y - lm[12].y;
   var distIM   = Math.sqrt(dx2 * dx2 + dy2 * dy2);
   var distIMN  = tamMao > 0 ? distIM / tamMao : 1;
 
-  // Curvatura parcial dos dedos (para E, C, M, N)
-  var indCurv = lm[8].y  - lm[5].y;  // positivo = dobrado
+  var indCurv = lm[8].y  - lm[5].y;  
   var medCurv = lm[12].y - lm[9].y;
 
-  // Shortcuts
   var P = polEst, I = indEst, M = medEst, A = aneEst, Mi = minEst;
 
-  // ── RECONHECIMENTO ─────────────────────────────────────────
-  // Ordenado do mais específico para o mais genérico
+  if (!P && !I && !M && !A && !Mi && distNorm > 0.25) return { letra: 'A', confianca: 0.88 };
+  if (!P && I && M && A && Mi) return { letra: 'B', confianca: 0.90 };
+  if (P && I && !M && !A && !Mi) return { letra: 'L', confianca: 0.88 };
+  if (P && !I && !M && !A && Mi) return { letra: 'Y', confianca: 0.88 };
+  if (!P && I && !M && !A && !Mi) return { letra: 'D', confianca: 0.82 };
+  if (!P && !I && !M && !A && Mi) return { letra: 'I', confianca: 0.85 };
+  if (!P && I && M && A && !Mi) return { letra: 'W', confianca: 0.82 };
+  if (P && I && M && !A && !Mi) return { letra: 'K', confianca: 0.75 };
 
-  // A — Punho fechado (todos dobrados, polegar lateral não cruzado)
-  if (!P && !I && !M && !A && !Mi && distNorm > 0.25) {
-    return { letra: 'A', confianca: 0.88 };
-  }
-
-  // S — Punho com polegar cruzado por cima (similar ao A mas polegar mais avançado)
-  // Difícil distinguir A de S sem profundidade; A tem prioridade em 2D
-
-  // B — 4 dedos estendidos, polegar dobrado
-  if (!P && I && M && A && Mi) {
-    return { letra: 'B', confianca: 0.90 };
-  }
-
-  // L — Polegar + indicador estendidos (outros fechados)
-  if (P && I && !M && !A && !Mi) {
-    return { letra: 'L', confianca: 0.88 };
-  }
-
-  // Y — Polegar + mindinho estendidos
-  if (P && !I && !M && !A && Mi) {
-    return { letra: 'Y', confianca: 0.88 };
-  }
-
-  // D — Só indicador estendido
-  if (!P && I && !M && !A && !Mi) {
-    return { letra: 'D', confianca: 0.82 };
-  }
-
-  // I — Só mindinho estendido
-  if (!P && !I && !M && !A && Mi) {
-    return { letra: 'I', confianca: 0.85 };
-  }
-
-  // W — Três dedos (indicador, médio, anelar) estendidos
-  if (!P && I && M && A && !Mi) {
-    return { letra: 'W', confianca: 0.82 };
-  }
-
-  // K — Polegar + indicador + médio estendidos
-  if (P && I && M && !A && !Mi) {
-    return { letra: 'K', confianca: 0.75 };
-  }
-
-  // V/U — Indicador + médio estendidos (distingue pela abertura)
   if (!P && I && M && !A && !Mi) {
-    if (distIMN > 0.20) {
-      return { letra: 'V', confianca: 0.82 }; // abertos = V
-    } else {
-      return { letra: 'U', confianca: 0.80 }; // unidos = U
-    }
+    if (distIMN > 0.20) return { letra: 'V', confianca: 0.82 }; 
+    else return { letra: 'U', confianca: 0.80 }; 
   }
 
-  // R — Indicador + médio cruzados (ambos estendidos, próximos)
-  if (!P && I && M && !A && !Mi && distIMN < 0.14) {
-    return { letra: 'R', confianca: 0.72 };
-  }
+  if (!P && I && M && !A && !Mi && distIMN < 0.14) return { letra: 'R', confianca: 0.72 };
+  if (!P && !I && !M && !A && !Mi && distNorm < 0.20) return { letra: 'O', confianca: 0.78 };
+  if (!I && M && A && Mi && distNorm < 0.22) return { letra: 'F', confianca: 0.76 };
+  if (!P && !I && !M && !A && !Mi && indCurv > 0 && indCurv < 0.08) return { letra: 'C', confianca: 0.62 };
+  if (!P && !I && !M && !A && !Mi && indCurv > 0.05) return { letra: 'E', confianca: 0.60 };
 
-  // O — Todos curvados formando círculo (pinça fechada)
-  if (!P && !I && !M && !A && !Mi && distNorm < 0.20) {
-    return { letra: 'O', confianca: 0.78 };
-  }
-
-  // F — Polegar+indicador em pinça, outros estendidos
-  if (!I && M && A && Mi && distNorm < 0.22) {
-    return { letra: 'F', confianca: 0.76 };
-  }
-
-  // C — Curvatura média em todos (arco de C)
-  if (!P && !I && !M && !A && !Mi && indCurv > 0 && indCurv < 0.08) {
-    return { letra: 'C', confianca: 0.62 };
-  }
-
-  // E — Dedos curvados tocando a palma
-  if (!P && !I && !M && !A && !Mi && indCurv > 0.05) {
-    return { letra: 'E', confianca: 0.60 };
-  }
-
-  return null; // não reconhecido
+  return null; 
 }
 
-// Distância 2D entre dois landmarks
 function dist2D(a, b) {
   var dx = a.x - b.x, dy = a.y - b.y;
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-// ----------------------------------------------------------
-// atualizarResultadoCamera(letra, confianca)
-// Atualiza display de letra detectada + barra de confiança
-// ----------------------------------------------------------
 function atualizarResultadoCamera(letra, confianca) {
   var elLetra = document.getElementById('letra-camera-detectada');
   if (elLetra) elLetra.textContent = letra || '—';
@@ -805,10 +685,6 @@ function atualizarResultadoCamera(letra, confianca) {
   if (fill) fill.style.width = (letra ? Math.round(confianca * 100) : 0) + '%';
 }
 
-// ----------------------------------------------------------
-// iniciarModoDemo()
-// Fallback visual quando MediaPipe não está disponível
-// ----------------------------------------------------------
 function iniciarModoDemo() {
   var video     = document.getElementById('cameraVideo');
   var camCanvas = document.getElementById('cameraCanvas');
@@ -825,7 +701,6 @@ function iniciarModoDemo() {
     camCanvas.height = video.videoHeight || 480;
     camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
 
-    // Simula 21 pontos animados
     var cx = camCanvas.width  * 0.5;
     var cy = camCanvas.height * 0.5;
     for (var i = 0; i < 21; i++) {
@@ -837,7 +712,6 @@ function iniciarModoDemo() {
       camCtx.fill();
     }
 
-    // Detecta letra a cada 90 frames (~3s)
     if (frame % 90 === 0) {
       var l    = letrasDemo[Math.floor(Math.random() * letrasDemo.length)];
       var conf = 0.60 + Math.random() * 0.35;
@@ -855,11 +729,6 @@ function iniciarModoDemo() {
 // SEÇÃO 8 — WEB SPEECH API
 // ============================================================
 
-// ----------------------------------------------------------
-// falar(texto)
-// Sintetiza voz em pt-BR. Cancela síntese anterior.
-// Compatível com iOS (seleciona voz se disponível).
-// ----------------------------------------------------------
 function falar(texto) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
@@ -870,7 +739,6 @@ function falar(texto) {
   utt.pitch  = 1.0;
   utt.volume = 1.0;
 
-  // Seleciona voz em português se disponível (necessário no iOS Safari)
   var vozes  = window.speechSynthesis.getVoices();
   var vozPT  = null;
   for (var i = 0; i < vozes.length; i++) {
@@ -919,7 +787,6 @@ async function conectarBluetooth() {
     atualizarBTUI('connected', btDevice.name);
     log('✓ Bluetooth conectado!', 'success');
 
-    // Monitora desconexão inesperada
     btDevice.addEventListener('gattserverdisconnected', function() {
       btConectado = false;
       btCarac     = null;
@@ -1031,10 +898,6 @@ function log(msg, tipo) {
   box.scrollTop = box.scrollHeight;
   while (box.children.length > 60) box.removeChild(box.firstChild);
 }
-
-// ============================================================
-// SEÇÃO 11 — UTILITÁRIOS
-// ============================================================
 
 function esperar(ms) {
   return new Promise(function(res) { setTimeout(res, ms); });
