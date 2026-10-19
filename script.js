@@ -53,7 +53,7 @@ const BT_CONFIG = Object.freeze({
 const AppState = {
   bancoDados: null,
   telaAtual: 'home',
-  vozAtiva: true,
+  vozAtiva: false,
   velocidadeTraducao: 1.0,
   traduzindo: false,
   abortarTraducao: false,
@@ -89,31 +89,253 @@ class TimerRegistry {
 const timers = new TimerRegistry();
 
 // ============================================================
-// 3. SERVIÇO DE SÍNTESE DE VOZ (Web Speech API)
+// 3. SERVIÇO DE SÍNTESE DE VOZ EM PORTUGUÊS DO BRASIL (pt-BR)
 // ============================================================
+const DICIONARIO_FONETICO_PTBR = Object.freeze({
+  ola: 'olá',
+  oi: 'oi',
+  voce: 'você',
+  voces: 'vocês',
+  nao: 'não',
+  sim: 'sim',
+  agua: 'água',
+  esta: 'está',
+  estao: 'estão',
+  tambem: 'também',
+  alguem: 'alguém',
+  ninguem: 'ninguém',
+  ate: 'até',
+  ja: 'já',
+  so: 'só',
+  nos: 'nós',
+  la: 'lá',
+  ca: 'cá',
+  ai: 'aí',
+  cafe: 'café',
+  pao: 'pão',
+  mae: 'mãe',
+  irmao: 'irmão',
+  irma: 'irmã',
+  coracao: 'coração',
+  atencao: 'atenção',
+  informacao: 'informação',
+  comunicacao: 'comunicação',
+  traducao: 'tradução',
+  educacao: 'educação',
+  mao: 'mão',
+  maos: 'mãos',
+  robo: 'robô',
+  bionica: 'biônica',
+  medico: 'médico',
+  medica: 'médica',
+  remedio: 'remédio',
+  emergencia: 'emergência',
+  ambulancia: 'ambulância',
+  policia: 'polícia',
+  familia: 'família',
+  horario: 'horário',
+  necessario: 'necessário',
+  numero: 'número',
+  onibus: 'ônibus',
+  sanitario: 'sanitário',
+  comecar: 'começar',
+  cabeca: 'cabeça',
+  braco: 'braço',
+  pescoco: 'pescoço',
+  almoco: 'almoço',
+  licenca: 'licença',
+  crianca: 'criança',
+  doenca: 'doença',
+  esperanca: 'esperança',
+  seguranca: 'segurança',
+  forca: 'força',
+  saude: 'saúde',
+  dificil: 'difícil',
+  facil: 'fácil',
+  rapido: 'rápido',
+  proximo: 'próximo',
+  ultimo: 'último',
+  otimo: 'ótimo',
+  pessimo: 'péssimo',
+  duvida: 'dúvida',
+  musica: 'música',
+  publico: 'público',
+  unico: 'único',
+  silencio: 'silêncio',
+  paciencia: 'paciência',
+  urgencia: 'urgência'
+});
+
 const SpeechService = {
-  falar(chave) {
-    if (!AppState.vozAtiva || !('speechSynthesis' in window)) return;
-    const chaveUpper = String(chave || '').toUpperCase().trim();
-    const textoFala = MAPA_FONETICO[chaveUpper] || chaveUpper.toLowerCase();
-    this.falarTextoLivre(textoFala);
+  _melhorVozPtBr: null,
+  _inicializado: false,
+
+  init() {
+    if (this._inicializado || !('speechSynthesis' in window)) return;
+    this._inicializado = true;
+    this._atualizarVozPtBr();
+    try {
+      window.speechSynthesis.addEventListener('voiceschanged', () => {
+        this._atualizarVozPtBr();
+      });
+    } catch (_) {
+      window.speechSynthesis.onvoiceschanged = () => this._atualizarVozPtBr();
+    }
   },
 
-  falarTextoLivre(texto) {
-    if (!AppState.vozAtiva || !('speechSynthesis' in window) || !texto) return;
+  _atualizarVozPtBr() {
+    if (!('speechSynthesis' in window)) return null;
+    const vozes = window.speechSynthesis.getVoices() || [];
+    if (!vozes.length) return null;
+
+    let melhor = null;
+    let maiorScore = -1;
+
+    for (const v of vozes) {
+      const langNorm = String(v.lang || '').replace('_', '-').toLowerCase();
+      const nomeNorm = String(v.name || '').toLowerCase();
+
+      const ehPt =
+        langNorm.startsWith('pt') ||
+        nomeNorm.includes('portugu') ||
+        nomeNorm.includes('brasil') ||
+        nomeNorm.includes('brazil');
+
+      if (!ehPt) continue;
+
+      let score = 10;
+      if (langNorm === 'pt-br' || langNorm.startsWith('pt-br')) score += 100;
+      else if (nomeNorm.includes('brasil') || nomeNorm.includes('brazil')) score += 90;
+      else if (langNorm.startsWith('pt')) score += 30;
+
+      // Prioriza vozes neurais/naturais de alta definição em pt-BR
+      if (nomeNorm.includes('natural') || nomeNorm.includes('neural') || nomeNorm.includes('online')) score += 50;
+      if (nomeNorm.includes('google')) score += 40;
+      if (
+        nomeNorm.includes('francisca') ||
+        nomeNorm.includes('antonio') ||
+        nomeNorm.includes('thalita') ||
+        nomeNorm.includes('luciana') ||
+        nomeNorm.includes('felipe') ||
+        nomeNorm.includes('maria') ||
+        nomeNorm.includes('daniel')
+      ) {
+        score += 35;
+      }
+
+      if (score > maiorScore) {
+        maiorScore = score;
+        melhor = v;
+      }
+    }
+
+    this._melhorVozPtBr = melhor;
+    return melhor;
+  },
+
+  /**
+   * Converte texto em caixa-alta/sem acentos para português brasileiro natural em minúsculas
+   * com acentuação restaurada, evitando que motores TTS leiam palavras como siglas em inglês.
+   */
+  normalizarTextoPtBr(texto) {
+    const base = String(texto || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, ' ');
+    if (!base) return '';
+
+    const palavras = base.split(' ');
+    const corrigidas = palavras.map((p, idx) => {
+      const limpa = p.replace(/[^a-zà-úç]/g, '');
+      if (!limpa) return p;
+
+      if (DICIONARIO_FONETICO_PTBR[limpa]) {
+        return DICIONARIO_FONETICO_PTBR[limpa];
+      }
+
+      // Conjunção/verbo "e" isolado no meio de frase: pronúncia natural em pt-BR
+      if (limpa === 'e' && palavras.length > 1 && idx > 0) {
+        return 'e';
+      }
+
+      // Restauração fonética de sufixos frequentes digitados sem acento (-cao -> -ção, -coes -> -ções)
+      if (limpa.length > 4 && limpa.endsWith('cao')) {
+        return limpa.slice(0, -3) + 'ção';
+      }
+      if (limpa.length > 5 && limpa.endsWith('coes')) {
+        return limpa.slice(0, -4) + 'ções';
+      }
+
+      return limpa;
+    });
+
+    return corrigidas.join(' ');
+  },
+
+  falar(chave, opcoes = {}) {
+    const forcar = Boolean(opcoes.forcar);
+    if ((!AppState.vozAtiva && !forcar) || !('speechSynthesis' in window)) return;
+    const chaveUpper = String(chave || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .trim();
+    const textoFala = MAPA_FONETICO[chaveUpper] || this.normalizarTextoPtBr(chave);
+    this._executarSintese(textoFala);
+  },
+
+  falarTextoLivre(texto, opcoes = {}) {
+    const forcar = Boolean(opcoes.forcar);
+    if ((!AppState.vozAtiva && !forcar) || !('speechSynthesis' in window) || !texto) return;
+
+    const textoLimpo = String(texto).trim();
+    if (!textoLimpo) return;
+
+    // Se for apenas 1 letra isolada, usa o mapa fonético da letra em português
+    const semAcentoUpper = textoLimpo
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase();
+    if (semAcentoUpper.length === 1 && MAPA_FONETICO[semAcentoUpper]) {
+      this._executarSintese(MAPA_FONETICO[semAcentoUpper]);
+      return;
+    }
+
+    const frasePtBr = this.normalizarTextoPtBr(textoLimpo);
+    this._executarSintese(frasePtBr);
+  },
+
+  _executarSintese(textoFala) {
+    if (!textoFala || !('speechSynthesis' in window)) return;
     try {
+      this.init();
       window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(texto);
-      utt.lang = 'pt-BR';
-      utt.rate = Math.min(Math.max(0.94 * AppState.velocidadeTraducao, 0.7), 1.45);
-      utt.pitch = 1.0;
-      utt.volume = 1.0;
 
-      const vozes = window.speechSynthesis.getVoices();
-      const vozPt = vozes.find((v) => v.lang && v.lang.toLowerCase().startsWith('pt'));
-      if (vozPt) utt.voice = vozPt;
+      const disparar = () => {
+        const utt = new SpeechSynthesisUtterance(textoFala);
+        const vozPt = this._melhorVozPtBr || this._atualizarVozPtBr();
 
-      window.speechSynthesis.speak(utt);
+        if (vozPt) {
+          utt.voice = vozPt;
+          utt.lang = vozPt.lang ? vozPt.lang.replace('_', '-') : 'pt-BR';
+        } else {
+          utt.lang = 'pt-BR';
+        }
+
+        utt.rate = Math.min(Math.max(0.95 * AppState.velocidadeTraducao, 0.75), 1.35);
+        utt.pitch = 1.0;
+        utt.volume = 1.0;
+
+        window.speechSynthesis.speak(utt);
+      };
+
+      // Se as vozes do navegador ainda não carregaram, aguarda brevemente antes de falar
+      const vozesAtuais = window.speechSynthesis.getVoices();
+      if (!vozesAtuais || vozesAtuais.length === 0) {
+        setTimeout(disparar, 120);
+      } else {
+        disparar();
+      }
     } catch (_) {
       // Ignora silenciosamente se bloqueado por autoplay policy
     }
@@ -1512,13 +1734,19 @@ function buscarPalavra(p) {
   return AppState.bancoDados?.palavras?.[p] || null;
 }
 
+function removerAcentosAscii(str) {
+  return String(str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
 function detectarPalavraChaveExata(texto) {
-  const t = texto.trim().toUpperCase();
+  const t = removerAcentosAscii(texto).trim().toUpperCase();
   return PALAVRAS_CHAVE.find((pk) => pk === t) || null;
 }
 
 function tokenizarTextoLibras(texto) {
-  const limpo = texto.trim().replace(/\s+/g, ' ').toUpperCase();
+  const limpo = removerAcentosAscii(texto).trim().replace(/\s+/g, ' ').toUpperCase();
   if (!limpo) return [];
 
   const marcadorPF = '__POR_FAVOR__';
@@ -1751,6 +1979,14 @@ async function traduzirSequenciaTokens(texto) {
 
   log(`▶ Traduzindo: "${texto}"`, 'info');
 
+  // Pronuncia a frase completa de forma natural em pt-BR (ou a letra se for apenas 1 caractere)
+  const ehLetraUnica = tokensVisiveis.length === 1 && tokensVisiveis[0].tipo === 'letra';
+  if (ehLetraUnica) {
+    SpeechService.falar(tokensVisiveis[0].valor);
+  } else {
+    SpeechService.falarTextoLivre(texto);
+  }
+
   let chipIdx = 0;
   const fatorVel = 1 / (AppState.velocidadeTraducao || 1.0);
 
@@ -1773,7 +2009,6 @@ async function traduzirSequenciaTokens(texto) {
         if (libraHand3D && libraHand3D.pronto) {
           libraHand3D.animarPalavra(dadosP);
         }
-        SpeechService.falar(item.valor);
         if (btManager.conectado && dadosP.comando) {
           btManager.enviar(dadosP.comando);
           log(`↗ ${item.valor} → ${dadosP.comando}`, 'success');
@@ -1793,8 +2028,6 @@ async function traduzirSequenciaTokens(texto) {
       if (libraHand3D && libraHand3D.pronto && dados?.rotacoes3d) {
         libraHand3D.animarLetra(dados.rotacoes3d, dados.movimento, dados.pontaRastro);
       }
-
-      SpeechService.falar(letra);
 
       if (btManager.conectado && cmd) {
         btManager.enviar(cmd);
@@ -2070,6 +2303,7 @@ function mostrarNotificacaoUI(mensagem, tipo = 'info') {
 // 11. INICIALIZAÇÃO DO DOM E BINDING DE EVENTOS
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  SpeechService.init();
   carregarBanco();
   popularTecladoAZ();
   mostrarTela('home');
@@ -2125,10 +2359,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnVoz = document.getElementById('btn-toggle-voz');
   if (btnVoz) {
+    btnVoz.textContent = AppState.vozAtiva ? '🔊 Voz: ON' : '🔇 Voz: OFF';
+    btnVoz.classList.toggle('muted', !AppState.vozAtiva);
+    btnVoz.setAttribute('aria-pressed', AppState.vozAtiva ? 'true' : 'false');
+
     btnVoz.addEventListener('click', () => {
       AppState.vozAtiva = !AppState.vozAtiva;
       btnVoz.textContent = AppState.vozAtiva ? '🔊 Voz: ON' : '🔇 Voz: OFF';
       btnVoz.classList.toggle('muted', !AppState.vozAtiva);
+      btnVoz.setAttribute('aria-pressed', AppState.vozAtiva ? 'true' : 'false');
       if (!AppState.vozAtiva) SpeechService.cancelar();
     });
   }
@@ -2153,10 +2392,8 @@ document.addEventListener('DOMContentLoaded', () => {
     inputTexto.addEventListener('input', function () {
       const pos = this.selectionStart;
       const limpo = this.value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
         .toUpperCase()
-        .replace(/[^A-Z \n]/g, '');
+        .replace(/[^A-ZÀ-Ý \n]/g, '');
       if (this.value !== limpo) {
         this.value = limpo;
         try {
@@ -2222,7 +2459,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-cam-falar')?.addEventListener('click', () => {
     const el = document.getElementById('texto-detectado');
     if (el && el.textContent.trim()) {
-      SpeechService.falarTextoLivre(el.textContent.trim());
+      SpeechService.falarTextoLivre(el.textContent.trim(), { forcar: true });
     }
   });
 
