@@ -1,286 +1,371 @@
 /* ============================================================
-   style.css — LibraTronic v3
-   Tema: Glassmorphism · Neon Blue · Futurista
-   Responsivo: Desktop e Mobile (≤768px e ≤400px)
+   style.css — LibraTronic v3.2
+   Tema: Cyber Glassmorphism · Neon Blue · HUD Biomédico
+   Responsivo: Desktop, Tablet e Mobile
    ============================================================ */
 
 /* ── FONTES ─────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700&display=swap');
 
 /* ── VARIÁVEIS GLOBAIS ──────────────────────────────────── */
 :root {
-  --bg-deep:     #020a14;               /* fundo mais escuro */
-  --bg-mid:      #061524;               /* fundo intermediário */
-  --bg-glass:    rgba(6,21,36,0.75);    /* fundo glassmorphism */
-  --neon-blue:   #00d4ff;               /* azul neon principal */
-  --neon-cyan:   #00ffea;               /* ciano neon */
-  --neon-purple: #a855f7;               /* roxo neon */
-  --neon-green:  #00ff88;               /* verde neon (conectado) */
-  --text-main:   #dff0ff;               /* texto principal */
-  --text-dim:    #4e7a95;               /* texto secundário */
-  --border:      rgba(0,212,255,0.22);  /* borda glass */
-  --shadow-neon: 0 0 18px rgba(0,212,255,0.45);
-  --shadow-lg:   0 0 40px rgba(0,212,255,0.70);
-  --radius:      16px;                  /* borda arredondada padrão */
-  --trans:       0.35s cubic-bezier(0.4,0,0.2,1); /* transição suave */
+  --bg-deep:       #020913;
+  --bg-mid:        #061626;
+  --bg-glass:      rgba(7, 22, 38, 0.76);
+  --bg-glass-soft: rgba(10, 31, 53, 0.55);
+  --neon-blue:     #00d4ff;
+  --neon-cyan:     #00ffea;
+  --neon-purple:   #b266ff;
+  --neon-green:    #00ff88;
+  --neon-amber:    #ffaa2b;
+  --neon-red:      #ff4d5e;
+  --text-main:     #e6f4ff;
+  --text-dim:      #7fa6c2;
+  --border:        rgba(0, 212, 255, 0.24);
+  --border-strong: rgba(0, 212, 255, 0.52);
+  --shadow-neon:   0 0 20px rgba(0, 212, 255, 0.38);
+  --shadow-lg:     0 0 42px rgba(0, 212, 255, 0.65);
+  --shadow-panel:  0 14px 36px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --radius:        16px;
+  --radius-sm:     10px;
+  --trans:         0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── RESET ──────────────────────────────────────────────── */
+/* ── RESET E BASE ───────────────────────────────────────── */
 *, *::before, *::after {
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-/* ── BODY ───────────────────────────────────────────────── */
-body {
-  background:  var(--bg-deep);
-  color:       var(--text-main);
-  font-family: 'Exo 2', sans-serif;
-  min-height:  100vh;
-  overflow-x:  hidden;
-  line-height: 1.6;
+html, body {
+  height: 100%;
 }
 
-/* Grade de pontos no fundo — efeito futurista sutil */
+body {
+  background: radial-gradient(circle at 50% 0%, #09233c 0%, var(--bg-deep) 70%);
+  color: var(--text-main);
+  font-family: 'Exo 2', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grade de pontos técnica no fundo */
 body::before {
   content: '';
-  position: fixed; inset: 0;
-  background-image: radial-gradient(circle, rgba(0,212,255,0.055) 1px, transparent 1px);
-  background-size: 30px 30px;
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(0, 212, 255, 0.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 212, 255, 0.02) 1px, transparent 1px);
+  background-size: 28px 28px, 100% 56px;
   pointer-events: none;
   z-index: 0;
 }
 
-/* ── CONTAINER PRINCIPAL ────────────────────────────────── */
+/* Luz atmosférica suave no fundo */
+body::after {
+  content: '';
+  position: fixed;
+  width: 55vw;
+  height: 55vw;
+  top: -20vw;
+  right: -15vw;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.08), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Acessibilidade de foco via teclado */
+button:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 2px;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.1rem 0.42rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--neon-cyan);
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+/* ── CONTAINER PRINCIPAL E TELAS ────────────────────────── */
 #app {
   position: relative;
   min-height: 100vh;
+  z-index: 1;
 }
 
-/* ── TELAS (SCREENS) ────────────────────────────────────── */
-/* Todas ocultas por padrão (display:none, opacity:0) */
 .screen {
-  position:   absolute;
-  inset:      0;
+  position: absolute;
+  inset: 0;
   min-height: 100vh;
-  display:    none;
-  opacity:    0;
-  transform:  translateY(18px);
-  transition: opacity var(--trans), transform var(--trans);
-  z-index:    1;
+  display: none;
+  opacity: 0;
+  z-index: 1;
   overflow-y: auto;
 }
 
-/* Tela ativa: visível com animação de entrada */
 .screen.active {
-  display:   flex;
-  opacity:   1;
-  transform: translateY(0);
+  display: flex;
+  opacity: 1;
+  animation: screenFadeIn 0.36s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* ============================================================
    TELA HOME
    ============================================================ */
 #screen-home {
-  flex-direction:  column;
-  align-items:     center;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 2rem 1.5rem;
-  gap:     2rem;
+  padding: 2.5rem 1.5rem;
+  gap: 2.1rem;
 }
 
-/* Wrapper do logo + título */
 .logo-wrap {
   text-align: center;
-  animation:  slideDown 0.8s ease both;
+  animation: slideDown 0.7s ease both;
 }
 
-/* Círculo com SVG da mão robótica */
 .logo-circle {
-  width:  110px;
-  height: 110px;
+  width: 118px;
+  height: 118px;
   border-radius: 50%;
-  background: radial-gradient(circle at 38% 38%, #0a3a5a, #020a14);
-  border:  2px solid var(--neon-blue);
-  box-shadow: var(--shadow-neon), inset 0 0 28px rgba(0,212,255,0.10);
+  background: radial-gradient(circle at 35% 35%, #0d4166, #020a14 75%);
+  border: 2px solid var(--neon-blue);
+  box-shadow: var(--shadow-neon), inset 0 0 28px rgba(0, 212, 255, 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1.4rem;
-  animation: pulseGlow 3s ease-in-out infinite;
+  margin: 0 auto 1.35rem;
+  animation: pulseGlow 3.2s ease-in-out infinite;
+  position: relative;
 }
 
-/* Título principal LibraTronic — gradiente de texto */
+.logo-circle::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 255, 234, 0.32);
+  animation: rotSlow 18s linear infinite;
+}
+
 .app-title {
   font-family: 'Orbitron', monospace;
-  font-size:   clamp(2rem, 8vw, 3.8rem);
+  font-size: clamp(2.1rem, 7vw, 3.7rem);
   font-weight: 900;
-  background: linear-gradient(135deg, var(--neon-blue), var(--neon-cyan));
+  background: linear-gradient(135deg, #ffffff 0%, var(--neon-blue) 50%, var(--neon-cyan) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: 0.14em;
-  margin-bottom:  0.25rem;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.35rem;
+  filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.25));
 }
 
-/* Subtítulo / slogan */
 .app-subtitle {
-  font-family:     'Share Tech Mono', monospace;
-  font-size:       0.88rem;
-  color:           var(--text-dim);
-  letter-spacing:  0.22em;
-  text-transform:  uppercase;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
 }
 
-/* Grade de botões da home */
-.home-buttons {
-  display:        flex;
-  flex-direction: column;
-  gap:       0.9rem;
-  width:     100%;
-  max-width: 400px;
-  animation: slideUp 0.8s 0.15s ease both;
-}
-
-/* Botão primário (texto e câmera) */
-.btn-primary {
-  display:         flex;
-  align-items:     center;
+.home-badges {
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap:             0.7rem;
-  padding:         0.95rem 1.8rem;
-  background:      rgba(0,212,255,0.09);
-  border:          1px solid var(--border);
-  border-radius:   var(--radius);
-  color:           var(--neon-blue);
-  font-family:     'Exo 2', sans-serif;
-  font-size:       1rem;
-  font-weight:     600;
-  cursor:          pointer;
-  transition:      all var(--trans);
-  text-transform:  uppercase;
-  letter-spacing:  0.08em;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+.badge-tech {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--neon-cyan);
+  background: rgba(0, 255, 234, 0.08);
+  border: 1px solid rgba(0, 255, 234, 0.25);
+  padding: 0.22rem 0.65rem;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+}
+
+.home-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  width: 100%;
+  max-width: 420px;
+  animation: slideUp 0.7s 0.12s ease both;
+}
+
+.btn-primary,
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.8rem;
+  border-radius: var(--radius);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--trans);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-panel);
 }
 
-/* Efeito de luz deslizando no botão (hover) */
-.btn-primary::before {
-  content:    '';
-  position:   absolute; top: 0; left: -100%;
-  width:      100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0,212,255,0.18), transparent);
-  transition: left 0.5s ease;
+.btn-primary {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.14), rgba(0, 212, 255, 0.05));
+  border: 1px solid var(--border);
+  color: var(--text-main);
 }
-.btn-primary:hover::before { left: 100%; }
+
+.btn-primary svg {
+  color: var(--neon-blue);
+  transition: transform var(--trans);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.22), transparent);
+  transition: left 0.55s ease;
+}
+.btn-primary:hover::before {
+  left: 100%;
+}
 
 .btn-primary:hover {
-  background:  rgba(0,212,255,0.20);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.24), rgba(0, 212, 255, 0.10));
   border-color: var(--neon-blue);
-  box-shadow:  var(--shadow-neon);
-  transform:   translateY(-2px);
+  box-shadow: var(--shadow-neon);
+  transform: translateY(-2px);
 }
-.btn-primary:active { transform: translateY(0); box-shadow: none; }
+.btn-primary:hover svg {
+  transform: scale(1.1);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
 
-/* Botão secundário (Bluetooth — roxo) */
 .btn-secondary {
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  gap:             0.7rem;
-  padding:         0.95rem 1.8rem;
-  background:      rgba(168,85,247,0.09);
-  border:          1px solid rgba(168,85,247,0.28);
-  border-radius:   var(--radius);
-  color:           var(--neon-purple);
-  font-family:     'Exo 2', sans-serif;
-  font-size:       1rem;
-  font-weight:     600;
-  cursor:          pointer;
-  transition:      all var(--trans);
-  text-transform:  uppercase;
-  letter-spacing:  0.08em;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(178, 102, 255, 0.15), rgba(178, 102, 255, 0.05));
+  border: 1px solid rgba(178, 102, 255, 0.34);
+  color: #ebd6ff;
+}
+.btn-secondary svg {
+  color: var(--neon-purple);
 }
 .btn-secondary:hover {
-  background:   rgba(168,85,247,0.22);
+  background: linear-gradient(135deg, rgba(178, 102, 255, 0.26), rgba(178, 102, 255, 0.12));
   border-color: var(--neon-purple);
-  box-shadow:   0 0 18px rgba(168,85,247,0.50);
-  transform:    translateY(-2px);
+  box-shadow: 0 0 22px rgba(178, 102, 255, 0.48);
+  transform: translateY(-2px);
 }
 
 /* Indicador de status Bluetooth */
 .bt-status {
-  display:     flex;
+  display: flex;
   align-items: center;
-  gap:         0.5rem;
+  gap: 0.55rem;
   font-family: 'Share Tech Mono', monospace;
-  font-size:   0.82rem;
-  color:       var(--text-dim);
-  animation:   slideUp 0.8s 0.3s ease both;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(0, 12, 24, 0.55);
+  border: 1px solid rgba(0, 212, 255, 0.15);
 }
 
-/* Ponto colorido de status BT */
 .bt-dot {
-  width:         10px; height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  background:    #ff3c3c; /* vermelho = desconectado */
-  transition:    background 0.3s, box-shadow 0.3s;
-  flex-shrink:   0;
+  background: var(--neon-red);
+  box-shadow: 0 0 8px rgba(255, 77, 94, 0.6);
+  transition: background 0.3s, box-shadow 0.3s;
+  flex-shrink: 0;
 }
-/* Verde pulsante = conectado */
+
 .bt-dot.connected {
   background: var(--neon-green);
   box-shadow: 0 0 10px var(--neon-green);
-  animation:  btBlink 1.5s infinite;
+  animation: btBlink 1.8s infinite;
 }
-/* Amarelo piscando = conectando */
+
 .bt-dot.connecting {
-  background: #ffcc00;
-  animation:  btBlink 0.45s infinite;
+  background: var(--neon-amber);
+  box-shadow: 0 0 10px var(--neon-amber);
+  animation: btBlink 0.45s infinite;
 }
 
 /* ============================================================
    HEADER INTERNO (todas as telas internas)
    ============================================================ */
 .screen-header {
-  display:     flex;
+  display: flex;
   align-items: center;
-  gap:         0.9rem;
-  padding:     0.85rem 1.2rem;
+  gap: 0.9rem;
+  padding: 0.85rem 1.35rem;
+  background: rgba(3, 12, 24, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0;           /* não encolhe no flex */
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .screen-header h2 {
-  font-family:    'Orbitron', monospace;
-  font-size:      1.10rem;
-  color:          var(--neon-blue);
+  font-family: 'Orbitron', monospace;
+  font-size: 1.05rem;
+  color: var(--neon-blue);
   letter-spacing: 0.10em;
+  text-transform: uppercase;
 }
 
-/* Botão voltar (←) */
 .btn-back {
-  width:  38px; height: 38px;
-  background:  rgba(0,212,255,0.09);
-  border:      1px solid var(--border);
-  border-radius: 8px;
-  color:       var(--neon-blue);
-  font-size:   1.1rem;
-  cursor:      pointer;
-  display:     flex;
+  width: 38px;
+  height: 38px;
+  background: rgba(0, 212, 255, 0.10);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--neon-blue);
+  font-size: 1.15rem;
+  cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: center;
-  transition:  all var(--trans);
+  transition: all var(--trans);
   flex-shrink: 0;
 }
 .btn-back:hover {
-  background:  rgba(0,212,255,0.22);
-  box-shadow:  var(--shadow-neon);
-  transform:   translateX(-2px);
+  background: rgba(0, 212, 255, 0.24);
+  border-color: var(--neon-blue);
+  box-shadow: var(--shadow-neon);
+  transform: translateX(-2px);
 }
 
 /* ============================================================
@@ -291,292 +376,399 @@ body::before {
   padding: 0;
 }
 
-/* Corpo: painel-left + painel-right */
 .text-body {
-  display:  flex;
-  flex:     1;
-  gap:      1rem;
-  padding:  1rem;
+  display: grid;
+  grid-template-columns: minmax(340px, 1fr) minmax(380px, 1.25fr);
+  flex: 1;
+  gap: 1.1rem;
+  padding: 1.1rem;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
   min-height: 0;
-  overflow: hidden;
 }
 
-/* Painel genérico com glassmorphism */
 .panel {
-  background:      var(--bg-glass);
-  border:          1px solid var(--border);
-  border-radius:   var(--radius);
-  padding:         1.2rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  display:         flex;
-  flex-direction:  column;
-  gap:             0.85rem;
+  box-shadow: var(--shadow-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 0.82rem;
 }
 
-/* Painel esquerdo: scroll vertical se necessário */
 .panel-left {
-  flex: 1;
   min-width: 0;
   overflow-y: auto;
 }
 
-/* Painel direito: contém o canvas 3D */
 .panel-right {
-  flex:       1.2;
-  min-width:  0;
-  align-items: center;
-  overflow:   hidden;
-  padding:    0.8rem;
+  min-width: 0;
+  align-items: stretch;
+  overflow: hidden;
+  padding: 1rem;
 }
 
-/* Label de seção dentro dos painéis */
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .panel-label {
-  font-family:    'Share Tech Mono', monospace;
-  font-size:      0.72rem;
-  color:          var(--neon-cyan);
-  letter-spacing: 0.22em;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--neon-cyan);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  flex-shrink:    0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Controles de áudio e velocidade */
+.audio-speed-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.btn-mini {
+  padding: 0.26rem 0.58rem;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-main);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all var(--trans);
+}
+.btn-mini:hover {
+  border-color: var(--neon-blue);
+  background: rgba(0, 212, 255, 0.18);
+}
+.btn-mini.muted {
+  color: var(--text-dim);
+  opacity: 0.65;
+}
+
+.select-speed {
+  background: rgba(0, 18, 35, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--neon-cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  padding: 0.24rem 0.45rem;
+  cursor: pointer;
 }
 
 /* Textarea de entrada de texto */
 .text-input {
-  background:    rgba(0,18,35,0.85);
-  border:        1px solid var(--border);
-  border-radius: 8px;
-  color:         var(--text-main);
-  font-family:   'Exo 2', sans-serif;
-  font-size:     1.05rem;
-  padding:       0.9rem;
-  resize:        vertical;
-  min-height:    100px;
-  width:         100%;
-  outline:       none;
-  transition:    border-color 0.3s, box-shadow 0.3s;
+  background: rgba(2, 12, 24, 0.88);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-family: 'Exo 2', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  padding: 0.85rem 1rem;
+  resize: vertical;
+  min-height: 88px;
+  max-height: 160px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.text-input::placeholder {
+  color: rgba(127, 166, 194, 0.55);
+  text-transform: none;
 }
 .text-input:focus {
   border-color: var(--neon-blue);
-  box-shadow:   0 0 0 2px rgba(0,212,255,0.14);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
 }
 
-/* Grade de 2 botões lado a lado */
 .btn-row {
-  display:               grid;
-  grid-template-columns: 1fr 1fr;
-  gap:                   0.65rem;
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 0.65rem;
 }
 
-/* Botão de ação genérico (Traduzir, Limpar etc.) */
 .btn-act {
-  padding:        0.70rem 0.8rem;
-  border:         1px solid var(--border);
-  border-radius:  8px;
-  cursor:         pointer;
-  font-family:    'Exo 2', sans-serif;
-  font-weight:    600;
-  font-size:      0.88rem;
+  padding: 0.72rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition:     all var(--trans);
+  letter-spacing: 0.06em;
+  transition: all var(--trans);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
 }
 
-/* Variante azul (Traduzir, Conectar) */
 .btn-act.blue {
-  background: rgba(0,212,255,0.12);
-  color:      var(--neon-blue);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.20), rgba(0, 212, 255, 0.08));
+  border-color: rgba(0, 212, 255, 0.45);
+  color: var(--neon-cyan);
 }
-.btn-act.blue:hover {
-  background: rgba(0,212,255,0.26);
+.btn-act.blue:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.32), rgba(0, 212, 255, 0.16));
   box-shadow: var(--shadow-neon);
-  transform:  translateY(-1px);
+  transform: translateY(-1px);
 }
-.btn-act.blue:disabled {
-  opacity: 0.5;
-  cursor:  not-allowed;
-  transform: none;
-  box-shadow: none;
+.btn-act.blue.stop-mode {
+  background: linear-gradient(135deg, rgba(255, 77, 94, 0.24), rgba(255, 77, 94, 0.10));
+  border-color: var(--neon-red);
+  color: #ff8590;
+}
+.btn-act:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-/* Variante cinza (Limpar, Desconectar) */
 .btn-act.gray {
-  background: rgba(255,255,255,0.05);
-  color:      var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text-dim);
 }
-.btn-act.gray:hover {
-  background: rgba(255,255,255,0.10);
-  color:      var(--text-main);
+.btn-act.gray:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 /* Botões de palavras-chave (gestos rápidos) */
 .palavras-rapidas {
-  display:   flex;
+  display: flex;
   flex-wrap: wrap;
-  gap:       0.38rem;
-  flex-shrink: 0;
+  gap: 0.42rem;
 }
 
 .btn-palavra {
-  padding:       0.35rem 0.65rem;
-  background:    rgba(168,85,247,0.10);
-  border:        1px solid rgba(168,85,247,0.28);
-  border-radius: 6px;
-  color:         var(--neon-purple);
-  font-family:   'Exo 2', sans-serif;
-  font-size:     0.75rem;
-  font-weight:   600;
-  cursor:        pointer;
-  transition:    all var(--trans);
+  padding: 0.38rem 0.72rem;
+  background: rgba(178, 102, 255, 0.11);
+  border: 1px solid rgba(178, 102, 255, 0.32);
+  border-radius: 7px;
+  color: #deb8ff;
+  font-family: 'Exo 2', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--trans);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 .btn-palavra:hover {
-  background: rgba(168,85,247,0.26);
-  box-shadow: 0 0 12px rgba(168,85,247,0.40);
-  transform:  translateY(-1px);
+  background: rgba(178, 102, 255, 0.28);
+  border-color: var(--neon-purple);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(178, 102, 255, 0.42);
+  transform: translateY(-1px);
+}
+
+/* Grade interativa A-Z para teste imediato */
+.alfabeto-rapido {
+  display: grid;
+  grid-template-columns: repeat(13, 1fr);
+  gap: 0.30rem;
+}
+
+.btn-letra-az {
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(0, 212, 255, 0.07);
+  border: 1px solid rgba(0, 212, 255, 0.20);
+  color: var(--text-main);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-letra-az:hover,
+.btn-letra-az.active {
+  background: rgba(0, 212, 255, 0.28);
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.35);
+  transform: translateY(-1px);
 }
 
 /* Fila de chips de letras */
 .queue-box {
-  display:   flex;
+  display: flex;
   flex-wrap: wrap;
-  gap:       0.38rem;
-  min-height: 38px;
-  padding:   0.5rem;
-  background: rgba(0,0,0,0.30);
-  border-radius: 8px;
-  border:    1px solid var(--border);
+  gap: 0.38rem;
+  min-height: 42px;
+  padding: 0.55rem;
+  background: rgba(2, 10, 20, 0.55);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  align-items: center;
 }
 
-/* Chip individual de letra */
 .chip {
-  display:         flex;
-  align-items:     center;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  width:  30px; height: 30px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 0.35rem;
   border-radius: 6px;
-  background:    rgba(0,212,255,0.08);
-  border:        1px solid var(--border);
-  font-family:   'Orbitron', monospace;
-  font-size:     0.80rem;
-  color:         var(--text-dim);
-  transition:    all 0.28s;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid var(--border);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  transition: all 0.25s;
+  user-select: none;
 }
 
-/* Chip ativo — letra sendo traduzida agora */
+.chip.clickable {
+  cursor: pointer;
+}
+.chip.clickable:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  transform: translateY(-2px);
+}
+
 .chip.active {
-  background:   rgba(0,212,255,0.28);
-  border-color: var(--neon-blue);
-  color:        var(--neon-blue);
-  box-shadow:   var(--shadow-neon);
-  transform:    scale(1.12);
-  animation:    chipGlow 0.5s infinite alternate;
+  background: rgba(0, 212, 255, 0.28);
+  border-color: var(--neon-cyan);
+  color: #ffffff;
+  box-shadow: var(--shadow-neon);
+  transform: scale(1.12);
+  animation: chipGlow 0.55s infinite alternate;
 }
 
-/* Chip enviado — letra já traduzida */
 .chip.sent {
-  background:   rgba(0,255,136,0.12);
-  border-color: rgba(0,255,136,0.40);
-  color:        var(--neon-green);
+  background: rgba(0, 255, 136, 0.13);
+  border-color: rgba(0, 255, 136, 0.42);
+  color: var(--neon-green);
 }
 
 /* Caixa de log */
 .log-box {
-  background:    rgba(0,0,0,0.38);
-  border:        1px solid var(--border);
-  border-radius: 8px;
-  padding:       0.65rem;
-  font-family:   'Share Tech Mono', monospace;
-  font-size:     0.76rem;
-  color:         var(--text-dim);
-  min-height:    54px;
-  max-height:    110px;
-  overflow-y:    auto;
-  flex-shrink:   0;
-}
-
-/* Cores das linhas do log */
-.log-line          { margin-bottom: 0.18rem; }
-.log-line.success  { color: var(--neon-green);  }
-.log-line.error    { color: #ff4444;            }
-.log-line.info     { color: var(--neon-blue);   }
-
-/* Container Three.js — canvas inserido aqui pelo hand3d.js */
-#hand3d-container {
-  width:         100%;
-  flex:          1;
-  min-height:    280px;
-  border-radius: 10px;
-  overflow:      hidden;
-  background:    rgba(0,5,14,0.85);
-  border:        1px solid var(--border);
-  position:      relative; /* para o spinner de loading */
-}
-
-/* Display grande da letra atual sendo traduzida */
-#letra-atual {
-  font-family:    'Orbitron', monospace;
-  font-size:      2.8rem;
-  font-weight:    900;
-  color:          var(--neon-blue);
-  text-shadow:    var(--shadow-neon);
-  text-align:     center;
-  min-height:     3.5rem;
-  transition:     all 0.30s;
-  flex-shrink:    0;
-}
-
-/* Feedback do modo de tradução */
-#feedback-modo {
-  font-family:    'Share Tech Mono', monospace;
-  font-size:      0.72rem;
-  color:          var(--neon-cyan);
-  text-align:     center;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  min-height:     1.2rem;
-  transition:     opacity 0.25s;
-  flex-shrink:    0;
-}
-
-/* Controles de câmera 3D */
-.controles-3d {
-  display:         flex;
-  gap:             0.5rem;
-  justify-content: center;
-  flex-shrink:     0;
-}
-
-/* Botão de controle 3D */
-.btn-ctrl3d {
-  padding:       0.40rem 0.75rem;
-  background:    rgba(0,212,255,0.08);
-  border:        1px solid var(--border);
-  border-radius: 6px;
-  color:         var(--neon-blue);
-  font-family:   'Share Tech Mono', monospace;
-  font-size:     0.72rem;
-  cursor:        pointer;
-  transition:    all var(--trans);
-  text-transform: uppercase;
-}
-.btn-ctrl3d:hover { background: rgba(0,212,255,0.22); box-shadow: var(--shadow-neon); }
-.btn-ctrl3d.ativo { background: rgba(0,212,255,0.30); border-color: var(--neon-blue); }
-
-/* Dica de uso (texto pequeno) */
-.tip {
+  background: rgba(2, 8, 16, 0.65);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.75rem;
   font-family: 'Share Tech Mono', monospace;
-  font-size:   0.72rem;
-  color:       var(--text-dim);
-  text-align:  center;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  min-height: 60px;
+  max-height: 115px;
+  overflow-y: auto;
   flex-shrink: 0;
 }
 
-/* Separador horizontal */
+.log-line         { margin-bottom: 0.2rem; line-height: 1.4; }
+.log-line.success { color: var(--neon-green); }
+.log-line.error   { color: var(--neon-red);   }
+.log-line.info    { color: var(--neon-blue);  }
+
+/* Container Three.js */
+#hand3d-container {
+  width: 100%;
+  flex: 1;
+  min-height: 310px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, #07223b 0%, #01060d 85%);
+  border: 1px solid var(--border);
+  position: relative;
+  box-shadow: inset 0 0 32px rgba(0, 212, 255, 0.08);
+}
+
+/* HUD de exibição da letra e descrição anatômica sobre/abaixo do 3D */
+.hand3d-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.5rem;
+  gap: 0.15rem;
+}
+
+#letra-atual {
+  font-family: 'Orbitron', monospace;
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: var(--neon-cyan);
+  text-shadow: var(--shadow-neon);
+  text-align: center;
+  min-height: 3.1rem;
+  line-height: 1.15;
+  transition: all 0.25s;
+}
+
+#feedback-modo {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.76rem;
+  color: var(--text-main);
+  text-align: center;
+  letter-spacing: 0.08em;
+  min-height: 1.25rem;
+  transition: opacity 0.22s;
+}
+
+.controles-3d {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-ctrl3d {
+  padding: 0.42rem 0.85rem;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--neon-blue);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: all var(--trans);
+  text-transform: uppercase;
+}
+.btn-ctrl3d:hover {
+  background: rgba(0, 212, 255, 0.22);
+  box-shadow: var(--shadow-neon);
+}
+.btn-ctrl3d.ativo {
+  background: rgba(0, 212, 255, 0.26);
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+}
+
+.tip {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-align: center;
+}
+
 .sep {
-  width:      100%;
-  height:     1px;
-  background: var(--border);
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
   flex-shrink: 0;
 }
 
@@ -588,148 +780,190 @@ body::before {
   padding: 0;
 }
 
-/* Corpo da câmera com scroll */
 .camera-body {
-  flex:    1;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(320px, 1.2fr) minmax(300px, 0.9fr);
+  gap: 1.1rem;
+  padding: 1.1rem;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.camera-stage {
   display: flex;
   flex-direction: column;
-  gap:     0.8rem;
-  padding: 0.8rem;
-  overflow: auto;
+  gap: 0.85rem;
+  width: 100%;
 }
 
-/* Container do vídeo + canvas overlay */
 .camera-wrap {
-  position:      relative;
+  position: relative;
   border-radius: var(--radius);
-  overflow:      hidden;
-  border:        1px solid var(--border);
-  box-shadow:    var(--shadow-neon);
-  width:         100%;
-  max-width:     700px;
-  margin:        0 auto;
-  aspect-ratio:  16/9;
-  background:    #000;
-  flex-shrink:   0;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-neon);
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #01060c;
 }
 
-/* Elemento de vídeo */
+/* Espelhamento natural para webcam frontal */
+.camera-wrap.mirrored #cameraVideo,
+.camera-wrap.mirrored #cameraCanvas {
+  transform: scaleX(-1);
+}
+
 #cameraVideo {
-  width:      100%; height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  display:    block;
+  display: block;
 }
 
-/* Canvas overlay transparente sobre o vídeo */
 #cameraCanvas {
-  position:       absolute; top: 0; left: 0;
-  width:          100%; height: 100%;
-  pointer-events: none; /* não bloqueia cliques */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 /* Linha de scanner animada sobre o vídeo */
 .camera-wrap::after {
-  content:    '';
-  position:   absolute; left: 0;
-  width:      100%; height: 2px;
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
   background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
-  animation:  scanner 2.8s linear infinite;
+  animation: scanner 3s linear infinite;
   pointer-events: none;
 }
 
-/* Botão ligar/desligar câmera */
-.btn-cam {
-  display:         flex;
-  align-items:     center;
+.camera-controls-row {
+  display: flex;
   justify-content: center;
-  gap:             0.5rem;
-  padding:         0.70rem 1.4rem;
-  background:      rgba(0,255,234,0.09);
-  border:          1px solid rgba(0,255,234,0.28);
-  border-radius:   8px;
-  color:           var(--neon-cyan);
-  font-family:     'Exo 2', sans-serif;
-  font-weight:     600;
-  font-size:       0.88rem;
-  cursor:          pointer;
-  transition:      all var(--trans);
-  text-transform:  uppercase;
-  margin:          0 auto;
+  gap: 0.65rem;
+  flex-wrap: wrap;
 }
-.btn-cam:hover {
-  background: rgba(0,255,234,0.20);
-  box-shadow: 0 0 18px rgba(0,255,234,0.40);
+
+.btn-cam {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.72rem 1.45rem;
+  background: rgba(0, 255, 234, 0.11);
+  border: 1px solid rgba(0, 255, 234, 0.34);
+  border-radius: var(--radius-sm);
+  color: var(--neon-cyan);
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all var(--trans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.btn-cam:hover:not(:disabled) {
+  background: rgba(0, 255, 234, 0.22);
+  box-shadow: 0 0 18px rgba(0, 255, 234, 0.38);
 }
 .btn-cam:disabled {
   opacity: 0.5;
-  cursor:  not-allowed;
+  cursor: not-allowed;
 }
 
-/* Painel de resultado da câmera */
 .camera-result {
-  background:      var(--bg-glass);
-  border:          1px solid var(--border);
-  border-radius:   var(--radius);
-  padding:         1.1rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  max-width:       700px;
-  width:           100%;
-  margin:          0 auto;
-  display:         flex;
-  flex-direction:  column;
-  gap:             0.5rem;
+  box-shadow: var(--shadow-panel);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
-/* Letra detectada grande */
 .letra-cam-big {
-  font-family:    'Orbitron', monospace;
-  font-size:      3.5rem;
-  font-weight:    900;
-  color:          var(--neon-blue);
-  text-shadow:    var(--shadow-neon);
-  text-align:     center;
-  min-height:     4rem;
-  line-height:    1;
-  letter-spacing: 0.15em;
-  animation:      none;
-  transition:     color 0.2s;
+  font-family: 'Orbitron', monospace;
+  font-size: 3.6rem;
+  font-weight: 900;
+  color: var(--neon-cyan);
+  text-shadow: var(--shadow-neon);
+  text-align: center;
+  min-height: 4.1rem;
+  line-height: 1.05;
+  letter-spacing: 0.12em;
+  transition: color 0.2s, transform 0.2s;
 }
 
-/* Label de porcentagem de confiança */
 .lbl-conf {
-  font-family:    'Share Tech Mono', monospace;
-  font-size:      0.85rem;
-  color:          var(--neon-cyan);
-  text-align:     center;
-  min-height:     1.2rem;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--neon-cyan);
+  text-align: center;
+  min-height: 1.2rem;
 }
 
-/* Barra de confiança */
 .conf-bar {
-  height:        6px;
-  background:    rgba(255,255,255,0.08);
-  border-radius: 3px;
-  overflow:      hidden;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
 }
 
 .conf-fill {
-  height:        100%;
-  background:    linear-gradient(90deg, var(--neon-blue), var(--neon-cyan));
-  border-radius: 3px;
-  transition:    width 0.45s ease;
-  width:         0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-blue), var(--neon-cyan));
+  border-radius: 999px;
+  transition: width 0.25s ease;
+  width: 0%;
 }
 
-/* Texto acumulado das letras detectadas */
+/* Barra de estabilidade de frames */
+.stab-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: -0.2rem;
+}
+.stab-fill {
+  height: 100%;
+  background: var(--neon-purple);
+  width: 0%;
+  transition: width 0.12s linear;
+}
+
 .detected-text {
-  font-family:    'Orbitron', monospace;
-  font-size:      1.5rem;
-  color:          var(--neon-cyan);
-  text-align:     center;
-  min-height:     2.2rem;
-  word-break:     break-all;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.35rem;
+  color: var(--text-main);
+  background: rgba(2, 10, 20, 0.65);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  text-align: center;
+  min-height: 3.1rem;
+  word-break: break-word;
   letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cam-word-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.45rem;
 }
 
 /* ============================================================
@@ -737,176 +971,227 @@ body::before {
    ============================================================ */
 #screen-bluetooth {
   flex-direction: column;
-  align-items:    center;
-  justify-content: center;
-  padding: 1.5rem 1rem;
-  gap:     1.2rem;
+  align-items: center;
+  padding: 0 0 2rem;
+  gap: 1.2rem;
 }
 
-/* Card glassmorphism de Bluetooth */
+#screen-bluetooth .screen-header {
+  width: 100%;
+}
+
+.bt-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.2rem;
+  width: 100%;
+  max-width: 960px;
+  padding: 0 1.1rem;
+}
+
 .bt-card {
-  background:      var(--bg-glass);
-  border:          1px solid var(--border);
-  border-radius:   var(--radius);
-  padding:         1.8rem 1.5rem;
-  width:           100%;
-  max-width:       460px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.6rem 1.4rem;
+  width: 100%;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  display:         flex;
-  flex-direction:  column;
-  align-items:     center;
-  gap:             1.2rem;
-  text-align:      center;
+  box-shadow: var(--shadow-panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  text-align: center;
 }
 
-/* Ícone BT grande que gira */
 .bt-icon-big {
-  width:  72px; height: 72px;
-  animation: rotSlow 10s linear infinite;
+  width: 66px;
+  height: 66px;
+  animation: pulseGlow 3s ease-in-out infinite;
+  border-radius: 50%;
+  padding: 0.8rem;
+  border: 1px solid var(--border);
+  background: rgba(0, 212, 255, 0.06);
 }
 
-/* Nome do dispositivo conectado */
 .bt-device-name {
   font-family: 'Share Tech Mono', monospace;
-  font-size:   0.95rem;
-  color:       var(--neon-blue);
+  font-size: 0.92rem;
+  color: var(--neon-cyan);
 }
 
-/* Instruções de texto */
 .bt-instrucoes {
-  font-size:   0.83rem;
-  color:       var(--text-dim);
-  text-align:  left;
-  line-height: 1.9;
-  width:       100%;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  text-align: left;
+  line-height: 1.85;
+  width: 100%;
+  background: rgba(2, 10, 20, 0.45);
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 212, 255, 0.14);
 }
-.bt-instrucoes strong { color: var(--neon-cyan); }
+.bt-instrucoes strong {
+  color: var(--neon-cyan);
+}
 
-/* Dois botões lado a lado */
 .bt-btn-row {
-  display:               grid;
+  display: grid;
   grid-template-columns: 1fr 1fr;
-  gap:                   0.65rem;
-  width:                 100%;
+  gap: 0.65rem;
+  width: 100%;
 }
 
-/* Grade de chips do alfabeto de referência */
 .ref-alfabeto {
-  display:         flex;
-  flex-wrap:       wrap;
-  gap:             0.38rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
   justify-content: center;
 }
 
 /* ============================================================
    SCROLLBAR CUSTOMIZADA
    ============================================================ */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track  { background: var(--bg-deep); }
-::-webkit-scrollbar-thumb  { background: rgba(0,212,255,0.28); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,212,255,0.55); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.28);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.55);
+}
 
 /* ============================================================
    ANIMAÇÕES KEYFRAMES
    ============================================================ */
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-/* Entrada de cima */
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-28px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(-24px); }
+  to   { opacity: 1; transform: translateY(0);     }
 }
 
-/* Entrada de baixo */
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(28px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
 }
 
-/* Pulso do logo */
 @keyframes pulseGlow {
-  0%,100% { box-shadow: var(--shadow-neon), inset 0 0 28px rgba(0,212,255,0.10); }
-  50%     { box-shadow: var(--shadow-lg),   inset 0 0 40px rgba(0,212,255,0.18); }
+  0%, 100% { box-shadow: var(--shadow-neon), inset 0 0 24px rgba(0, 212, 255, 0.12); }
+  50%      { box-shadow: var(--shadow-lg),   inset 0 0 36px rgba(0, 212, 255, 0.22); }
 }
 
-/* Piscar do ponto BT */
 @keyframes btBlink {
-  0%,100% { opacity: 1;    }
-  50%     { opacity: 0.35; }
+  0%, 100% { opacity: 1;    }
+  50%      { opacity: 0.35; }
 }
 
-/* Chip ativo brilhando */
 @keyframes chipGlow {
-  from { box-shadow: 0 0 8px  var(--neon-blue); }
-  to   { box-shadow: 0 0 22px var(--neon-blue), 0 0 45px rgba(0,212,255,0.28); }
+  from { box-shadow: 0 0 8px var(--neon-blue); }
+  to   { box-shadow: 0 0 20px var(--neon-cyan), 0 0 36px rgba(0, 212, 255, 0.32); }
 }
 
-/* Linha de scanner na câmera */
 @keyframes scanner {
-  0%   { top: 0;    opacity: 0.9; }
-  100% { top: 100%; opacity: 0;   }
+  0%   { top: 0%;   opacity: 0.85; }
+  50%  { opacity: 0.95; }
+  100% { top: 100%; opacity: 0.15; }
 }
 
-/* Rotação lenta do ícone BT */
 @keyframes rotSlow {
-  from { transform: rotate(0deg); }
+  from { transform: rotate(0deg);   }
   to   { transform: rotate(360deg); }
 }
 
 /* ============================================================
-   RESPONSIVIDADE — MOBILE (≤ 768px)
+   RESPONSIVIDADE — TABLET E MOBILE (≤ 960px)
    ============================================================ */
-@media (max-width: 768px) {
-
-  /* Home: menos espaço */
-  #screen-home { padding: 1.2rem 1rem; gap: 1.4rem; }
-  .home-buttons { max-width: 100%; }
-
-  /* Texto: painéis empilhados verticalmente */
+@media (max-width: 960px) {
   .text-body {
-    flex-direction: column;
-    overflow: auto;
-    padding:  0.7rem;
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    padding: 0.85rem;
   }
 
-  /* Painel direito com altura fixa no mobile */
-  .panel-right { min-height: 320px; flex: none; }
+  /* No mobile/tablet, coloca a mão 3D no topo ou com altura garantida */
+  .panel-right {
+    min-height: 390px;
+  }
 
-  /* Canvas 3D menor no mobile */
-  #hand3d-container { min-height: 220px; }
+  #hand3d-container {
+    min-height: 260px;
+  }
 
-  /* Letra grande menor */
-  #letra-atual { font-size: 2.2rem; }
-
-  /* Grade de botões vira coluna */
-  .btn-row { grid-template-columns: 1fr; }
-
-  /* Grade BT vira coluna */
-  .bt-btn-row { grid-template-columns: 1fr; }
-
-  /* Câmera: proporção 4:3 no mobile */
-  .camera-wrap { aspect-ratio: 4/3; }
-
-  /* Título menor */
-  .app-title { font-size: 2.2rem; }
-
-  /* Letra detectada pela câmera menor */
-  .letra-cam-big { font-size: 2.8rem; }
+  .camera-body {
+    grid-template-columns: 1fr;
+    padding: 0.85rem;
+  }
 }
 
-/* ============================================================
-   RESPONSIVIDADE — MOBILE PEQUENO (≤ 400px)
-   ============================================================ */
+@media (max-width: 640px) {
+  #screen-home {
+    padding: 1.5rem 1rem;
+    gap: 1.5rem;
+  }
+
+  .home-buttons {
+    max-width: 100%;
+  }
+
+  .alfabeto-rapido {
+    grid-template-columns: repeat(9, 1fr);
+  }
+
+  .btn-row,
+  .bt-btn-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cam-word-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .camera-wrap {
+    aspect-ratio: 4 / 3;
+  }
+
+  #letra-atual {
+    font-size: 2.1rem;
+  }
+
+  .letra-cam-big {
+    font-size: 2.8rem;
+  }
+}
+
 @media (max-width: 400px) {
-  .logo-circle { width: 85px; height: 85px; }
-  #letra-atual { font-size: 2rem; }
-  .chip { width: 26px; height: 26px; font-size: 0.72rem; }
-  .letra-cam-big { font-size: 2.2rem; }
-  .app-title { font-size: 1.9rem; }
+  .logo-circle {
+    width: 90px;
+    height: 90px;
+  }
+  .alfabeto-rapido {
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .app-title {
+    font-size: 1.85rem;
+  }
 }
 
-/* ============================================================
-   UTILITÁRIOS
-   ============================================================ */
-/* Oculta elemento com !important */
-.hidden { display: none !important; }
+.hidden {
+  display: none !important;
+}

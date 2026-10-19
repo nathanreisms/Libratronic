@@ -1,597 +1,527 @@
 {
+  "versao": "3.2.0",
+  "descricao": "Banco de dados oficial LibraTronic — Datilologia Libras (A-Z) e Sinais Compostos com cinemática 3D de falanges e pulso",
+  "configuracoes": {
+    "intervaloBetweenLetras": 900,
+    "tempoTransicao3d": 650,
+    "debounceCamera": 1800
+  },
   "letras": {
     "A": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Punho fechado. Todos os dedos curvados sobre a palma. Polegar repousa na lateral do indicador, não cruzado.",
       "comando": "CMD_A",
-      "servos": [0, 0, 0, 0, 0, 40, 90],
+      "descricao": "Punho fechado com o polegar encostado na lateral do indicador",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.20 },
-        "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.09 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.15, "y": 0.15, "z": -0.22, "midX": 0.10 },
+        "indicador": { "x": 1.58, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.58, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "B": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Mão aberta. Quatro dedos estendidos e unidos apontando para cima. Polegar dobrado cruzando a palma.",
       "comando": "CMD_B",
-      "servos": [0, 90, 90, 90, 90, 90, 0],
+      "descricao": "Quatro dedos estendidos e unidos, polegar dobrado sobre a palma",
       "rotacoes3d": {
-        "polegar":   { "x":  0.90, "y": 0.00, "z":  0.35 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.05 },
-        "medio":     { "x":  0.00, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  0.00, "y": 0.00, "z": -0.05 },
-        "mindinho":  { "x":  0.00, "y": 0.00, "z": -0.10 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.85, "y": -0.35, "z": 0.42, "midX": 0.95 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02, "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00, "midX": 0.02, "distX": 0.02 },
+        "anelar":    { "x": 0.02, "y": 0.0,   "z": -0.02,"midX": 0.02, "distX": 0.02 },
+        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05,"midX": 0.02, "distX": 0.02 }
       }
     },
     "C": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Todos os dedos curvados formando arco de C. Polegar oposto aos outros dedos sem tocá-los. Palma de lado.",
       "comando": "CMD_C",
-      "servos": [45, 45, 45, 45, 45, 45, 45],
+      "descricao": "Dedos e polegar semi-curvados formando a letra C",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.90 },
-        "indicador": { "x":  0.75, "y": 0.00, "z":  0.06 },
-        "medio":     { "x":  0.75, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  0.75, "y": 0.00, "z": -0.06 },
-        "mindinho":  { "x":  0.70, "y": 0.00, "z": -0.12 }
+        "pulso": { "x": 0.0, "y": -0.45, "z": 0.0 },
+        "polegar":   { "x": 0.55, "y": -0.35, "z": -0.65, "midX": 0.55 },
+        "indicador": { "x": 0.65, "y": 0.0,   "z": 0.04,  "midX": 0.85, "distX": 0.65 },
+        "medio":     { "x": 0.68, "y": 0.0,   "z": 0.00,  "midX": 0.88, "distX": 0.65 },
+        "anelar":    { "x": 0.68, "y": 0.0,   "z": -0.04, "midX": 0.88, "distX": 0.65 },
+        "mindinho":  { "x": 0.65, "y": 0.0,   "z": -0.08, "midX": 0.85, "distX": 0.60 }
       }
     },
     "D": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador estendido apontando para cima. Polegar toca a ponta do dedo médio curvado. Anelar e mindinho dobrados.",
       "comando": "CMD_D",
-      "servos": [45, 90, 0, 0, 0, 90, 45],
+      "descricao": "Indicador estendido para cima, demais dedos curvos tocando o polegar",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.55 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.00 },
-        "medio":     { "x":  1.40, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": -0.25, "z": 0.0 },
+        "polegar":   { "x": 0.65, "y": -0.30, "z": -0.25, "midX": 0.55 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 1.15, "y": 0.0,   "z": 0.00,  "midX": 1.20, "distX": 0.90 },
+        "anelar":    { "x": 1.25, "y": 0.0,   "z": -0.03, "midX": 1.30, "distX": 0.95 },
+        "mindinho":  { "x": 1.30, "y": 0.0,   "z": -0.06, "midX": 1.35, "distX": 1.00 }
       }
     },
     "E": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Todos os dedos semiflexionados com as pontas tocando a palma. Polegar dobrado por baixo.",
       "comando": "CMD_E",
-      "servos": [30, 30, 30, 30, 30, 30, 30],
+      "descricao": "Dedos curvados nas falanges superiores em garra, polegar recolhido abaixo",
       "rotacoes3d": {
-        "polegar":   { "x":  0.60, "y": 0.00, "z": -0.10 },
-        "indicador": { "x":  1.35, "y": 0.00, "z":  0.05 },
-        "medio":     { "x":  1.35, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.35, "y": 0.00, "z": -0.05 },
-        "mindinho":  { "x":  1.30, "y": 0.00, "z": -0.10 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.90, "y": -0.30, "z": 0.28,  "midX": 0.95 },
+        "indicador": { "x": 0.45, "y": 0.0,   "z": 0.03,  "midX": 1.55, "distX": 1.35 },
+        "medio":     { "x": 0.45, "y": 0.0,   "z": 0.00,  "midX": 1.55, "distX": 1.35 },
+        "anelar":    { "x": 0.45, "y": 0.0,   "z": -0.03, "midX": 1.55, "distX": 1.35 },
+        "mindinho":  { "x": 0.45, "y": 0.0,   "z": -0.06, "midX": 1.55, "distX": 1.35 }
       }
     },
     "F": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Polegar e indicador formam círculo (tocam-se nas pontas). Médio, anelar e mindinho estendidos para cima.",
       "comando": "CMD_F",
-      "servos": [45, 45, 90, 90, 90, 45, 90],
+      "descricao": "Indicador flexionado tocando o polegar lateralmente, demais dedos estendidos",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.55 },
-        "indicador": { "x":  1.10, "y": 0.00, "z":  0.15 },
-        "medio":     { "x":  0.00, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  0.00, "y": 0.00, "z": -0.05 },
-        "mindinho":  { "x":  0.00, "y": 0.00, "z": -0.12 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.45, "y": -0.15, "z": -0.30, "midX": 0.25 },
+        "indicador": { "x": 1.05, "y": 0.0,   "z": 0.08,  "midX": 0.95, "distX": 0.55 },
+        "medio":     { "x": 0.04, "y": 0.0,   "z": 0.00,  "midX": 0.04, "distX": 0.02 },
+        "anelar":    { "x": 0.04, "y": 0.0,   "z": -0.05, "midX": 0.04, "distX": 0.02 },
+        "mindinho":  { "x": 0.04, "y": 0.0,   "z": -0.12, "midX": 0.04, "distX": 0.02 }
       }
     },
     "G": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador e polegar paralelos apontando para o lado (horizontal). Médio, anelar e mindinho fechados. Palma para o lado.",
       "comando": "CMD_G",
-      "servos": [90, 90, 0, 0, 0, 90, 90],
+      "descricao": "Indicador e polegar paralelos apontando para cima/lado, demais fechados",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": -1.40, "z": -1.10 },
-        "indicador": { "x":  0.00, "y": -1.57, "z":  0.00 },
-        "medio":     { "x":  1.55, "y":  0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y":  0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y":  0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": -0.35, "z": 0.0 },
+        "polegar":   { "x": 0.15, "y": 0.10, "z": -0.25, "midX": 0.05 },
+        "indicador": { "x": 0.02, "y": 0.0,  "z": 0.02,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "H": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador e médio estendidos paralelos na horizontal (deitados para o lado). Anelar, mindinho e polegar fechados.",
       "comando": "CMD_H",
-      "servos": [0, 90, 90, 0, 0, 90, 90],
+      "descricao": "Indicador e médio estendidos com polegar entre eles e giro de pulso",
+      "movimento": "giro_pulso",
       "rotacoes3d": {
-        "polegar":   { "x":  1.30, "y":  0.00, "z":  0.00 },
-        "indicador": { "x":  0.00, "y": -1.57, "z":  0.09 },
-        "medio":     { "x":  0.00, "y": -1.57, "z": -0.09 },
-        "anelar":    { "x":  1.55, "y":  0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y":  0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": -0.40, "z": 0.0 },
+        "polegar":   { "x": 0.45, "y": -0.15, "z": -0.25, "midX": 0.35 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.16,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 0.20, "y": 0.0,   "z": -0.14, "midX": 0.10, "distX": 0.05 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "I": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Somente o mindinho estendido para cima. Indicador, médio, anelar e polegar fechados em punho.",
       "comando": "CMD_I",
-      "servos": [0, 0, 0, 0, 90, 0, 90],
+      "descricao": "Apenas o dedo mínimo estendido, demais fechados no punho",
       "rotacoes3d": {
-        "polegar":   { "x":  0.30, "y": 0.00, "z": -0.20 },
-        "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-        "mindinho":  { "x":  0.00, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.70, "y": -0.20, "z": 0.15,  "midX": 0.65 },
+        "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05, "midX": 0.02, "distX": 0.02 }
       }
     },
     "J": {
-      "libras_oficial": true,
-      "tipo": "letra_com_movimento",
-      "movimento": "traco_J",
-      "descricao": "Mesmo que I (mindinho estendido). Executa traçado de J no ar: desce verticalmente e curva para a esquerda na base.",
       "comando": "CMD_J",
-      "servos": [0, 0, 0, 0, 90, 0, 90],
+      "descricao": "Configuração da letra I desenhando um J no ar com movimento do pulso",
+      "movimento": "tracar_j",
       "rotacoes3d": {
-        "polegar":   { "x":  0.30, "y": 0.00, "z": -0.20 },
-        "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-        "mindinho":  { "x":  0.00, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.15, "y": -0.35, "z": 0.25 },
+        "polegar":   { "x": 0.70, "y": -0.20, "z": 0.15,  "midX": 0.65 },
+        "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05, "midX": 0.02, "distX": 0.02 }
       }
     },
     "K": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador estendido para cima. Médio estendido na diagonal. Polegar toca o lado do médio. Anelar e mindinho fechados.",
       "comando": "CMD_K",
-      "servos": [45, 90, 45, 0, 0, 45, 90],
+      "descricao": "Indicador para cima, médio semi-inclinado à frente e polegar entre eles (movimento para cima)",
+      "movimento": "impulso_cima",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.50 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.00 },
-        "medio":     { "x":  0.00, "y": 0.00, "z": -0.45 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": -0.15, "y": -0.25, "z": 0.0 },
+        "polegar":   { "x": 0.35, "y": -0.15, "z": -0.22, "midX": 0.20 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.12,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 0.55, "y": 0.0,   "z": -0.12, "midX": 0.15, "distX": 0.05 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "L": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador estendido apontando para cima. Polegar estendido para o lado. Juntos formam ângulo reto de L. Médio, anelar e mindinho fechados.",
       "comando": "CMD_L",
-      "servos": [90, 90, 0, 0, 0, 0, 90],
+      "descricao": "Indicador estendido para cima e polegar aberto a 90 graus formando um L",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -1.57 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.00 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
+        "indicador": { "x": 0.02, "y": 0.0,  "z": 0.02,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "M": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Polegar dobrado por baixo. Indicador, médio e anelar dobrados sobre o polegar (três dedos cobrem o polegar). Mindinho fechado.",
       "comando": "CMD_M",
-      "servos": [30, 30, 30, 30, 0, 0, 90],
+      "descricao": "Indicador, médio e anelar unidos apontando para baixo (ou sobre o polegar)",
       "rotacoes3d": {
-        "polegar":   { "x":  0.50, "y": 0.00, "z": -0.10 },
-        "indicador": { "x":  1.05, "y": 0.00, "z":  0.05 },
-        "medio":     { "x":  1.05, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.05, "y": 0.00, "z": -0.05 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.10 }
+        "pulso": { "x": 0.35, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.85, "y": -0.35, "z": 0.35,  "midX": 0.85 },
+        "indicador": { "x": 0.95, "y": 0.0,   "z": 0.03,  "midX": 0.45, "distX": 0.25 },
+        "medio":     { "x": 0.95, "y": 0.0,   "z": 0.00,  "midX": 0.45, "distX": 0.25 },
+        "anelar":    { "x": 0.95, "y": 0.0,   "z": -0.03, "midX": 0.45, "distX": 0.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "N": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Como M mas somente indicador e médio cobrem o polegar. Anelar e mindinho fechados.",
       "comando": "CMD_N",
-      "servos": [30, 30, 30, 0, 0, 0, 90],
+      "descricao": "Indicador e médio unidos sobre o polegar, anelar e mínimo fechados",
       "rotacoes3d": {
-        "polegar":   { "x":  0.50, "y": 0.00, "z": -0.10 },
-        "indicador": { "x":  1.05, "y": 0.00, "z":  0.05 },
-        "medio":     { "x":  1.05, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z": -0.05 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.10 }
+        "pulso": { "x": 0.35, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.85, "y": -0.35, "z": 0.25,  "midX": 0.85 },
+        "indicador": { "x": 0.95, "y": 0.0,   "z": 0.03,  "midX": 0.45, "distX": 0.25 },
+        "medio":     { "x": 0.95, "y": 0.0,   "z": 0.00,  "midX": 0.45, "distX": 0.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "O": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Todos os dedos curvados reunindo as pontas com o polegar formando círculo completo (letra O).",
       "comando": "CMD_O",
-      "servos": [60, 60, 60, 60, 60, 60, 60],
+      "descricao": "Todos os dedos curvados encontrando a ponta do polegar em círculo (O)",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -1.05 },
-        "indicador": { "x":  0.90, "y": 0.00, "z":  0.06 },
-        "medio":     { "x":  0.95, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  0.90, "y": 0.00, "z": -0.06 },
-        "mindinho":  { "x":  0.85, "y": 0.00, "z": -0.12 }
+        "pulso": { "x": 0.0, "y": -0.45, "z": 0.0 },
+        "polegar":   { "x": 0.72, "y": -0.40, "z": -0.42, "midX": 0.70 },
+        "indicador": { "x": 0.95, "y": 0.0,   "z": 0.04,  "midX": 1.15, "distX": 0.85 },
+        "medio":     { "x": 0.98, "y": 0.0,   "z": 0.00,  "midX": 1.18, "distX": 0.85 },
+        "anelar":    { "x": 0.95, "y": 0.0,   "z": -0.04, "midX": 1.15, "distX": 0.85 },
+        "mindinho":  { "x": 0.90, "y": 0.0,   "z": -0.08, "midX": 1.10, "distX": 0.80 }
       }
     },
     "P": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Mão inclinada para baixo. Indicador aponta para baixo-frente. Polegar estendido lateral. Médio, anelar e mindinho fechados.",
       "comando": "CMD_P",
-      "servos": [45, 90, 0, 0, 0, 90, 45],
+      "descricao": "Configuração de K com o pulso inclinado para frente/horizontal",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.60 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.50 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.95, "y": -0.35, "z": -0.25 },
+        "polegar":   { "x": 0.35, "y": -0.15, "z": -0.22, "midX": 0.20 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.12,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 0.65, "y": 0.0,   "z": -0.10, "midX": 0.15, "distX": 0.05 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "Q": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Semelhante a G mas palma virada para baixo. Indicador e polegar apontam para o chão.",
       "comando": "CMD_Q",
-      "servos": [90, 90, 0, 0, 0, 90, 45],
+      "descricao": "Configuração de G com o pulso voltado para baixo",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y":  0.00, "z":  0.55 },
-        "indicador": { "x":  0.00, "y":  0.50, "z":  0.55 },
-        "medio":     { "x":  1.55, "y":  0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y":  0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y":  0.00, "z":  0.00 }
+        "pulso": { "x": 1.15, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.20, "y": 0.10, "z": -0.25, "midX": 0.05 },
+        "indicador": { "x": 0.15, "y": 0.0,  "z": 0.02,  "midX": 0.05, "distX": 0.02 },
+        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "R": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador e médio estendidos e cruzados (indicador cruza sobre o médio). Polegar, anelar e mindinho fechados.",
       "comando": "CMD_R",
-      "servos": [0, 90, 90, 0, 0, 0, 90],
+      "descricao": "Indicador e médio estendidos e cruzados, demais fechados",
       "rotacoes3d": {
-        "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.22 },
-        "medio":     { "x":  0.00, "y": 0.00, "z": -0.22 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.85, "y": -0.25, "z": 0.25,  "midX": 0.80 },
+        "indicador": { "x": 0.08, "y": 0.15,  "z": -0.18, "midX": 0.05, "distX": 0.05 },
+        "medio":     { "x": -0.04,"y": -0.15, "z": 0.18,  "midX": 0.12, "distX": 0.08 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "S": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Punho fechado com polegar cruzado por cima dos quatro dedos dobrados.",
       "comando": "CMD_S",
-      "servos": [0, 0, 0, 0, 0, 90, 45],
+      "descricao": "Punho fechado com o polegar cruzado à frente dos dedos",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.05 },
-        "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.09 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.75, "y": -0.35, "z": 0.28,  "midX": 0.85 },
+        "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "T": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Polegar inserido entre indicador e médio (saindo lateralmente). Indicador semiflexionado. Médio, anelar e mindinho fechados.",
       "comando": "CMD_T",
-      "servos": [0, 30, 0, 0, 0, 90, 90],
+      "descricao": "Indicador flexionado sobre o polegar (diferente de F, por dentro)",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.35 },
-        "indicador": { "x":  0.85, "y": 0.00, "z":  0.00 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.55, "y": -0.10, "z": -0.10, "midX": 0.25 },
+        "indicador": { "x": 1.10, "y": 0.0,   "z": -0.05, "midX": 1.05, "distX": 0.65 },
+        "medio":     { "x": 0.04, "y": 0.0,   "z": 0.00,  "midX": 0.04, "distX": 0.02 },
+        "anelar":    { "x": 0.04, "y": 0.0,   "z": -0.05, "midX": 0.04, "distX": 0.02 },
+        "mindinho":  { "x": 0.04, "y": 0.0,   "z": -0.12, "midX": 0.04, "distX": 0.02 }
       }
     },
     "U": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador e médio estendidos juntos e unidos apontando para cima. Anelar, mindinho e polegar fechados.",
       "comando": "CMD_U",
-      "servos": [0, 90, 90, 0, 0, 0, 90],
+      "descricao": "Indicador e médio estendidos e unidos, demais fechados",
       "rotacoes3d": {
-        "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.07 },
-        "medio":     { "x":  0.00, "y": 0.00, "z": -0.07 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.85, "y": -0.25, "z": 0.25,  "midX": 0.85 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": -0.04, "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 0.02, "y": 0.0,   "z": 0.04,  "midX": 0.02, "distX": 0.02 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "V": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador e médio estendidos e abertos formando V. Anelar, mindinho e polegar fechados.",
       "comando": "CMD_V",
-      "servos": [0, 90, 90, 0, 0, 0, 90],
+      "descricao": "Indicador e médio estendidos e afastados em V",
       "rotacoes3d": {
-        "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.28 },
-        "medio":     { "x":  0.00, "y": 0.00, "z": -0.28 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.85, "y": -0.25, "z": 0.25,  "midX": 0.85 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.24,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 0.02, "y": 0.0,   "z": -0.22, "midX": 0.02, "distX": 0.02 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "W": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador, médio e anelar estendidos e abertos em leque (três dedos em W). Mindinho e polegar fechados.",
       "comando": "CMD_W",
-      "servos": [0, 90, 90, 90, 0, 0, 90],
+      "descricao": "Indicador, médio e anelar estendidos e afastados em W",
       "rotacoes3d": {
-        "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.32 },
-        "medio":     { "x":  0.00, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  0.00, "y": 0.00, "z": -0.32 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.85, "y": -0.25, "z": 0.30,  "midX": 0.85 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.26,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00,  "midX": 0.02, "distX": 0.02 },
+        "anelar":    { "x": 0.02, "y": 0.0,   "z": -0.26, "midX": 0.02, "distX": 0.02 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.08, "midX": 1.65, "distX": 1.25 }
       }
     },
     "X": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Indicador curvado em forma de gancho. Polegar toca a lateral do indicador. Médio, anelar e mindinho fechados.",
       "comando": "CMD_X",
-      "servos": [30, 45, 0, 0, 0, 0, 90],
+      "descricao": "Indicador curvado em formato de gancho, puxando levemente",
+      "movimento": "puxar_x",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -0.45 },
-        "indicador": { "x":  0.90, "y": 0.00, "z":  0.00 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": -0.35, "z": 0.0 },
+        "polegar":   { "x": 0.70, "y": -0.20, "z": 0.15,  "midX": 0.65 },
+        "indicador": { "x": 0.25, "y": 0.0,   "z": 0.02,  "midX": 1.45, "distX": 1.25 },
+        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     },
     "Y": {
-      "libras_oficial": true,
-      "tipo": "letra",
-      "descricao": "Polegar e mindinho estendidos (hang loose). Indicador, médio e anelar fechados em punho.",
       "comando": "CMD_Y",
-      "servos": [90, 0, 0, 0, 90, 90, 90],
+      "descricao": "Polegar e dedo mínimo estendidos, demais fechados na palma",
       "rotacoes3d": {
-        "polegar":   { "x":  0.00, "y": 0.00, "z": -1.57 },
-        "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-        "mindinho":  { "x":  0.00, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
+        "indicador": { "x": 1.60, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.18, "midX": 0.02, "distX": 0.02 }
       }
     },
     "Z": {
-      "libras_oficial": true,
-      "tipo": "letra_com_movimento",
-      "movimento": "traco_Z",
-      "descricao": "Indicador estendido. Traça Z no ar: linha horizontal da esquerda para direita, diagonal de cima-direita para baixo-esquerda, linha horizontal da esquerda para direita.",
       "comando": "CMD_Z",
-      "servos": [0, 90, 0, 0, 0, 0, 90],
+      "descricao": "Indicador estendido traçando a letra Z no espaço",
+      "movimento": "tracar_z",
       "rotacoes3d": {
-        "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-        "indicador": { "x":  0.00, "y": 0.00, "z":  0.00 },
-        "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-        "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+        "pulso": { "x": 0.10, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.75, "y": -0.25, "z": 0.20,  "midX": 0.75 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02,  "midX": 0.02, "distX": 0.02 },
+        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
       }
     }
   },
-
   "palavras": {
     "AJUDA": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": true,
       "comando": "CMD_AJUDA",
-      "descricao": "Mão direita em A (punho fechado) repousa sobre a mão esquerda aberta em B. Ambas sobem juntas.",
+      "descricao": "Mão aberta apoiando e impulsionando a outra mão para frente (Sinal de AJUDAR em Libras)",
+      "movimento": "ajuda",
       "mao_direita": {
-        "descricao": "Configuração A — punho fechado",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -0.20 },
-          "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-          "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-          "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.09 }
+          "pulso": { "x": 0.25, "y": -0.30, "z": 0.0 },
+          "polegar":   { "x": 0.15, "y": 0.15, "z": -0.22, "midX": 0.10 },
+          "indicador": { "x": 0.05, "y": 0.0,  "z": 0.02,  "midX": 0.05, "distX": 0.05 },
+          "medio":     { "x": 0.05, "y": 0.0,  "z": 0.00,  "midX": 0.05, "distX": 0.05 },
+          "anelar":    { "x": 0.05, "y": 0.0,  "z": -0.02, "midX": 0.05, "distX": 0.05 },
+          "mindinho":  { "x": 0.05, "y": 0.0,  "z": -0.05, "midX": 0.05, "distX": 0.05 }
         }
       },
       "mao_esquerda": {
-        "descricao": "Configuração B — mão aberta, base da outra mão",
         "rotacoes3d": {
-          "polegar":   { "x":  0.90, "y": 0.00, "z":  0.35 },
-          "indicador": { "x":  0.00, "y": 0.00, "z":  0.05 },
-          "medio":     { "x":  0.00, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  0.00, "y": 0.00, "z": -0.05 },
-          "mindinho":  { "x":  0.00, "y": 0.00, "z": -0.10 }
+          "pulso": { "x": 0.85, "y": 0.20, "z": 0.0 },
+          "polegar":   { "x": 0.85, "y": -0.35, "z": 0.42, "midX": 0.95 },
+          "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02, "midX": 0.02, "distX": 0.02 },
+          "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00, "midX": 0.02, "distX": 0.02 },
+          "anelar":    { "x": 0.02, "y": 0.0,   "z": -0.02,"midX": 0.02, "distX": 0.02 },
+          "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05,"midX": 0.02, "distX": 0.02 }
         }
       }
     },
-
     "OBRIGADO": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": false,
       "comando": "CMD_OBRIGADO",
-      "descricao": "Mão aberta (B) com palma para fora parte da região do queixo e move para frente-baixo, como um cumprimento.",
+      "descricao": "Mão em B partindo da testa/rosto para frente em gesto de agradecimento",
+      "movimento": "obrigado",
       "mao_direita": {
-        "descricao": "Configuração B — mão aberta, palma para frente",
         "rotacoes3d": {
-          "polegar":   { "x":  0.90, "y": 0.00, "z":  0.35 },
-          "indicador": { "x":  0.00, "y": 0.00, "z":  0.05 },
-          "medio":     { "x":  0.00, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  0.00, "y": 0.00, "z": -0.05 },
-          "mindinho":  { "x":  0.00, "y": 0.00, "z": -0.10 }
+          "pulso": { "x": 0.35, "y": 0.0, "z": 0.0 },
+          "polegar":   { "x": 0.85, "y": -0.35, "z": 0.42, "midX": 0.95 },
+          "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02, "midX": 0.02, "distX": 0.02 },
+          "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00, "midX": 0.02, "distX": 0.02 },
+          "anelar":    { "x": 0.02, "y": 0.0,   "z": -0.02,"midX": 0.02, "distX": 0.02 },
+          "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05,"midX": 0.02, "distX": 0.02 }
         }
       },
       "mao_esquerda": null
     },
-
     "AGUA": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": false,
       "comando": "CMD_AGUA",
-      "descricao": "Configuração W (três dedos estendidos) com as pontas tocando os lábios. Move para frente repetidamente.",
+      "descricao": "Configuração em L (Libras oficial): polegar no queixo e indicador batendo duas vezes",
+      "movimento": "agua_libras",
       "mao_direita": {
-        "descricao": "Configuração W — indicador, médio e anelar estendidos",
         "rotacoes3d": {
-          "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-          "indicador": { "x":  0.00, "y": 0.00, "z":  0.32 },
-          "medio":     { "x":  0.00, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  0.00, "y": 0.00, "z": -0.32 },
-          "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+          "pulso": { "x": 0.0, "y": -0.45, "z": 0.0 },
+          "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
+          "indicador": { "x": 0.05, "y": 0.0,  "z": 0.02,  "midX": 0.05, "distX": 0.02 },
+          "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+          "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+          "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
         }
       },
       "mao_esquerda": null
     },
-
     "BANHEIRO": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": false,
       "comando": "CMD_BANHEIRO",
-      "descricao": "Configuração com indicador e médio estendidos (U). Pulso faz movimento de rotação (como abrir torneira).",
+      "descricao": "Mão indicando sinal de banheiro com oscilação lateral",
+      "movimento": "oscilar_pulso",
       "mao_direita": {
-        "descricao": "Configuração U — indicador e médio unidos estendidos",
         "rotacoes3d": {
-          "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-          "indicador": { "x":  0.00, "y": 0.00, "z":  0.07 },
-          "medio":     { "x":  0.00, "y": 0.00, "z": -0.07 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+          "pulso": { "x": 0.15, "y": 0.0, "z": 0.0 },
+          "polegar":   { "x": 0.55, "y": -0.10, "z": -0.10, "midX": 0.25 },
+          "indicador": { "x": 1.10, "y": 0.0,   "z": -0.05, "midX": 1.05, "distX": 0.65 },
+          "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+          "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+          "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
         }
       },
       "mao_esquerda": null
     },
-
     "SOCORRO": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": true,
       "comando": "CMD_SOCORRO",
-      "descricao": "Ambas as mãos em configuração S (punho) alternando movimentos circulares para cima indicando urgência.",
+      "descricao": "Ambas as mãos abertas acenando em alerta de emergência",
+      "movimento": "alerta_duplo",
       "mao_direita": {
-        "descricao": "Configuração S — punho com polegar cruzado",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -0.05 },
-          "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-          "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-          "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.09 }
+          "pulso": { "x": 0.0, "y": 0.0, "z": 0.15 },
+          "polegar":   { "x": 0.0,  "y": 0.15, "z": -1.15, "midX": 0.0 },
+          "indicador": { "x": 0.02, "y": 0.0,  "z": 0.18,  "midX": 0.02, "distX": 0.02 },
+          "medio":     { "x": 0.02, "y": 0.0,  "z": 0.05,  "midX": 0.02, "distX": 0.02 },
+          "anelar":    { "x": 0.02, "y": 0.0,  "z": -0.08, "midX": 0.02, "distX": 0.02 },
+          "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.22, "midX": 0.02, "distX": 0.02 }
         }
       },
       "mao_esquerda": {
-        "descricao": "Configuração S — punho com polegar cruzado",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -0.05 },
-          "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-          "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-          "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.09 }
+          "pulso": { "x": 0.0, "y": 0.0, "z": -0.15 },
+          "polegar":   { "x": 0.0,  "y": 0.15, "z": -1.15, "midX": 0.0 },
+          "indicador": { "x": 0.02, "y": 0.0,  "z": 0.18,  "midX": 0.02, "distX": 0.02 },
+          "medio":     { "x": 0.02, "y": 0.0,  "z": 0.05,  "midX": 0.02, "distX": 0.02 },
+          "anelar":    { "x": 0.02, "y": 0.0,  "z": -0.08, "midX": 0.02, "distX": 0.02 },
+          "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.22, "midX": 0.02, "distX": 0.02 }
         }
       }
     },
-
     "COMIDA": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": false,
       "comando": "CMD_COMIDA",
-      "descricao": "Configuração O (dedos reunidos com polegar). Mão leva à boca repetidamente simulando comer.",
+      "descricao": "Dedos unidos em pinça/coxinha levando em direção à boca (COMER em Libras)",
+      "movimento": "comida_libras",
       "mao_direita": {
-        "descricao": "Configuração O — pinça de todos os dedos",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -1.05 },
-          "indicador": { "x":  0.90, "y": 0.00, "z":  0.06 },
-          "medio":     { "x":  0.95, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  0.90, "y": 0.00, "z": -0.06 },
-          "mindinho":  { "x":  0.85, "y": 0.00, "z": -0.12 }
+          "pulso": { "x": -0.35, "y": -0.45, "z": 0.0 },
+          "polegar":   { "x": 0.65, "y": -0.35, "z": -0.38, "midX": 0.55 },
+          "indicador": { "x": 0.85, "y": 0.0,   "z": 0.02,  "midX": 0.65, "distX": 0.35 },
+          "medio":     { "x": 0.88, "y": 0.0,   "z": 0.00,  "midX": 0.68, "distX": 0.35 },
+          "anelar":    { "x": 0.85, "y": 0.0,   "z": -0.02, "midX": 0.65, "distX": 0.35 },
+          "mindinho":  { "x": 0.80, "y": 0.0,   "z": -0.05, "midX": 0.60, "distX": 0.30 }
         }
       },
       "mao_esquerda": null
     },
-
     "PERIGO": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": true,
       "comando": "CMD_PERIGO",
-      "descricao": "Ambas as mãos em Y (polegar e mindinho estendidos). Tremem alternadamente para indicar alerta/perigo.",
+      "descricao": "Sinal de PERIGO / CUIDADO com movimento de alerta",
+      "movimento": "perigo",
       "mao_direita": {
-        "descricao": "Configuração Y — polegar e mindinho estendidos",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -1.57 },
-          "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-          "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-          "mindinho":  { "x":  0.00, "y": 0.00, "z":  0.00 }
+          "pulso": { "x": 0.0, "y": -0.20, "z": 0.0 },
+          "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
+          "indicador": { "x": 1.60, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+          "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+          "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+          "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.18, "midX": 0.02, "distX": 0.02 }
         }
       },
       "mao_esquerda": {
-        "descricao": "Configuração Y — polegar e mindinho estendidos",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -1.57 },
-          "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-          "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-          "mindinho":  { "x":  0.00, "y": 0.00, "z":  0.00 }
+          "pulso": { "x": 0.0, "y": 0.20, "z": 0.0 },
+          "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
+          "indicador": { "x": 1.60, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+          "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+          "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+          "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.18, "midX": 0.02, "distX": 0.02 }
         }
       }
     },
-
     "POR FAVOR": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": false,
       "comando": "CMD_PORFAVOR",
-      "descricao": "Mão aberta (B) espalmada com palma para frente. Faz movimento circular no peito.",
+      "descricao": "Mão aberta em B fazendo movimento circular suave sobre o peito",
+      "movimento": "circular_peito",
       "mao_direita": {
-        "descricao": "Configuração B — mão aberta espalmada",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -0.30 },
-          "indicador": { "x":  0.00, "y": 0.00, "z":  0.05 },
-          "medio":     { "x":  0.00, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  0.00, "y": 0.00, "z": -0.05 },
-          "mindinho":  { "x":  0.00, "y": 0.00, "z": -0.12 }
+          "pulso": { "x": 0.15, "y": 0.35, "z": -0.20 },
+          "polegar":   { "x": 0.0,  "y": 0.15, "z": -1.10, "midX": 0.0 },
+          "indicador": { "x": 0.04, "y": 0.0,  "z": 0.02,  "midX": 0.04, "distX": 0.02 },
+          "medio":     { "x": 0.04, "y": 0.0,  "z": 0.00,  "midX": 0.04, "distX": 0.02 },
+          "anelar":    { "x": 0.04, "y": 0.0,  "z": -0.02, "midX": 0.04, "distX": 0.02 },
+          "mindinho":  { "x": 0.04, "y": 0.0,  "z": -0.05, "midX": 0.04, "distX": 0.02 }
         }
       },
       "mao_esquerda": null
     },
-
     "SIM": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": false,
       "comando": "CMD_SIM",
-      "descricao": "Mão em S (punho fechado, polegar cruzado). Faz movimento afirmativo para baixo (aceno do pulso).",
+      "descricao": "Punho fechado em S acenando positivamente para frente e para baixo",
+      "movimento": "sim_aceno",
       "mao_direita": {
-        "descricao": "Configuração S — punho afirmativo",
         "rotacoes3d": {
-          "polegar":   { "x":  0.00, "y": 0.00, "z": -0.05 },
-          "indicador": { "x":  1.55, "y": 0.00, "z":  0.04 },
-          "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z": -0.04 },
-          "mindinho":  { "x":  1.55, "y": 0.00, "z": -0.09 }
+          "pulso": { "x": 0.30, "y": 0.0, "z": 0.0 },
+          "polegar":   { "x": 0.75, "y": -0.35, "z": 0.28,  "midX": 0.85 },
+          "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
+          "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
+          "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
+          "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
         }
       },
       "mao_esquerda": null
     },
-
     "NAO": {
-      "tipo": "gesto_real",
-      "libras_oficial": true,
       "duas_maos": false,
       "comando": "CMD_NAO",
-      "descricao": "Indicador estendido abanando lateralmente da esquerda para a direita (gesto de não).",
+      "descricao": "Indicador estendido abanando negativamente de um lado para o outro",
+      "movimento": "nao_abano",
       "mao_direita": {
-        "descricao": "Indicador estendido — gesto de não",
         "rotacoes3d": {
-          "polegar":   { "x":  1.30, "y": 0.00, "z":  0.00 },
-          "indicador": { "x":  0.00, "y": 0.00, "z":  0.00 },
-          "medio":     { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "anelar":    { "x":  1.55, "y": 0.00, "z":  0.00 },
-          "mindinho":  { "x":  1.55, "y": 0.00, "z":  0.00 }
+          "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
+          "polegar":   { "x": 0.65, "y": -0.30, "z": -0.20, "midX": 0.55 },
+          "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02,  "midX": 0.02, "distX": 0.02 },
+          "medio":     { "x": 1.55, "y": 0.0,   "z": 0.00,  "midX": 1.60, "distX": 1.20 },
+          "anelar":    { "x": 1.58, "y": 0.0,   "z": -0.03, "midX": 1.62, "distX": 1.22 },
+          "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
         }
       },
       "mao_esquerda": null
     }
-  },
-
-  "configuracoes": {
-    "intervaloBetweenLetras": 900,
-    "tempoTransicao3d": 700,
-    "debounceCamera": 2000,
-    "uuidServico":        "0000ffe0-0000-1000-8000-00805f9b34fb",
-    "uuidCaracteristica": "0000ffe1-0000-1000-8000-00805f9b34fb"
   }
 }
