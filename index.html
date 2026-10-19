@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  LibraTronic v3.2 — index.html
-  Tradução Libras Oficial · Mão Biônica 3D · ESP32 Bluetooth BLE
+  LibraTronic v4.0 — index.html
+  Tradução Libras Oficial · Mão Biônica 3D (Rastro Espacial) · ESP32 BLE
   Integrado com: style.css · hand3d.js · script.js · database.json
   ============================================================
 -->
@@ -12,11 +12,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>LibraTronic — Tradutor Robótico de Libras</title>
 
-  <meta name="theme-color" content="#020913" />
+  <meta name="theme-color" content="#020812" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="LibraTronic" />
-  <meta name="description" content="Sistema de tradução Libras com mão robótica biônica 3D articulada, visão computacional MediaPipe e controle via Bluetooth ESP32." />
+  <meta name="description" content="Sistema de tradução Libras com mão robótica biônica 3D articulada, rastro espacial de trajetórias, visão computacional MediaPipe e controle via Bluetooth ESP32." />
 
   <!-- CSS PRINCIPAL -->
   <link rel="stylesheet" href="style.css" />
@@ -31,8 +31,8 @@
   <!-- POLYFILL — CanvasRenderingContext2D.roundRect -->
   <script>
     if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
-      CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-        var radii = typeof r === 'number' ? [r, r, r, r] : (r || [0, 0, 0, 0]);
+      CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+        const radii = typeof r === 'number' ? [r, r, r, r] : (r || [0, 0, 0, 0]);
         this.beginPath();
         this.moveTo(x + radii[0], y);
         this.lineTo(x + w - radii[1], y);
@@ -93,9 +93,9 @@
 
       <div class="home-badges" aria-hidden="true">
         <span class="badge-tech">LIBRAS OFICIAL</span>
-        <span class="badge-tech">3D CINEMÁTICO</span>
-        <span class="badge-tech">VISÃO IA</span>
-        <span class="badge-tech">ESP32 BLE</span>
+        <span class="badge-tech">3D RASTRO HOLO</span>
+        <span class="badge-tech">VISÃO IA EMA</span>
+        <span class="badge-tech">ESP32 BLE AUTO</span>
       </div>
     </div>
 
@@ -238,7 +238,7 @@
 
         <div class="panel-header-row">
           <p class="panel-label">&#9881;&nbsp; Mão Biônica 3D — Libras Oficial</p>
-          <span class="badge-tech">WEBGL THREE.JS</span>
+          <span class="badge-tech">WEBGL THREE.JS v4.0</span>
         </div>
 
         <div id="hand3d-container"
@@ -294,7 +294,7 @@
           </button>
         </div>
 
-        <p class="tip">Arraste na cena 3D para orbitar &middot; Use a roda do mouse para zoom</p>
+        <p class="tip">Arraste na cena 3D para orbitar &middot; Roda do mouse para zoom &middot; Trajetórias de J e Z com rastro 3D</p>
 
       </div>
 
@@ -359,7 +359,7 @@
         " role="alert" aria-live="assertive"></p>
 
         <p class="tip">
-          Reconhecimento geométrico de 21 pontos via MediaPipe Hands &middot; Suporta mão direita ou esquerda
+          Reconhecimento geométrico de 21 pontos via MediaPipe Hands &middot; Suavização EMA + Histerese Anti-Flicker
         </p>
       </div>
 
@@ -368,7 +368,7 @@
 
         <div class="panel-header-row">
           <p class="panel-label">&#128065;&nbsp; Letra Detectada</p>
-          <span class="badge-tech">ESTABILIZADOR ATIVO</span>
+          <span class="badge-tech">ESTABILIZADOR EMA</span>
         </div>
 
         <div id="letra-camera-detectada"
@@ -457,7 +457,7 @@
           <p>3. Selecione <strong>"LibraTronic"</strong> na janela do navegador</p>
           <p>4. Aguarde o indicador ficar <span style="color:var(--neon-green);">verde</span></p>
           <p style="color:var(--neon-amber);font-size:0.78rem;margin-top:0.5rem;">
-            &#9888;&nbsp; Compatível com Chrome / Edge (Android, Windows, Linux, macOS).
+            &#9888;&nbsp; Reconexão automática ativa em caso de oscilação de sinal BLE.
           </p>
         </div>
 
@@ -528,9 +528,9 @@
         <div class="sep" aria-hidden="true"></div>
 
         <div class="bt-instrucoes" style="font-size:0.80rem;">
-          <p><strong>Destaques da Cinemática 3D v3.2:</strong></p>
-          <p>&bull; <strong>Letras Dinâmicas:</strong> <em>H, J, K, X, Z</em> executam o movimento real do pulso/traçado em Libras.</p>
-          <p>&bull; <strong>Diferenciação F vs T e A vs S:</strong> Posicionamento fiel do polegar e das 3 falanges.</p>
+          <p><strong>Destaques da Cinemática 3D v4.0:</strong></p>
+          <p>&bull; <strong>Rastro Espacial 3D:</strong> <em>J, Z, H, K, X</em> desenham uma trilha holográfica luminosa acompanhando a trajetória real da ponta do dedo.</p>
+          <p>&bull; <strong>Geometria Biônica:</strong> Palma chanfrada esculpida, escudos dorsais nas 3 falanges, pistões duplos e amortecimento físico independente de FPS.</p>
           <p>&bull; <strong>Sinais Oficiais:</strong> <em>ÁGUA</em> (em L no queixo), <em>OBRIGADO, AJUDA, COMIDA, SIM, NÃO</em> com animação contínua.</p>
         </div>
 
@@ -544,14 +544,14 @@
 
 <!-- MEDIAPIPE — carregado de forma assíncrona -->
 <script>
-  (function() {
-    function carregarScript(src) {
-      var s = document.createElement('script');
+  (() => {
+    const carregarScript = (src) => {
+      const s = document.createElement('script');
       s.src = src;
       s.async = true;
       s.crossOrigin = 'anonymous';
       document.head.appendChild(s);
-    }
+    };
     carregarScript('https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js');
     carregarScript('https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js');
   })();
@@ -564,11 +564,11 @@
 <!-- REMOVEDOR DE SPINNER 3D -->
 <script>
   function removerLoading3D() {
-    var el = document.getElementById('hand3d-loading');
+    const el = document.getElementById('hand3d-loading');
     if (!el) return;
     el.style.transition = 'opacity 0.35s';
-    el.style.opacity    = '0';
-    setTimeout(function() {
+    el.style.opacity = '0';
+    setTimeout(() => {
       if (el && el.parentNode) el.parentNode.removeChild(el);
     }, 400);
   }

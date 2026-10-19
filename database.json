@@ -1,145 +1,148 @@
 {
-  "versao": "3.2.0",
-  "descricao": "Banco de dados oficial LibraTronic — Datilologia Libras (A-Z) e Sinais Compostos com cinemática 3D de falanges e pulso",
+  "versao": "4.0.0",
+  "descricao": "Banco de dados oficial LibraTronic v4.0 — Datilologia Libras (A-Z) e Sinais Compostos com cinemática 3D de falanges, pulso e trajetórias espaciais",
   "configuracoes": {
-    "intervaloBetweenLetras": 900,
-    "tempoTransicao3d": 650,
-    "debounceCamera": 1800
+    "intervaloBetweenLetras": 850,
+    "tempoTransicao3d": 600,
+    "debounceCamera": 1650
   },
   "letras": {
     "A": {
       "comando": "CMD_A",
-      "descricao": "Punho fechado com o polegar encostado na lateral do indicador",
+      "descricao": "Punho fechado com o polegar encostado paralelamente na lateral do indicador",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.15, "y": 0.15, "z": -0.22, "midX": 0.10 },
-        "indicador": { "x": 1.58, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.58, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "polegar":   { "x": 0.12, "y": 0.18, "z": -0.20, "midX": 0.08 },
+        "indicador": { "x": 1.60, "y": 0.0,  "z": 0.03,  "midX": 1.68, "distX": 1.32 },
+        "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.32 },
+        "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.32 },
+        "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.68, "distX": 1.32 }
       }
     },
     "B": {
       "comando": "CMD_B",
-      "descricao": "Quatro dedos estendidos e unidos, polegar dobrado sobre a palma",
+      "descricao": "Quatro dedos estendidos e unidos verticalmente, polegar dobrado sobre a palma",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.85, "y": -0.35, "z": 0.42, "midX": 0.95 },
-        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02, "midX": 0.02, "distX": 0.02 },
+        "polegar":   { "x": 0.88, "y": -0.38, "z": 0.44, "midX": 0.98 },
+        "indicador": { "x": 0.02, "y": 0.0,   "z": 0.03, "midX": 0.02, "distX": 0.02 },
         "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00, "midX": 0.02, "distX": 0.02 },
-        "anelar":    { "x": 0.02, "y": 0.0,   "z": -0.02,"midX": 0.02, "distX": 0.02 },
-        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05,"midX": 0.02, "distX": 0.02 }
+        "anelar":    { "x": 0.02, "y": 0.0,   "z": -0.03,"midX": 0.02, "distX": 0.02 },
+        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.06,"midX": 0.02, "distX": 0.02 }
       }
     },
     "C": {
       "comando": "CMD_C",
-      "descricao": "Dedos e polegar semi-curvados formando a letra C",
+      "descricao": "Dedos unidos e polegar em oposição semi-curvados formando o arco da letra C",
       "rotacoes3d": {
-        "pulso": { "x": 0.0, "y": -0.45, "z": 0.0 },
-        "polegar":   { "x": 0.55, "y": -0.35, "z": -0.65, "midX": 0.55 },
-        "indicador": { "x": 0.65, "y": 0.0,   "z": 0.04,  "midX": 0.85, "distX": 0.65 },
-        "medio":     { "x": 0.68, "y": 0.0,   "z": 0.00,  "midX": 0.88, "distX": 0.65 },
-        "anelar":    { "x": 0.68, "y": 0.0,   "z": -0.04, "midX": 0.88, "distX": 0.65 },
-        "mindinho":  { "x": 0.65, "y": 0.0,   "z": -0.08, "midX": 0.85, "distX": 0.60 }
+        "pulso": { "x": 0.0, "y": -0.52, "z": 0.0 },
+        "polegar":   { "x": 0.58, "y": -0.38, "z": -0.62, "midX": 0.58 },
+        "indicador": { "x": 0.64, "y": 0.0,   "z": 0.04,  "midX": 0.88, "distX": 0.68 },
+        "medio":     { "x": 0.66, "y": 0.0,   "z": 0.00,  "midX": 0.90, "distX": 0.68 },
+        "anelar":    { "x": 0.66, "y": 0.0,   "z": -0.04, "midX": 0.90, "distX": 0.68 },
+        "mindinho":  { "x": 0.64, "y": 0.0,   "z": -0.08, "midX": 0.86, "distX": 0.64 }
       }
     },
     "D": {
       "comando": "CMD_D",
-      "descricao": "Indicador estendido para cima, demais dedos curvos tocando o polegar",
+      "descricao": "Indicador estendido para cima, demais dedos curvos tocando a ponta do polegar",
       "rotacoes3d": {
-        "pulso": { "x": 0.0, "y": -0.25, "z": 0.0 },
-        "polegar":   { "x": 0.65, "y": -0.30, "z": -0.25, "midX": 0.55 },
+        "pulso": { "x": 0.0, "y": -0.28, "z": 0.0 },
+        "polegar":   { "x": 0.68, "y": -0.32, "z": -0.24, "midX": 0.58 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02,  "midX": 0.02, "distX": 0.02 },
-        "medio":     { "x": 1.15, "y": 0.0,   "z": 0.00,  "midX": 1.20, "distX": 0.90 },
-        "anelar":    { "x": 1.25, "y": 0.0,   "z": -0.03, "midX": 1.30, "distX": 0.95 },
-        "mindinho":  { "x": 1.30, "y": 0.0,   "z": -0.06, "midX": 1.35, "distX": 1.00 }
+        "medio":     { "x": 1.16, "y": 0.0,   "z": 0.00,  "midX": 1.22, "distX": 0.92 },
+        "anelar":    { "x": 1.26, "y": 0.0,   "z": -0.03, "midX": 1.32, "distX": 0.96 },
+        "mindinho":  { "x": 1.32, "y": 0.0,   "z": -0.06, "midX": 1.36, "distX": 1.02 }
       }
     },
     "E": {
       "comando": "CMD_E",
-      "descricao": "Dedos curvados nas falanges superiores em garra, polegar recolhido abaixo",
+      "descricao": "Falanges médias e distais curvadas em garra compacta, polegar recolhido abaixo",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.90, "y": -0.30, "z": 0.28,  "midX": 0.95 },
-        "indicador": { "x": 0.45, "y": 0.0,   "z": 0.03,  "midX": 1.55, "distX": 1.35 },
-        "medio":     { "x": 0.45, "y": 0.0,   "z": 0.00,  "midX": 1.55, "distX": 1.35 },
-        "anelar":    { "x": 0.45, "y": 0.0,   "z": -0.03, "midX": 1.55, "distX": 1.35 },
-        "mindinho":  { "x": 0.45, "y": 0.0,   "z": -0.06, "midX": 1.55, "distX": 1.35 }
+        "polegar":   { "x": 0.92, "y": -0.32, "z": 0.30,  "midX": 0.98 },
+        "indicador": { "x": 0.42, "y": 0.0,   "z": 0.03,  "midX": 1.58, "distX": 1.38 },
+        "medio":     { "x": 0.42, "y": 0.0,   "z": 0.00,  "midX": 1.58, "distX": 1.38 },
+        "anelar":    { "x": 0.42, "y": 0.0,   "z": -0.03, "midX": 1.58, "distX": 1.38 },
+        "mindinho":  { "x": 0.42, "y": 0.0,   "z": -0.06, "midX": 1.58, "distX": 1.38 }
       }
     },
     "F": {
       "comando": "CMD_F",
-      "descricao": "Indicador flexionado tocando o polegar lateralmente, demais dedos estendidos",
+      "descricao": "Indicador flexionado com polegar encostado por fora, demais 3 dedos estendidos",
       "rotacoes3d": {
-        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.45, "y": -0.15, "z": -0.30, "midX": 0.25 },
-        "indicador": { "x": 1.05, "y": 0.0,   "z": 0.08,  "midX": 0.95, "distX": 0.55 },
-        "medio":     { "x": 0.04, "y": 0.0,   "z": 0.00,  "midX": 0.04, "distX": 0.02 },
-        "anelar":    { "x": 0.04, "y": 0.0,   "z": -0.05, "midX": 0.04, "distX": 0.02 },
-        "mindinho":  { "x": 0.04, "y": 0.0,   "z": -0.12, "midX": 0.04, "distX": 0.02 }
+        "pulso": { "x": 0.0, "y": -0.12, "z": 0.0 },
+        "polegar":   { "x": 0.46, "y": -0.16, "z": -0.32, "midX": 0.24 },
+        "indicador": { "x": 1.06, "y": 0.0,   "z": 0.08,  "midX": 0.96, "distX": 0.56 },
+        "medio":     { "x": 0.03, "y": 0.0,   "z": 0.00,  "midX": 0.03, "distX": 0.02 },
+        "anelar":    { "x": 0.03, "y": 0.0,   "z": -0.05, "midX": 0.03, "distX": 0.02 },
+        "mindinho":  { "x": 0.03, "y": 0.0,   "z": -0.11, "midX": 0.03, "distX": 0.02 }
       }
     },
     "G": {
       "comando": "CMD_G",
-      "descricao": "Indicador e polegar paralelos apontando para cima/lado, demais fechados",
+      "descricao": "Indicador e polegar paralelos apontando para cima, demais dedos fechados",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": -0.35, "z": 0.0 },
-        "polegar":   { "x": 0.15, "y": 0.10, "z": -0.25, "midX": 0.05 },
+        "polegar":   { "x": 0.14, "y": 0.10, "z": -0.24, "midX": 0.05 },
         "indicador": { "x": 0.02, "y": 0.0,  "z": 0.02,  "midX": 0.02, "distX": 0.02 },
-        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,  "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "H": {
       "comando": "CMD_H",
-      "descricao": "Indicador e médio estendidos com polegar entre eles e giro de pulso",
+      "descricao": "Indicador e médio estendidos com polegar entre eles executando giro rotacional de pulso",
       "movimento": "giro_pulso",
+      "pontaRastro": "indicador",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": -0.40, "z": 0.0 },
         "polegar":   { "x": 0.45, "y": -0.15, "z": -0.25, "midX": 0.35 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": 0.16,  "midX": 0.02, "distX": 0.02 },
-        "medio":     { "x": 0.20, "y": 0.0,   "z": -0.14, "midX": 0.10, "distX": 0.05 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "medio":     { "x": 0.22, "y": 0.0,   "z": -0.14, "midX": 0.10, "distX": 0.05 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "I": {
       "comando": "CMD_I",
-      "descricao": "Apenas o dedo mínimo estendido, demais fechados no punho",
+      "descricao": "Apenas o dedo mínimo estendido verticalmente, demais fechados no punho",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.70, "y": -0.20, "z": 0.15,  "midX": 0.65 },
-        "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05, "midX": 0.02, "distX": 0.02 }
+        "polegar":   { "x": 0.72, "y": -0.22, "z": 0.16,  "midX": 0.68 },
+        "indicador": { "x": 1.62, "y": 0.0,   "z": 0.03,  "midX": 1.68, "distX": 1.30 },
+        "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.04, "midX": 0.02, "distX": 0.02 }
       }
     },
     "J": {
       "comando": "CMD_J",
-      "descricao": "Configuração da letra I desenhando um J no ar com movimento do pulso",
+      "descricao": "Mão em I desenhando a haste vertical e a curva inferior da letra J no espaço",
       "movimento": "tracar_j",
+      "pontaRastro": "mindinho",
       "rotacoes3d": {
-        "pulso": { "x": 0.15, "y": -0.35, "z": 0.25 },
-        "polegar":   { "x": 0.70, "y": -0.20, "z": 0.15,  "midX": 0.65 },
-        "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.05, "midX": 0.02, "distX": 0.02 }
+        "pulso": { "x": 0.12, "y": -0.25, "z": 0.18 },
+        "polegar":   { "x": 0.72, "y": -0.22, "z": 0.16,  "midX": 0.68 },
+        "indicador": { "x": 1.62, "y": 0.0,   "z": 0.03,  "midX": 1.68, "distX": 1.30 },
+        "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.04, "midX": 0.02, "distX": 0.02 }
       }
     },
     "K": {
       "comando": "CMD_K",
-      "descricao": "Indicador para cima, médio semi-inclinado à frente e polegar entre eles (movimento para cima)",
+      "descricao": "Indicador vertical, médio semi-inclinado à frente e polegar entre eles impulsionando p/ cima",
       "movimento": "impulso_cima",
+      "pontaRastro": "indicador",
       "rotacoes3d": {
-        "pulso": { "x": -0.15, "y": -0.25, "z": 0.0 },
-        "polegar":   { "x": 0.35, "y": -0.15, "z": -0.22, "midX": 0.20 },
+        "pulso": { "x": -0.14, "y": -0.25, "z": 0.0 },
+        "polegar":   { "x": 0.36, "y": -0.15, "z": -0.22, "midX": 0.20 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": 0.12,  "midX": 0.02, "distX": 0.02 },
-        "medio":     { "x": 0.55, "y": 0.0,   "z": -0.12, "midX": 0.15, "distX": 0.05 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "medio":     { "x": 0.56, "y": 0.0,   "z": -0.12, "midX": 0.15, "distX": 0.05 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "L": {
@@ -147,131 +150,131 @@
       "descricao": "Indicador estendido para cima e polegar aberto a 90 graus formando um L",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
+        "polegar":   { "x": 0.0,  "y": 0.22, "z": -1.36, "midX": 0.0 },
         "indicador": { "x": 0.02, "y": 0.0,  "z": 0.02,  "midX": 0.02, "distX": 0.02 },
-        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,  "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "M": {
       "comando": "CMD_M",
-      "descricao": "Indicador, médio e anelar unidos apontando para baixo (ou sobre o polegar)",
+      "descricao": "Indicador, médio e anelar unidos apontando para baixo sobre o polegar",
       "rotacoes3d": {
-        "pulso": { "x": 0.35, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.85, "y": -0.35, "z": 0.35,  "midX": 0.85 },
-        "indicador": { "x": 0.95, "y": 0.0,   "z": 0.03,  "midX": 0.45, "distX": 0.25 },
-        "medio":     { "x": 0.95, "y": 0.0,   "z": 0.00,  "midX": 0.45, "distX": 0.25 },
-        "anelar":    { "x": 0.95, "y": 0.0,   "z": -0.03, "midX": 0.45, "distX": 0.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "pulso": { "x": 0.38, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.86, "y": -0.35, "z": 0.35,  "midX": 0.86 },
+        "indicador": { "x": 0.96, "y": 0.0,   "z": 0.03,  "midX": 0.44, "distX": 0.24 },
+        "medio":     { "x": 0.96, "y": 0.0,   "z": 0.00,  "midX": 0.44, "distX": 0.24 },
+        "anelar":    { "x": 0.96, "y": 0.0,   "z": -0.03, "midX": 0.44, "distX": 0.24 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "N": {
       "comando": "CMD_N",
-      "descricao": "Indicador e médio unidos sobre o polegar, anelar e mínimo fechados",
+      "descricao": "Indicador e médio unidos apontando para baixo sobre o polegar, demais fechados",
       "rotacoes3d": {
-        "pulso": { "x": 0.35, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.85, "y": -0.35, "z": 0.25,  "midX": 0.85 },
-        "indicador": { "x": 0.95, "y": 0.0,   "z": 0.03,  "midX": 0.45, "distX": 0.25 },
-        "medio":     { "x": 0.95, "y": 0.0,   "z": 0.00,  "midX": 0.45, "distX": 0.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "pulso": { "x": 0.38, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.86, "y": -0.35, "z": 0.25,  "midX": 0.86 },
+        "indicador": { "x": 0.96, "y": 0.0,   "z": 0.03,  "midX": 0.44, "distX": 0.24 },
+        "medio":     { "x": 0.96, "y": 0.0,   "z": 0.00,  "midX": 0.44, "distX": 0.24 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "O": {
       "comando": "CMD_O",
-      "descricao": "Todos os dedos curvados encontrando a ponta do polegar em círculo (O)",
+      "descricao": "Todos os dedos curvados encontrando a ponta do polegar em círculo fechado (O)",
       "rotacoes3d": {
-        "pulso": { "x": 0.0, "y": -0.45, "z": 0.0 },
-        "polegar":   { "x": 0.72, "y": -0.40, "z": -0.42, "midX": 0.70 },
-        "indicador": { "x": 0.95, "y": 0.0,   "z": 0.04,  "midX": 1.15, "distX": 0.85 },
-        "medio":     { "x": 0.98, "y": 0.0,   "z": 0.00,  "midX": 1.18, "distX": 0.85 },
-        "anelar":    { "x": 0.95, "y": 0.0,   "z": -0.04, "midX": 1.15, "distX": 0.85 },
-        "mindinho":  { "x": 0.90, "y": 0.0,   "z": -0.08, "midX": 1.10, "distX": 0.80 }
+        "pulso": { "x": 0.0, "y": -0.48, "z": 0.0 },
+        "polegar":   { "x": 0.74, "y": -0.42, "z": -0.40, "midX": 0.72 },
+        "indicador": { "x": 0.96, "y": 0.0,   "z": 0.04,  "midX": 1.16, "distX": 0.86 },
+        "medio":     { "x": 0.98, "y": 0.0,   "z": 0.00,  "midX": 1.18, "distX": 0.86 },
+        "anelar":    { "x": 0.96, "y": 0.0,   "z": -0.04, "midX": 1.16, "distX": 0.86 },
+        "mindinho":  { "x": 0.92, "y": 0.0,   "z": -0.08, "midX": 1.12, "distX": 0.82 }
       }
     },
     "P": {
       "comando": "CMD_P",
-      "descricao": "Configuração de K com o pulso inclinado para frente/horizontal",
+      "descricao": "Configuração de K com o pulso inclinado na horizontal apontando para frente",
       "rotacoes3d": {
-        "pulso": { "x": 0.95, "y": -0.35, "z": -0.25 },
-        "polegar":   { "x": 0.35, "y": -0.15, "z": -0.22, "midX": 0.20 },
+        "pulso": { "x": 0.96, "y": -0.35, "z": -0.25 },
+        "polegar":   { "x": 0.36, "y": -0.15, "z": -0.22, "midX": 0.20 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": 0.12,  "midX": 0.02, "distX": 0.02 },
         "medio":     { "x": 0.65, "y": 0.0,   "z": -0.10, "midX": 0.15, "distX": 0.05 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "Q": {
       "comando": "CMD_Q",
-      "descricao": "Configuração de G com o pulso voltado para baixo",
+      "descricao": "Configuração de G com o pulso fletido apontando para baixo",
       "rotacoes3d": {
-        "pulso": { "x": 1.15, "y": 0.0, "z": 0.0 },
+        "pulso": { "x": 1.18, "y": 0.0, "z": 0.0 },
         "polegar":   { "x": 0.20, "y": 0.10, "z": -0.25, "midX": 0.05 },
         "indicador": { "x": 0.15, "y": 0.0,  "z": 0.02,  "midX": 0.05, "distX": 0.02 },
-        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,  "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "R": {
       "comando": "CMD_R",
-      "descricao": "Indicador e médio estendidos e cruzados, demais fechados",
+      "descricao": "Indicador e médio estendidos e entrelaçados/cruzados, demais fechados",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
         "polegar":   { "x": 0.85, "y": -0.25, "z": 0.25,  "midX": 0.80 },
-        "indicador": { "x": 0.08, "y": 0.15,  "z": -0.18, "midX": 0.05, "distX": 0.05 },
-        "medio":     { "x": -0.04,"y": -0.15, "z": 0.18,  "midX": 0.12, "distX": 0.08 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "indicador": { "x": 0.08, "y": 0.16,  "z": -0.19, "midX": 0.05, "distX": 0.05 },
+        "medio":     { "x": -0.04,"y": -0.16, "z": 0.19,  "midX": 0.12, "distX": 0.08 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "S": {
       "comando": "CMD_S",
-      "descricao": "Punho fechado com o polegar cruzado à frente dos dedos",
+      "descricao": "Punho fechado com o polegar cruzado transversalmente à frente dos dedos",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.75, "y": -0.35, "z": 0.28,  "midX": 0.85 },
-        "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "polegar":   { "x": 0.78, "y": -0.36, "z": 0.30,  "midX": 0.88 },
+        "indicador": { "x": 1.62, "y": 0.0,   "z": 0.03,  "midX": 1.68, "distX": 1.30 },
+        "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "T": {
       "comando": "CMD_T",
-      "descricao": "Indicador flexionado sobre o polegar (diferente de F, por dentro)",
+      "descricao": "Indicador flexionado por dentro do polegar (diferente de F), 3 dedos estendidos",
       "rotacoes3d": {
-        "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.55, "y": -0.10, "z": -0.10, "midX": 0.25 },
-        "indicador": { "x": 1.10, "y": 0.0,   "z": -0.05, "midX": 1.05, "distX": 0.65 },
-        "medio":     { "x": 0.04, "y": 0.0,   "z": 0.00,  "midX": 0.04, "distX": 0.02 },
-        "anelar":    { "x": 0.04, "y": 0.0,   "z": -0.05, "midX": 0.04, "distX": 0.02 },
-        "mindinho":  { "x": 0.04, "y": 0.0,   "z": -0.12, "midX": 0.04, "distX": 0.02 }
+        "pulso": { "x": 0.0, "y": -0.10, "z": 0.0 },
+        "polegar":   { "x": 0.56, "y": -0.10, "z": -0.08, "midX": 0.26 },
+        "indicador": { "x": 1.12, "y": 0.0,   "z": -0.06, "midX": 1.06, "distX": 0.66 },
+        "medio":     { "x": 0.03, "y": 0.0,   "z": 0.00,  "midX": 0.03, "distX": 0.02 },
+        "anelar":    { "x": 0.03, "y": 0.0,   "z": -0.05, "midX": 0.03, "distX": 0.02 },
+        "mindinho":  { "x": 0.03, "y": 0.0,   "z": -0.12, "midX": 0.03, "distX": 0.02 }
       }
     },
     "U": {
       "comando": "CMD_U",
-      "descricao": "Indicador e médio estendidos e unidos, demais fechados",
+      "descricao": "Indicador e médio estendidos e unidos paralelamente, demais fechados",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.85, "y": -0.25, "z": 0.25,  "midX": 0.85 },
+        "polegar":   { "x": 0.86, "y": -0.26, "z": 0.26,  "midX": 0.86 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": -0.04, "midX": 0.02, "distX": 0.02 },
         "medio":     { "x": 0.02, "y": 0.0,   "z": 0.04,  "midX": 0.02, "distX": 0.02 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "V": {
       "comando": "CMD_V",
-      "descricao": "Indicador e médio estendidos e afastados em V",
+      "descricao": "Indicador e médio estendidos e afastados formando um V",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.85, "y": -0.25, "z": 0.25,  "midX": 0.85 },
+        "polegar":   { "x": 0.86, "y": -0.26, "z": 0.26,  "midX": 0.86 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": 0.24,  "midX": 0.02, "distX": 0.02 },
         "medio":     { "x": 0.02, "y": 0.0,   "z": -0.22, "midX": 0.02, "distX": 0.02 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "W": {
@@ -279,49 +282,51 @@
       "descricao": "Indicador, médio e anelar estendidos e afastados em W",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.85, "y": -0.25, "z": 0.30,  "midX": 0.85 },
+        "polegar":   { "x": 0.86, "y": -0.26, "z": 0.30,  "midX": 0.86 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": 0.26,  "midX": 0.02, "distX": 0.02 },
         "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00,  "midX": 0.02, "distX": 0.02 },
         "anelar":    { "x": 0.02, "y": 0.0,   "z": -0.26, "midX": 0.02, "distX": 0.02 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.08, "midX": 1.65, "distX": 1.25 }
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.08, "midX": 1.68, "distX": 1.30 }
       }
     },
     "X": {
       "comando": "CMD_X",
-      "descricao": "Indicador curvado em formato de gancho, puxando levemente",
+      "descricao": "Indicador curvado em gancho tracionando horizontalmente em direção ao corpo",
       "movimento": "puxar_x",
+      "pontaRastro": "indicador",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": -0.35, "z": 0.0 },
-        "polegar":   { "x": 0.70, "y": -0.20, "z": 0.15,  "midX": 0.65 },
-        "indicador": { "x": 0.25, "y": 0.0,   "z": 0.02,  "midX": 1.45, "distX": 1.25 },
-        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "polegar":   { "x": 0.72, "y": -0.20, "z": 0.15,  "midX": 0.66 },
+        "indicador": { "x": 0.24, "y": 0.0,   "z": 0.02,  "midX": 1.48, "distX": 1.28 },
+        "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     },
     "Y": {
       "comando": "CMD_Y",
-      "descricao": "Polegar e dedo mínimo estendidos, demais fechados na palma",
+      "descricao": "Polegar e dedo mínimo abertos e estendidos, demais fechados na palma",
       "rotacoes3d": {
         "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
-        "indicador": { "x": 1.60, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-        "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+        "polegar":   { "x": 0.0,  "y": 0.22, "z": -1.36, "midX": 0.0 },
+        "indicador": { "x": 1.62, "y": 0.0,  "z": 0.03,  "midX": 1.68, "distX": 1.30 },
+        "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.30 },
         "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.18, "midX": 0.02, "distX": 0.02 }
       }
     },
     "Z": {
       "comando": "CMD_Z",
-      "descricao": "Indicador estendido traçando a letra Z no espaço",
+      "descricao": "Indicador estendido traçando as 3 retas da letra Z no espaço tridimensional",
       "movimento": "tracar_z",
+      "pontaRastro": "indicador",
       "rotacoes3d": {
-        "pulso": { "x": 0.10, "y": 0.0, "z": 0.0 },
-        "polegar":   { "x": 0.75, "y": -0.25, "z": 0.20,  "midX": 0.75 },
+        "pulso": { "x": 0.08, "y": 0.0, "z": 0.0 },
+        "polegar":   { "x": 0.76, "y": -0.25, "z": 0.20,  "midX": 0.76 },
         "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02,  "midX": 0.02, "distX": 0.02 },
-        "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-        "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-        "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+        "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+        "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+        "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
       }
     }
   },
@@ -329,21 +334,21 @@
     "AJUDA": {
       "duas_maos": true,
       "comando": "CMD_AJUDA",
-      "descricao": "Mão aberta apoiando e impulsionando a outra mão para frente (Sinal de AJUDAR em Libras)",
+      "descricao": "Mão de apoio sustentando e impulsionando a mão dominante para frente (Sinal de AJUDAR em Libras)",
       "movimento": "ajuda",
       "mao_direita": {
         "rotacoes3d": {
-          "pulso": { "x": 0.25, "y": -0.30, "z": 0.0 },
-          "polegar":   { "x": 0.15, "y": 0.15, "z": -0.22, "midX": 0.10 },
-          "indicador": { "x": 0.05, "y": 0.0,  "z": 0.02,  "midX": 0.05, "distX": 0.05 },
-          "medio":     { "x": 0.05, "y": 0.0,  "z": 0.00,  "midX": 0.05, "distX": 0.05 },
-          "anelar":    { "x": 0.05, "y": 0.0,  "z": -0.02, "midX": 0.05, "distX": 0.05 },
-          "mindinho":  { "x": 0.05, "y": 0.0,  "z": -0.05, "midX": 0.05, "distX": 0.05 }
+          "pulso": { "x": 0.22, "y": -0.28, "z": 0.0 },
+          "polegar":   { "x": 0.12, "y": 0.16, "z": -0.22, "midX": 0.10 },
+          "indicador": { "x": 0.04, "y": 0.0,  "z": 0.02,  "midX": 0.04, "distX": 0.04 },
+          "medio":     { "x": 0.04, "y": 0.0,  "z": 0.00,  "midX": 0.04, "distX": 0.04 },
+          "anelar":    { "x": 0.04, "y": 0.0,  "z": -0.02, "midX": 0.04, "distX": 0.04 },
+          "mindinho":  { "x": 0.04, "y": 0.0,  "z": -0.05, "midX": 0.04, "distX": 0.04 }
         }
       },
       "mao_esquerda": {
         "rotacoes3d": {
-          "pulso": { "x": 0.85, "y": 0.20, "z": 0.0 },
+          "pulso": { "x": 0.85, "y": 0.22, "z": 0.0 },
           "polegar":   { "x": 0.85, "y": -0.35, "z": 0.42, "midX": 0.95 },
           "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02, "midX": 0.02, "distX": 0.02 },
           "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00, "midX": 0.02, "distX": 0.02 },
@@ -355,11 +360,12 @@
     "OBRIGADO": {
       "duas_maos": false,
       "comando": "CMD_OBRIGADO",
-      "descricao": "Mão em B partindo da testa/rosto para frente em gesto de agradecimento",
+      "descricao": "Mão em B partindo da testa/rosto para frente em arco de agradecimento",
       "movimento": "obrigado",
+      "pontaRastro": "medio",
       "mao_direita": {
         "rotacoes3d": {
-          "pulso": { "x": 0.35, "y": 0.0, "z": 0.0 },
+          "pulso": { "x": 0.32, "y": 0.0, "z": 0.0 },
           "polegar":   { "x": 0.85, "y": -0.35, "z": 0.42, "midX": 0.95 },
           "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02, "midX": 0.02, "distX": 0.02 },
           "medio":     { "x": 0.02, "y": 0.0,   "z": 0.00, "midX": 0.02, "distX": 0.02 },
@@ -372,16 +378,17 @@
     "AGUA": {
       "duas_maos": false,
       "comando": "CMD_AGUA",
-      "descricao": "Configuração em L (Libras oficial): polegar no queixo e indicador batendo duas vezes",
+      "descricao": "Configuração em L (Libras oficial): polegar apoiado no queixo e indicador flexionando duas vezes",
       "movimento": "agua_libras",
+      "pontaRastro": "indicador",
       "mao_direita": {
         "rotacoes3d": {
           "pulso": { "x": 0.0, "y": -0.45, "z": 0.0 },
           "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
           "indicador": { "x": 0.05, "y": 0.0,  "z": 0.02,  "midX": 0.05, "distX": 0.02 },
-          "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-          "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
-          "mindinho":  { "x": 1.60, "y": 0.0,  "z": -0.06, "midX": 1.65, "distX": 1.25 }
+          "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+          "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.30 },
+          "mindinho":  { "x": 1.62, "y": 0.0,  "z": -0.06, "midX": 1.68, "distX": 1.30 }
         }
       },
       "mao_esquerda": null
@@ -389,16 +396,16 @@
     "BANHEIRO": {
       "duas_maos": false,
       "comando": "CMD_BANHEIRO",
-      "descricao": "Mão indicando sinal de banheiro com oscilação lateral",
+      "descricao": "Mão indicando sinal de banheiro com oscilação lateral firme do pulso",
       "movimento": "oscilar_pulso",
       "mao_direita": {
         "rotacoes3d": {
           "pulso": { "x": 0.15, "y": 0.0, "z": 0.0 },
           "polegar":   { "x": 0.55, "y": -0.10, "z": -0.10, "midX": 0.25 },
           "indicador": { "x": 1.10, "y": 0.0,   "z": -0.05, "midX": 1.05, "distX": 0.65 },
-          "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-          "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-          "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+          "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+          "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+          "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
         }
       },
       "mao_esquerda": null
@@ -432,7 +439,7 @@
     "COMIDA": {
       "duas_maos": false,
       "comando": "CMD_COMIDA",
-      "descricao": "Dedos unidos em pinça/coxinha levando em direção à boca (COMER em Libras)",
+      "descricao": "Dedos unidos em pinça levando em direção à boca (COMER / ALIMENTO em Libras)",
       "movimento": "comida_libras",
       "mao_direita": {
         "rotacoes3d": {
@@ -449,15 +456,15 @@
     "PERIGO": {
       "duas_maos": true,
       "comando": "CMD_PERIGO",
-      "descricao": "Sinal de PERIGO / CUIDADO com movimento de alerta",
+      "descricao": "Sinal de PERIGO / CUIDADO com configuração em Y e movimento de alerta",
       "movimento": "perigo",
       "mao_direita": {
         "rotacoes3d": {
           "pulso": { "x": 0.0, "y": -0.20, "z": 0.0 },
           "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
-          "indicador": { "x": 1.60, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-          "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-          "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+          "indicador": { "x": 1.62, "y": 0.0,  "z": 0.03,  "midX": 1.68, "distX": 1.30 },
+          "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+          "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.30 },
           "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.18, "midX": 0.02, "distX": 0.02 }
         }
       },
@@ -465,9 +472,9 @@
         "rotacoes3d": {
           "pulso": { "x": 0.0, "y": 0.20, "z": 0.0 },
           "polegar":   { "x": 0.0,  "y": 0.20, "z": -1.35, "midX": 0.0 },
-          "indicador": { "x": 1.60, "y": 0.0,  "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-          "medio":     { "x": 1.60, "y": 0.0,  "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-          "anelar":    { "x": 1.60, "y": 0.0,  "z": -0.03, "midX": 1.65, "distX": 1.25 },
+          "indicador": { "x": 1.62, "y": 0.0,  "z": 0.03,  "midX": 1.68, "distX": 1.30 },
+          "medio":     { "x": 1.62, "y": 0.0,  "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+          "anelar":    { "x": 1.62, "y": 0.0,  "z": -0.03, "midX": 1.68, "distX": 1.30 },
           "mindinho":  { "x": 0.02, "y": 0.0,  "z": -0.18, "midX": 0.02, "distX": 0.02 }
         }
       }
@@ -475,8 +482,9 @@
     "POR FAVOR": {
       "duas_maos": false,
       "comando": "CMD_PORFAVOR",
-      "descricao": "Mão aberta em B fazendo movimento circular suave sobre o peito",
+      "descricao": "Mão aberta em B descrevendo movimento circular suave sobre o peito",
       "movimento": "circular_peito",
+      "pontaRastro": "medio",
       "mao_direita": {
         "rotacoes3d": {
           "pulso": { "x": 0.15, "y": 0.35, "z": -0.20 },
@@ -492,16 +500,16 @@
     "SIM": {
       "duas_maos": false,
       "comando": "CMD_SIM",
-      "descricao": "Punho fechado em S acenando positivamente para frente e para baixo",
+      "descricao": "Punho fechado em S acenando afirmativamente no eixo vertical",
       "movimento": "sim_aceno",
       "mao_direita": {
         "rotacoes3d": {
-          "pulso": { "x": 0.30, "y": 0.0, "z": 0.0 },
-          "polegar":   { "x": 0.75, "y": -0.35, "z": 0.28,  "midX": 0.85 },
-          "indicador": { "x": 1.60, "y": 0.0,   "z": 0.03,  "midX": 1.65, "distX": 1.25 },
-          "medio":     { "x": 1.60, "y": 0.0,   "z": 0.00,  "midX": 1.65, "distX": 1.25 },
-          "anelar":    { "x": 1.60, "y": 0.0,   "z": -0.03, "midX": 1.65, "distX": 1.25 },
-          "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+          "pulso": { "x": 0.28, "y": 0.0, "z": 0.0 },
+          "polegar":   { "x": 0.78, "y": -0.36, "z": 0.30,  "midX": 0.88 },
+          "indicador": { "x": 1.62, "y": 0.0,   "z": 0.03,  "midX": 1.68, "distX": 1.30 },
+          "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
+          "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
+          "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
         }
       },
       "mao_esquerda": null
@@ -511,14 +519,15 @@
       "comando": "CMD_NAO",
       "descricao": "Indicador estendido abanando negativamente de um lado para o outro",
       "movimento": "nao_abano",
+      "pontaRastro": "indicador",
       "mao_direita": {
         "rotacoes3d": {
           "pulso": { "x": 0.0, "y": 0.0, "z": 0.0 },
           "polegar":   { "x": 0.65, "y": -0.30, "z": -0.20, "midX": 0.55 },
           "indicador": { "x": 0.02, "y": 0.0,   "z": 0.02,  "midX": 0.02, "distX": 0.02 },
-          "medio":     { "x": 1.55, "y": 0.0,   "z": 0.00,  "midX": 1.60, "distX": 1.20 },
-          "anelar":    { "x": 1.58, "y": 0.0,   "z": -0.03, "midX": 1.62, "distX": 1.22 },
-          "mindinho":  { "x": 1.60, "y": 0.0,   "z": -0.06, "midX": 1.65, "distX": 1.25 }
+          "medio":     { "x": 1.56, "y": 0.0,   "z": 0.00,  "midX": 1.62, "distX": 1.24 },
+          "anelar":    { "x": 1.58, "y": 0.0,   "z": -0.03, "midX": 1.64, "distX": 1.26 },
+          "mindinho":  { "x": 1.62, "y": 0.0,   "z": -0.06, "midX": 1.68, "distX": 1.30 }
         }
       },
       "mao_esquerda": null

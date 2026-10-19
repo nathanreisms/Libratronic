@@ -1,734 +1,682 @@
 // ============================================================
-// script.js — LibraTronic v3.2
-// Tradução Libras oficial · Câmera MediaPipe · Web Speech API
-// Reconhecimento geométrico corrigido · Controle de memória
+// script.js — LibraTronic v4.0 (ES6+ Clean Architecture)
+// Tradução Libras Oficial · Mão Biônica 3D · Visão Computacional IA
+// Destaques v4.0:
+//  - Arquitetura Modular ES6+: Controladores desacoplados para
+//    Áudio/Fala, Bluetooth BLE (com fila GATT e auto-reconexão),
+//    Filtro EMA + Buffer Anti-Flicker de Câmera e Motor de Tradução.
+//  - Reconhecimento Dinâmico na Câmera: Suavização espacial de
+//    21 pontos + detecção de trajetória para diferenciar I/J e D/Z.
+//  - Zero Memory Leaks: Fechamento determinístico de instâncias
+//    MediaPipe Hands, MediaStreamTracks, WebGL e Page Visibility API.
 // ============================================================
 
-// ============================================================
-// SEÇÃO 1 — ESTADO GLOBAL
-// ============================================================
+'use strict';
 
-// Palavras-chave que ativam gesto completo em Libras (ordenadas da maior para menor p/ match de frases)
-var PALAVRAS_CHAVE = [
+// ============================================================
+// 1. CONSTANTES E CONFIGURAÇÕES GLOBAIS
+// ============================================================
+const PALAVRAS_CHAVE = Object.freeze([
   'POR FAVOR', 'OBRIGADO', 'BANHEIRO', 'SOCORRO',
   'COMIDA', 'PERIGO', 'AJUDA', 'AGUA', 'SIM', 'NAO'
-];
+]);
 
-var bancoDados = null;
-
-// ── PREFERÊNCIAS DE TRADUÇÃO E ÁUDIO ───────────────────────
-var vozAtiva           = true;
-var velocidadeTraducao = 1.0; // 0.7 (Lento), 1.0 (Normal), 1.5 (Rápido)
-
-// Mapa fonético para pronúncia natural em Português (Web Speech API)
-var MAPA_FONETICO = {
-  'A': 'á', 'B': 'bê', 'C': 'cê', 'D': 'dê', 'E': 'ê', 'F': 'éfe',
-  'G': 'gê', 'H': 'agá', 'I': 'i', 'J': 'jóta', 'K': 'cá', 'L': 'éle',
-  'M': 'ême', 'N': 'êne', 'O': 'ô', 'P': 'pê', 'Q': 'quê', 'R': 'érre',
-  'S': 'ésse', 'T': 'tê', 'U': 'u', 'V': 'vê', 'W': 'dáblio', 'X': 'xis',
-  'Y': 'ípsilon', 'Z': 'zê',
-  'AGUA': 'água',
-  'NAO': 'não',
-  'SIM': 'sim',
-  'AJUDA': 'ajuda',
-  'SOCORRO': 'socorro',
-  'OBRIGADO': 'obrigado',
-  'COMIDA': 'comida',
-  'BANHEIRO': 'banheiro',
-  'PERIGO': 'perigo',
+const MAPA_FONETICO = Object.freeze({
+  A: 'á', B: 'bê', C: 'cê', D: 'dê', E: 'ê', F: 'éfe',
+  G: 'gê', H: 'agá', I: 'i', J: 'jóta', K: 'cá', L: 'éle',
+  M: 'ême', N: 'êne', O: 'ô', P: 'pê', Q: 'quê', R: 'érre',
+  S: 'ésse', T: 'tê', U: 'u', V: 'vê', W: 'dáblio', X: 'xis',
+  Y: 'ípsilon', Z: 'zê',
+  AGUA: 'água',
+  NAO: 'não',
+  SIM: 'sim',
+  AJUDA: 'ajuda',
+  SOCORRO: 'socorro',
+  OBRIGADO: 'obrigado',
+  COMIDA: 'comida',
+  BANHEIRO: 'banheiro',
+  PERIGO: 'perigo',
   'POR FAVOR': 'por favor'
-};
+});
 
-// ── BLUETOOTH ──────────────────────────────────────────────
-var btDevice     = null;
-var btCarac      = null;
-var btConectado  = false;
-var btConectando = false;
-var BT_UUID_SERVICO = '0000ffe0-0000-1000-8000-00805f9b34fb';
-var BT_UUID_CARAC   = '0000ffe1-0000-1000-8000-00805f9b34fb';
-
-// ── TRADUÇÃO E TIMERS (Prevenção de vazamento/race conditions) ──
-var traduzindo      = false;
-var abortarTraducao = false;
-var timersTraducao  = [];
-var telaAtual       = 'home';
-
-function registrarTimeout(fn, ms) {
-  var id = setTimeout(function() {
-    var idx = timersTraducao.indexOf(id);
-    if (idx >= 0) timersTraducao.splice(idx, 1);
-    fn();
-  }, ms);
-  timersTraducao.push(id);
-  return id;
-}
-
-function limparTimeoutsTraducao() {
-  for (var i = 0; i < timersTraducao.length; i++) {
-    clearTimeout(timersTraducao[i]);
-  }
-  timersTraducao = [];
-}
-
-// ── CÂMERA E BUFFER DE ESTABILIDADE ────────────────────────
-var cameraStream     = null;
-var cameraAtiva      = false;
-var cameraEspelhada  = true;
-var camRafId         = null;
-var mpHands          = null;
-var mpCamera         = null;
-var processandoFrame = false;
-
-var frameBufferLetra    = '';
-var frameBufferContador = 0;
-var FRAMES_NECESSARIOS  = 12;
-
-// ── DEBOUNCE DE RECONHECIMENTO ─────────────────────────────
-var ultimaLetra   = '';
-var tsUltimaLetra = 0;
-var DEBOUNCE_MS   = 1800;
-
-// ============================================================
-// SEÇÃO 2 — INICIALIZAÇÃO DO DOM
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-
-  carregarBanco();
-  popularTecladoAZ();
-  mostrarTela('home');
-
-  // ── HOME ──
-  document.getElementById('btn-ir-texto')
-    .addEventListener('click', function() { mostrarTela('text'); });
-  document.getElementById('btn-ir-camera')
-    .addEventListener('click', function() { mostrarTela('camera'); });
-  document.getElementById('btn-ir-bluetooth')
-    .addEventListener('click', function() { mostrarTela('bluetooth'); });
-
-  // ── VOLTAR (todas as telas) ──
-  document.querySelectorAll('.btn-back').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      pararTraducaoAtiva();
-      pararCamera();
-      if (libraHand3D) {
-        libraHand3D.destruir();
-        libraHand3D = null;
-      }
-      mostrarTela('home');
-    });
-  });
-
-  // ── TELA TEXTO ──
-  document.getElementById('btn-traduzir').addEventListener('click', iniciarTraducao);
-  document.getElementById('btn-limpar').addEventListener('click', limparCampo);
-
-  // Controles de Voz e Velocidade
-  var btnVoz = document.getElementById('btn-toggle-voz');
-  if (btnVoz) {
-    btnVoz.addEventListener('click', function() {
-      vozAtiva = !vozAtiva;
-      btnVoz.textContent = vozAtiva ? '🔊 Voz: ON' : '🔇 Voz: OFF';
-      btnVoz.classList.toggle('muted', !vozAtiva);
-      if (!vozAtiva && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
-    });
-  }
-
-  var selVel = document.getElementById('select-velocidade');
-  if (selVel) {
-    selVel.addEventListener('change', function() {
-      velocidadeTraducao = parseFloat(this.value) || 1.0;
-      log('⏱ Velocidade ajustada para ' + velocidadeTraducao + 'x', 'info');
-    });
-  }
-
-  // Enter no textarea = traduzir
-  document.getElementById('input-texto').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      iniciarTraducao();
-    }
-  });
-
-  // Normaliza acentos (ex: ÁGUA -> AGUA, NÃO -> NAO) preservando posição do cursor
-  document.getElementById('input-texto').addEventListener('input', function() {
-    var pos = this.selectionStart;
-    var limpo = this.value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase()
-      .replace(/[^A-Z \n]/g, '');
-    if (this.value !== limpo) {
-      this.value = limpo;
-      try { this.setSelectionRange(pos, pos); } catch (e) {}
-    }
-  });
-
-  // ── CONTROLES 3D ──
-  document.getElementById('btn-3d-rotacionar').addEventListener('click', toggle3DRotacao);
-  document.getElementById('btn-3d-resetar').addEventListener('click', resetar3DCamera);
-  var btnNeutra = document.getElementById('btn-3d-neutra');
-  if (btnNeutra) {
-    btnNeutra.addEventListener('click', function() {
-      if (libraHand3D && libraHand3D.pronto) {
-        libraHand3D._ativarUmaMao();
-        libraHand3D.posicaoNeutra();
-        setLetraAtual('');
-        setFeedbackModo('Posição neutra / repouso');
-      }
-    });
-  }
-
-  // ── GESTOS RÁPIDOS ──
-  document.querySelectorAll('.btn-palavra').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var palavra = btn.getAttribute('data-p');
-      document.getElementById('input-texto').value = palavra;
-      if (traduzindo) pararTraducaoAtiva();
-      iniciarTraducao();
-    });
-  });
-
-  // ── CÂMERA ──
-  document.getElementById('btn-toggle-camera').addEventListener('click', toggleCamera);
-
-  var btnEspelhar = document.getElementById('btn-espelhar-camera');
-  if (btnEspelhar) {
-    btnEspelhar.addEventListener('click', function() {
-      cameraEspelhada = !cameraEspelhada;
-      var wrap = document.getElementById('camera-wrap');
-      if (wrap) wrap.classList.toggle('mirrored', cameraEspelhada);
-      btnEspelhar.textContent = cameraEspelhada ? '🪞 Espelhar: ON' : '🪞 Espelhar: OFF';
-    });
-  }
-
-  var btnCamEspaco = document.getElementById('btn-cam-espaco');
-  if (btnCamEspaco) {
-    btnCamEspaco.addEventListener('click', function() {
-      var el = document.getElementById('texto-detectado');
-      if (el && el.textContent && !el.textContent.endsWith(' ')) {
-        el.textContent += ' ';
-        ultimaLetra = '';
-      }
-    });
-  }
-
-  var btnCamApagar = document.getElementById('btn-cam-apagar');
-  if (btnCamApagar) {
-    btnCamApagar.addEventListener('click', function() {
-      var el = document.getElementById('texto-detectado');
-      if (el && el.textContent.length > 0) {
-        el.textContent = el.textContent.slice(0, -1);
-        ultimaLetra = '';
-      }
-    });
-  }
-
-  var btnCamFalar = document.getElementById('btn-cam-falar');
-  if (btnCamFalar) {
-    btnCamFalar.addEventListener('click', function() {
-      var el = document.getElementById('texto-detectado');
-      if (el && el.textContent.trim()) {
-        falarTextoLivre(el.textContent.trim());
-      }
-    });
-  }
-
-  document.getElementById('btn-limpar-cam').addEventListener('click', function() {
-    document.getElementById('texto-detectado').textContent = '';
-    document.getElementById('conf-fill').style.width = '0%';
-    var stab = document.getElementById('stab-fill');
-    if (stab) stab.style.width = '0%';
-    var elConf = document.getElementById('lbl-confianca');
-    if (elConf) elConf.textContent = '';
-    var elLetra = document.getElementById('letra-camera-detectada');
-    if (elLetra) elLetra.textContent = '—';
-    ultimaLetra = '';
-  });
-
-  // ── BLUETOOTH E REFERÊNCIA ALFABETO ──
-  document.getElementById('btn-bt-conectar').addEventListener('click', conectarBluetooth);
-  document.getElementById('btn-bt-desconectar').addEventListener('click', desconectarBluetooth);
-
-  // Torna os chips de referência na tela Bluetooth clicáveis para ir direto ver em 3D
-  document.querySelectorAll('#ref-alfabeto-bt .chip').forEach(function(chip) {
-    chip.classList.add('clickable');
-    chip.addEventListener('click', function() {
-      var letra = chip.textContent.trim();
-      mostrarTela('text');
-      registrarTimeout(function() {
-        visualizarLetraUnica3D(letra);
-      }, 420);
-    });
-  });
+const BT_CONFIG = Object.freeze({
+  UUID_SERVICO: '0000ffe0-0000-1000-8000-00805f9b34fb',
+  UUID_CARAC:   '0000ffe1-0000-1000-8000-00805f9b34fb',
+  MAX_RETRIES:  3,
+  BASE_DELAY_MS: 1200,
+  WRITE_TIMEOUT_MS: 2500
 });
 
 // ============================================================
-// SEÇÃO 3 — TECLADO RÁPIDO A–Z E NAVEGAÇÃO
+// 2. ESTADO CENTRAL DA APLICAÇÃO E REGISTRO DE TIMERS
 // ============================================================
+const AppState = {
+  bancoDados: null,
+  telaAtual: 'home',
+  vozAtiva: true,
+  velocidadeTraducao: 1.0,
+  traduzindo: false,
+  abortarTraducao: false,
+  debounceMs: 1650
+};
 
-function popularTecladoAZ() {
-  var container = document.getElementById('alfabeto-rapido');
-  if (!container) return;
-  container.innerHTML = '';
-
-  var alfabeto = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  alfabeto.forEach(function(letra) {
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn-letra-az';
-    btn.textContent = letra;
-    btn.title = 'Visualizar letra ' + letra + ' na mão 3D';
-    btn.setAttribute('aria-label', 'Letra ' + letra);
-    btn.addEventListener('click', function() {
-      if (traduzindo) pararTraducaoAtiva();
-      visualizarLetraUnica3D(letra);
-    });
-    container.appendChild(btn);
-  });
-}
-
-function visualizarLetraUnica3D(letra) {
-  var dados = buscarLetra(letra);
-  if (!dados) return;
-
-  document.querySelectorAll('.btn-letra-az').forEach(function(b) {
-    b.classList.toggle('active', b.textContent === letra);
-  });
-
-  setLetraAtual(letra);
-  setFeedbackModo(dados.descricao || ('Letra ' + letra + ' em Libras'));
-
-  if (libraHand3D && libraHand3D.pronto && dados.rotacoes3d) {
-    libraHand3D.animarLetra(dados.rotacoes3d, dados.movimento);
+class TimerRegistry {
+  constructor() {
+    this._timers = new Set();
   }
 
-  falar(letra);
+  schedule(fn, ms) {
+    const id = setTimeout(() => {
+      this._timers.delete(id);
+      fn();
+    }, ms);
+    this._timers.add(id);
+    return id;
+  }
 
-  if (btConectado && btCarac && dados.comando) {
-    enviarBT(dados.comando);
-    log('↗ ' + letra + ' → ' + dados.comando, 'success');
-  } else {
-    log('👁 Visualizando letra ' + letra + (dados.descricao ? ' (' + dados.descricao + ')' : ''), 'info');
+  clearAll() {
+    for (const id of this._timers) {
+      clearTimeout(id);
+    }
+    this._timers.clear();
+  }
+
+  sleep(ms) {
+    return new Promise((resolve) => this.schedule(resolve, ms));
   }
 }
 
-function mostrarTela(id) {
-  pararTraducaoAtiva();
-  telaAtual = id;
+const timers = new TimerRegistry();
 
-  document.querySelectorAll('.screen').forEach(function(t) {
-    t.classList.remove('active');
-  });
+// ============================================================
+// 3. SERVIÇO DE SÍNTESE DE VOZ (Web Speech API)
+// ============================================================
+const SpeechService = {
+  falar(chave) {
+    if (!AppState.vozAtiva || !('speechSynthesis' in window)) return;
+    const chaveUpper = String(chave || '').toUpperCase().trim();
+    const textoFala = MAPA_FONETICO[chaveUpper] || chaveUpper.toLowerCase();
+    this.falarTextoLivre(textoFala);
+  },
 
-  var tela = document.getElementById('screen-' + id);
-  if (tela) tela.classList.add('active');
+  falarTextoLivre(texto) {
+    if (!AppState.vozAtiva || !('speechSynthesis' in window) || !texto) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utt = new SpeechSynthesisUtterance(texto);
+      utt.lang = 'pt-BR';
+      utt.rate = Math.min(Math.max(0.94 * AppState.velocidadeTraducao, 0.7), 1.45);
+      utt.pitch = 1.0;
+      utt.volume = 1.0;
 
-  if (id === 'text') {
-    registrarTimeout(inicializar3D, 120);
+      const vozes = window.speechSynthesis.getVoices();
+      const vozPt = vozes.find((v) => v.lang && v.lang.toLowerCase().startsWith('pt'));
+      if (vozPt) utt.voice = vozPt;
+
+      window.speechSynthesis.speak(utt);
+    } catch (_) {
+      // Ignora silenciosamente se bloqueado por autoplay policy
+    }
+  },
+
+  cancelar() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
   }
-}
+};
 
 // ============================================================
-// SEÇÃO 4 — BANCO DE DADOS
+// 4. GERENCIADOR BLUETOOTH BLE (Auto-Reconexão + Fila GATT)
 // ============================================================
+class BluetoothManager {
+  constructor() {
+    this.device = null;
+    this.characteristic = null;
+    this.conectado = false;
+    this.conectando = false;
+    this.desconexaoManual = false;
+    this.tentativasReconexao = 0;
+    this.timerReconexao = null;
+    this.filaComandos = [];
+    this.escrevendoGatt = false;
 
-function carregarBanco() {
-  fetch('./database.json')
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    })
-    .then(function(d) {
-      bancoDados = d;
-      if (d.configuracoes && d.configuracoes.debounceCamera) {
-        DEBOUNCE_MS = d.configuracoes.debounceCamera;
+    this._onDisconnectedBound = this._onDisconnected.bind(this);
+  }
+
+  async conectar() {
+    if (!navigator.bluetooth) {
+      mostrarNotificacaoUI('Web Bluetooth não suportado neste navegador. Use Chrome ou Edge.', 'error');
+      log('✗ Web Bluetooth indisponível neste navegador', 'error');
+      return;
+    }
+    if (this.conectando) return;
+
+    this._limparTimerReconexao();
+    this.desconexaoManual = false;
+    this.conectando = true;
+    this.atualizarUI('connecting', 'Conectando...');
+    log('🔍 Procurando hardware ESP32 LibraTronic...', 'info');
+
+    try {
+      if (this.device) {
+        this.device.removeEventListener('gattserverdisconnected', this._onDisconnectedBound);
       }
-      log('✓ Banco Libras carregado — 26 letras + ' +
-          Object.keys(d.palavras || {}).length + ' sinais oficiais', 'success');
-    })
-    .catch(function() {
-      bancoDados = getBancoFallback();
-      log('ℹ Banco Libras interno carregado (26 letras + 10 sinais)', 'info');
-    });
-}
 
-function buscarLetra(l) {
-  if (!bancoDados || !bancoDados.letras) return null;
-  return bancoDados.letras[l] || null;
-}
+      this.device = await navigator.bluetooth.requestDevice({
+        filters: [
+          { namePrefix: 'LibraTronic' },
+          { services: [BT_CONFIG.UUID_SERVICO] }
+        ],
+        optionalServices: [BT_CONFIG.UUID_SERVICO]
+      });
 
-function buscarPalavra(p) {
-  if (!bancoDados || !bancoDados.palavras) return null;
-  return bancoDados.palavras[p] || null;
-}
+      this.device.addEventListener('gattserverdisconnected', this._onDisconnectedBound);
 
-function detectarPalavraChaveExata(texto) {
-  var t = texto.trim().toUpperCase();
-  for (var i = 0; i < PALAVRAS_CHAVE.length; i++) {
-    if (t === PALAVRAS_CHAVE[i]) return PALAVRAS_CHAVE[i];
+      log(`✓ Dispositivo localizado: ${this.device.name || 'ESP32'}`, 'success');
+      await this._estabelecerSessaoGatt();
+    } catch (err) {
+      this.conectando = false;
+      this.atualizarUI('disconnected', 'Desconectado');
+      const msg = err?.message || String(err);
+      if (msg.toLowerCase().includes('cancelled') || msg.toLowerCase().includes('canceled')) {
+        log('ℹ Busca Bluetooth cancelada pelo usuário', 'info');
+      } else {
+        log(`✗ Erro BT: ${msg}`, 'error');
+      }
+    }
   }
+
+  async _estabelecerSessaoGatt() {
+    if (!this.device?.gatt) throw new Error('Dispositivo GATT inválido');
+
+    const servidor = await this.device.gatt.connect();
+    const servico = await servidor.getPrimaryService(BT_CONFIG.UUID_SERVICO);
+    this.characteristic = await servico.getCharacteristic(BT_CONFIG.UUID_CARAC);
+
+    this.conectado = true;
+    this.conectando = false;
+    this.tentativasReconexao = 0;
+    this.filaComandos = [];
+    this.escrevendoGatt = false;
+
+    const nome = this.device.name || 'LibraTronic';
+    this.atualizarUI('connected', nome);
+    log(`✓ Bluetooth BLE conectado (${nome})`, 'success');
+  }
+
+  _onDisconnected() {
+    this.conectado = false;
+    this.conectando = false;
+    this.characteristic = null;
+    this.filaComandos = [];
+    this.escrevendoGatt = false;
+
+    if (this.desconexaoManual) {
+      this.atualizarUI('disconnected', 'Desconectado');
+      return;
+    }
+
+    log('⚠ Queda de sinal Bluetooth detectada', 'error');
+    this._tentarReconectarAutomaticamente();
+  }
+
+  _tentarReconectarAutomaticamente() {
+    if (this.desconexaoManual || !this.device) {
+      this.atualizarUI('disconnected', 'Desconectado');
+      return;
+    }
+
+    if (this.tentativasReconexao >= BT_CONFIG.MAX_RETRIES) {
+      this.tentativasReconexao = 0;
+      this.atualizarUI('disconnected', 'Desconectado');
+      log('✗ Reconexão automática falhou após 3 tentativas', 'error');
+      return;
+    }
+
+    this.tentativasReconexao++;
+    const delay = BT_CONFIG.BASE_DELAY_MS * Math.pow(1.6, this.tentativasReconexao - 1);
+    this.atualizarUI(
+      'connecting',
+      `Reconectando (${this.tentativasReconexao}/${BT_CONFIG.MAX_RETRIES})...`
+    );
+    log(`↻ Tentando reconectar ao ESP32 (${this.tentativasReconexao}/${BT_CONFIG.MAX_RETRIES})...`, 'info');
+
+    this._limparTimerReconexao();
+    this.timerReconexao = setTimeout(async () => {
+      if (this.desconexaoManual || !this.device) return;
+      try {
+        this.conectando = true;
+        await this._estabelecerSessaoGatt();
+        log('✓ Reconexão automática Bluetooth concluída!', 'success');
+      } catch (_) {
+        this.conectando = false;
+        this._tentarReconectarAutomaticamente();
+      }
+    }, delay);
+  }
+
+  desconectar() {
+    this.desconexaoManual = true;
+    this._limparTimerReconexao();
+
+    if (this.device) {
+      this.device.removeEventListener('gattserverdisconnected', this._onDisconnectedBound);
+      if (this.device.gatt?.connected) {
+        try {
+          this.device.gatt.disconnect();
+        } catch (_) {}
+      }
+    }
+
+    this.conectado = false;
+    this.conectando = false;
+    this.characteristic = null;
+    this.filaComandos = [];
+    this.escrevendoGatt = false;
+    this.atualizarUI('disconnected', 'Desconectado');
+    log('✓ Bluetooth desconectado com segurança', 'info');
+  }
+
+  enviar(comando) {
+    if (!this.conectado || !this.characteristic || !comando) return;
+    // Evita acumular comandos repetidos na fila
+    if (this.filaComandos[this.filaComandos.length - 1] !== comando) {
+      this.filaComandos.push(comando);
+    }
+    this._processarFila();
+  }
+
+  async _processarFila() {
+    if (this.escrevendoGatt || !this.conectado || !this.characteristic) return;
+    const proximo = this.filaComandos.shift();
+    if (!proximo) return;
+
+    this.escrevendoGatt = true;
+    const payload = new TextEncoder().encode(`<${proximo}>`);
+
+    try {
+      const writePromise = this.characteristic.writeValueWithoutResponse
+        ? this.characteristic.writeValueWithoutResponse(payload)
+        : this.characteristic.writeValue(payload);
+
+      await Promise.race([
+        writePromise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout de escrita GATT')), BT_CONFIG.WRITE_TIMEOUT_MS)
+        )
+      ]);
+    } catch (err) {
+      log(`✗ Falha no envio BT (${proximo}): ${err?.message || err}`, 'error');
+      this._onDisconnected();
+      return;
+    } finally {
+      this.escrevendoGatt = false;
+    }
+
+    if (this.filaComandos.length > 0) {
+      this._processarFila();
+    }
+  }
+
+  _limparTimerReconexao() {
+    if (this.timerReconexao) {
+      clearTimeout(this.timerReconexao);
+      this.timerReconexao = null;
+    }
+  }
+
+  atualizarUI(estado, texto) {
+    document.querySelectorAll('.bt-dot').forEach((el) => {
+      el.className =
+        'bt-dot' +
+        (estado === 'connected' ? ' connected' : '') +
+        (estado === 'connecting' ? ' connecting' : '');
+    });
+    document.querySelectorAll('.bt-status-text').forEach((el) => {
+      el.textContent = texto;
+    });
+    const nomeEl = document.getElementById('bt-device-name');
+    if (nomeEl) nomeEl.textContent = texto;
+  }
+}
+
+const btManager = new BluetoothManager();
+
+// ============================================================
+// 5. VISÃO COMPUTACIONAL: FILTRO EMA + BUFFER ANTI-FLICKER + TRAJETÓRIA
+// ============================================================
+
+/**
+ * Suaviza coordenadas 2D/3D dos 21 landmarks via Exponential Moving Average (EMA)
+ * para eliminar micro-tremores da webcam antes da classificação geométrica.
+ */
+class LandmarkSmoother {
+  constructor(alpha = 0.58) {
+    this.alpha = alpha;
+    this.prev = null;
+  }
+
+  smooth(landmarks) {
+    if (!landmarks || landmarks.length < 21) {
+      this.prev = null;
+      return landmarks;
+    }
+    if (!this.prev) {
+      this.prev = landmarks.map((pt) => ({ x: pt.x, y: pt.y, z: pt.z || 0 }));
+      return this.prev;
+    }
+    const a = this.alpha;
+    for (let i = 0; i < landmarks.length; i++) {
+      this.prev[i].x = this.prev[i].x + a * (landmarks[i].x - this.prev[i].x);
+      this.prev[i].y = this.prev[i].y + a * (landmarks[i].y - this.prev[i].y);
+      this.prev[i].z = this.prev[i].z + a * ((landmarks[i].z || 0) - this.prev[i].z);
+    }
+    return this.prev;
+  }
+
+  reset() {
+    this.prev = null;
+  }
+}
+
+/**
+ * Buffer de estabilidade temporal com janela de votação + histerese anti-flicker.
+ * Evita que 1 ou 2 frames ruidosos zerem o progresso da letra que o usuário está segurando.
+ */
+class GestureStabilityBuffer {
+  constructor(framesNecessarios = 11) {
+    this.framesNecessarios = framesNecessarios;
+    this.historico = [];
+    this.maxHistorico = 7;
+    this.letraCandidata = '';
+    this.contadorEstabilidade = 0;
+    this.ultimaLetraConfirmada = '';
+    this.tsUltimaConfirmacao = 0;
+
+    // Histórico espacial curto para detectar letras dinâmicas (J e Z)
+    this.trilhaIndicador = [];
+    this.trilhaMindinho = [];
+    this.maxTrilha = 16;
+  }
+
+  reset() {
+    this.historico = [];
+    this.letraCandidata = '';
+    this.contadorEstabilidade = 0;
+    this.trilhaIndicador = [];
+    this.trilhaMindinho = [];
+  }
+
+  registrarPontosTrajetoria(lm) {
+    if (!lm || lm.length < 21) return;
+    const tamMao = Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y) || 0.1;
+
+    this.trilhaIndicador.push({ x: lm[8].x, y: lm[8].y, scale: tamMao });
+    if (this.trilhaIndicador.length > this.maxTrilha) this.trilhaIndicador.shift();
+
+    this.trilhaMindinho.push({ x: lm[20].x, y: lm[20].y, scale: tamMao });
+    if (this.trilhaMindinho.length > this.maxTrilha) this.trilhaMindinho.shift();
+  }
+
+  detectarMovimentoDinamico(letraEstatica) {
+    // Se a mão está em I e o mindinho traçou movimento descendente + lateral -> J
+    if (letraEstatica === 'I' && this.trilhaMindinho.length >= 10) {
+      const ini = this.trilhaMindinho[0];
+      const fim = this.trilhaMindinho[this.trilhaMindinho.length - 1];
+      const dy = (fim.y - ini.y) / fim.scale;
+      const dx = Math.abs(fim.x - ini.x) / fim.scale;
+      if (dy > 0.36 && dx > 0.16) {
+        return 'J';
+      }
+    }
+
+    // Se a mão está com indicador estendido (D ou G) e houve varredura ampla em X e Y -> Z
+    if ((letraEstatica === 'D' || letraEstatica === 'G') && this.trilhaIndicador.length >= 12) {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      const scale = this.trilhaIndicador[this.trilhaIndicador.length - 1].scale;
+      for (const pt of this.trilhaIndicador) {
+        if (pt.x < minX) minX = pt.x;
+        if (pt.x > maxX) maxX = pt.x;
+        if (pt.y < minY) minY = pt.y;
+        if (pt.y > maxY) maxY = pt.y;
+      }
+      const ampX = (maxX - minX) / scale;
+      const ampY = (maxY - minY) / scale;
+      if (ampX > 0.55 && ampY > 0.32) {
+        return 'Z';
+      }
+    }
+
+    return letraEstatica;
+  }
+
+  processarPredicao(predicaoBruta) {
+    if (!predicaoBruta || predicaoBruta.confianca < 0.70) {
+      // Decaimento suave (histerese): não zera imediatamente em 1 frame perdido
+      this.contadorEstabilidade = Math.max(0, this.contadorEstabilidade - 1.5);
+      if (this.contadorEstabilidade === 0) {
+        this.letraCandidata = '';
+        this.historico = [];
+      }
+      return {
+        letra: this.letraCandidata,
+        confianca: predicaoBruta ? predicaoBruta.confianca : 0,
+        estabilidadePct: Math.round((this.contadorEstabilidade / this.framesNecessarios) * 100),
+        confirmada: false
+      };
+    }
+
+    const letraRefinada = this.detectarMovimentoDinamico(predicaoBruta.letra);
+
+    // Janela de votação majoritária (Moving Window Majority Vote)
+    this.historico.push(letraRefinada);
+    if (this.historico.length > this.maxHistorico) {
+      this.historico.shift();
+    }
+
+    const contagem = {};
+    let letraDominante = letraRefinada;
+    let maiorVoto = 0;
+    for (const l of this.historico) {
+      contagem[l] = (contagem[l] || 0) + 1;
+      if (contagem[l] > maiorVoto) {
+        maiorVoto = contagem[l];
+        letraDominante = l;
+      }
+    }
+
+    if (letraDominante === this.letraCandidata) {
+      this.contadorEstabilidade = Math.min(
+        this.framesNecessarios,
+        this.contadorEstabilidade + 1
+      );
+    } else {
+      // Histerese na troca de candidata
+      this.contadorEstabilidade = Math.max(0, this.contadorEstabilidade - 2);
+      if (this.contadorEstabilidade <= 1) {
+        this.letraCandidata = letraDominante;
+        this.contadorEstabilidade = 1;
+      }
+    }
+
+    const estabilidadePct = Math.min(
+      100,
+      Math.round((this.contadorEstabilidade / this.framesNecessarios) * 100)
+    );
+
+    let confirmada = false;
+    let novaLetra = false;
+
+    if (this.contadorEstabilidade >= this.framesNecessarios) {
+      const agora = Date.now();
+      novaLetra = this.letraCandidata !== this.ultimaLetraConfirmada;
+      const tempoDebounceOk = agora - this.tsUltimaConfirmacao >= AppState.debounceMs;
+
+      if (novaLetra || tempoDebounceOk) {
+        this.ultimaLetraConfirmada = this.letraCandidata;
+        this.tsUltimaConfirmacao = agora;
+        confirmada = true;
+      }
+    }
+
+    return {
+      letra: this.letraCandidata,
+      confianca: predicaoBruta.confianca,
+      estabilidadePct,
+      confirmada,
+      novaLetra
+    };
+  }
+}
+
+// ============================================================
+// 6. CLASSIFICADOR GEOMÉTRICO DE LIBRAS (21 Landmarks)
+// ============================================================
+function dist2D(a, b) {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function reconhecerConfiguracao(lm) {
+  const tamMao = dist2D(lm[0], lm[9]);
+  if (tamMao < 0.02) return null;
+
+  // Estado de extensão vertical dos 4 dedos (Indicador, Médio, Anelar, Mindinho)
+  const I  = lm[8].y  < lm[6].y  - tamMao * 0.11 && lm[6].y  < lm[5].y;
+  const M  = lm[12].y < lm[10].y - tamMao * 0.11 && lm[10].y < lm[9].y;
+  const A  = lm[16].y < lm[14].y - tamMao * 0.11 && lm[14].y < lm[13].y;
+  const Mi = lm[20].y < lm[18].y - tamMao * 0.09 && lm[18].y < lm[17].y;
+
+  // Abertura lateral do polegar (invariante a mão direita/esquerda e espelhamento)
+  const distPolMind   = dist2D(lm[4], lm[17]) / tamMao;
+  const distBaseMind  = dist2D(lm[2], lm[17]) / tamMao;
+  const distPolIndMCP = dist2D(lm[4], lm[5])  / tamMao;
+  const P = distPolMind > distBaseMind * 1.21 && distPolIndMCP > 0.42;
+
+  // Distâncias normalizadas entre pontos-chave
+  const distPI  = dist2D(lm[4], lm[8])  / tamMao;
+  const distPM  = dist2D(lm[4], lm[12]) / tamMao;
+  const distIM  = dist2D(lm[8], lm[12]) / tamMao;
+  const distPIP = dist2D(lm[6], lm[10]) / tamMao;
+
+  // 1. Quatro dedos estendidos (B)
+  if (I && M && A && Mi) {
+    return { letra: 'B', confianca: 0.93 };
+  }
+
+  // 2. Indicador flexionado e Médio + Anelar + Mindinho estendidos (F vs T)
+  if (!I && M && A && Mi) {
+    if (distPI < 0.42) return { letra: 'F', confianca: 0.88 };
+    return { letra: 'T', confianca: 0.84 };
+  }
+
+  // 3. Indicador + Médio + Anelar estendidos, Mindinho recolhido (W)
+  if (I && M && A && !Mi) {
+    return { letra: 'W', confianca: 0.90 };
+  }
+
+  // 4. Indicador + Médio estendidos, Anelar + Mindinho recolhidos (R, K, V, U)
+  if (I && M && !A && !Mi) {
+    const dirBaseX  = lm[5].x - lm[9].x;
+    const dirPontaX = lm[8].x - lm[12].x;
+    const cruzados  = dirBaseX * dirPontaX < 0 || distIM < distPIP * 0.72;
+    if (cruzados) return { letra: 'R', confianca: 0.87 };
+    if (P)        return { letra: 'K', confianca: 0.85 };
+    if (distIM > 0.24) return { letra: 'V', confianca: 0.91 };
+    return { letra: 'U', confianca: 0.89 };
+  }
+
+  // 5. Apenas Indicador estendido (L, D, G)
+  if (I && !M && !A && !Mi) {
+    if (P)             return { letra: 'L', confianca: 0.93 };
+    if (distPM < 0.43) return { letra: 'D', confianca: 0.87 };
+    return { letra: 'G', confianca: 0.84 };
+  }
+
+  // 6. Apenas Mindinho estendido (Y vs I)
+  if (!I && !M && !A && Mi) {
+    if (P) return { letra: 'Y', confianca: 0.92 };
+    return { letra: 'I', confianca: 0.90 };
+  }
+
+  // 7. Todos os 4 dedos flexionados/curvados (O, A, S, C, E, M, N)
+  if (!I && !M && !A && !Mi) {
+    if (distPI < 0.30 && distPM < 0.36) {
+      return { letra: 'O', confianca: 0.87 };
+    }
+
+    const punhoFechado =
+      lm[8].y > lm[6].y && lm[12].y > lm[10].y && lm[16].y > lm[14].y;
+
+    if (punhoFechado) {
+      const distPolMedioPIP = dist2D(lm[4], lm[10]) / tamMao;
+      if (distPolMedioPIP < 0.36) {
+        return { letra: 'S', confianca: 0.86 };
+      }
+      return { letra: 'A', confianca: 0.90 };
+    }
+
+    if (distPI >= 0.30 && distPI <= 0.66 && P) {
+      return { letra: 'C', confianca: 0.82 };
+    }
+    return { letra: 'E', confianca: 0.80 };
+  }
+
   return null;
 }
 
-// Tokeniza um texto misto em itens: { tipo: 'palavra' | 'letra' | 'espaco', valor: string }
-function tokenizarTextoLibras(texto) {
-  var limpo = texto.trim().replace(/\s+/g, ' ').toUpperCase();
-  if (!limpo) return [];
-
-  // Substitui "POR FAVOR" temporariamente por um token único se presente na frase
-  var marcadorPF = '__POR_FAVOR__';
-  var processado = limpo.replace(/\bPOR FAVOR\b/g, marcadorPF);
-  var partes = processado.split(' ');
-  var tokens = [];
-
-  for (var i = 0; i < partes.length; i++) {
-    var p = partes[i] === marcadorPF ? 'POR FAVOR' : partes[i];
-    if (!p) continue;
-
-    if (i > 0) {
-      tokens.push({ tipo: 'espaco', valor: '⎵' });
-    }
-
-    if (PALAVRAS_CHAVE.indexOf(p) >= 0 && buscarPalavra(p)) {
-      tokens.push({ tipo: 'palavra', valor: p });
-    } else {
-      for (var c = 0; c < p.length; c++) {
-        var ch = p[c];
-        if (/[A-Z]/.test(ch)) {
-          tokens.push({ tipo: 'letra', valor: ch });
-        }
-      }
-    }
-  }
-  return tokens;
-}
-
 // ============================================================
-// SEÇÃO 5 — MOTOR 3D
+// 7. GERENCIADOR DE CÂMERA E MEDIAPIPE HANDS (Zero Memory Leaks)
 // ============================================================
+let cameraStream = null;
+let cameraAtiva = false;
+let cameraEspelhada = true;
+let camRafId = null;
+let mpHands = null;
+let mpCamera = null;
+let processandoFrame = false;
 
-function inicializar3D() {
-  if (telaAtual !== 'text') return;
-  if (typeof THREE === 'undefined') {
-    log('⚠ Three.js não carregado — verifique sua conexão', 'error');
-    return;
-  }
-
-  // Se já estiver pronto e ativo no mesmo container, apenas redimensiona
-  if (libraHand3D && libraHand3D.pronto) {
-    libraHand3D._resize();
-    return;
-  }
-
-  if (libraHand3D) {
-    libraHand3D.destruir();
-    libraHand3D = null;
-  }
-
-  libraHand3D = new LibraHand3D('hand3d-container');
-  libraHand3D.setUp();
-
-  if (window.removerLoading3D) window.removerLoading3D();
-  log('✓ Mão biônica 3D inicializada', 'success');
-}
-
-function toggle3DRotacao() {
-  if (!libraHand3D) return;
-  var ativo = libraHand3D.toggleRotacao();
-  var btn   = document.getElementById('btn-3d-rotacionar');
-  if (btn) {
-    btn.textContent = ativo ? '⏸ Rotação' : '▶ Rotação';
-    btn.classList.toggle('ativo', ativo);
-  }
-}
-
-function resetar3DCamera() {
-  if (!libraHand3D) return;
-  libraHand3D.resetarCamera();
-  var btn = document.getElementById('btn-3d-rotacionar');
-  if (btn) {
-    btn.textContent = '▶ Rotação';
-    btn.classList.remove('ativo');
-  }
-}
-
-// ============================================================
-// SEÇÃO 6 — TRADUÇÃO POR TEXTO E FRASES MISTAS
-// ============================================================
-
-function atualizarBotaoTraduzir(emAndamento) {
-  var b = document.getElementById('btn-traduzir');
-  if (!b) return;
-  if (emAndamento) {
-    b.innerHTML = '&#9209;&nbsp; Parar';
-    b.classList.add('stop-mode');
-  } else {
-    b.innerHTML = '&#9654;&nbsp; Traduzir';
-    b.classList.remove('stop-mode');
-  }
-}
-
-function pararTraducaoAtiva() {
-  abortarTraducao = true;
-  traduzindo      = false;
-  limparTimeoutsTraducao();
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  atualizarBotaoTraduzir(false);
-}
-
-function iniciarTraducao() {
-  if (traduzindo) {
-    pararTraducaoAtiva();
-    if (libraHand3D && libraHand3D.pronto) libraHand3D.posicaoNeutra();
-    setFeedbackModo('Tradução interrompida pelo usuário');
-    log('⏹ Tradução interrompida', 'info');
-    return;
-  }
-
-  limparTimeoutsTraducao();
-
-  var inputEl = document.getElementById('input-texto');
-  var texto   = inputEl ? inputEl.value.trim().toUpperCase() : '';
-  if (!texto) {
-    log('⚠ Digite uma palavra ou frase para traduzir!', 'error');
-    return;
-  }
-
-  var pkExata = detectarPalavraChaveExata(texto);
-  if (pkExata) {
-    traduzirGestoCompleto(pkExata);
-  } else {
-    traduzirSequenciaTokens(texto);
-  }
-}
-
-async function traduzirSequenciaTokens(texto) {
-  var tokens = tokenizarTextoLibras(texto);
-  var tokensVisiveis = tokens.filter(function(t) { return t.tipo !== 'espaco'; });
-
-  if (tokensVisiveis.length === 0) {
-    log('⚠ Nenhuma letra válida encontrada!', 'error');
-    return;
-  }
-
-  renderizarChips(tokensVisiveis);
-
-  traduzindo      = true;
-  abortarTraducao = false;
-  atualizarBotaoTraduzir(true);
-
-  log('▶ Traduzindo: "' + texto + '"', 'info');
-
-  var chipIdx = 0;
-  var fatorVel = 1 / (velocidadeTraducao || 1.0);
-
-  for (var t = 0; t < tokens.length; t++) {
-    if (abortarTraducao) break;
-
-    var item = tokens[t];
-
-    if (item.tipo === 'espaco') {
-      await tratarEspaco(fatorVel);
-      continue;
-    }
-
-    marcarChip(chipIdx, 'active');
-
-    if (item.tipo === 'palavra') {
-      var dadosP = buscarPalavra(item.valor);
-      if (dadosP) {
-        var modo = dadosP.duas_maos ? 'Sinal com duas mãos' : 'Sinal com uma mão';
-        setFeedbackModo(modo + ' — ' + (dadosP.descricao || item.valor));
-        setLetraAtualGrande(item.valor);
-        if (libraHand3D && libraHand3D.pronto) {
-          libraHand3D.animarPalavra(dadosP);
-        }
-        falar(item.valor);
-        if (btConectado && btCarac && dadosP.comando) {
-          enviarBT(dadosP.comando);
-          log('↗ ' + item.valor + ' → ' + dadosP.comando, 'success');
-        } else {
-          log('🤲 Sinal: ' + item.valor, 'info');
-        }
-        await esperar(Math.round(2100 * fatorVel));
-      }
-    } else {
-      var letra = item.valor;
-      var dados = buscarLetra(letra);
-      var cmd   = dados ? dados.comando : null;
-
-      setLetraAtual(letra);
-      setFeedbackModo(dados && dados.descricao ? dados.descricao : 'Soletração Libras — ' + letra);
-
-      if (libraHand3D && libraHand3D.pronto && dados && dados.rotacoes3d) {
-        libraHand3D.animarLetra(dados.rotacoes3d, dados.movimento);
-      }
-
-      falar(letra);
-
-      if (btConectado && btCarac && cmd) {
-        enviarBT(cmd);
-        log('↗ ' + letra + ' → ' + cmd, 'success');
-      } else {
-        log('◌ ' + letra + (cmd ? ' → ' + cmd : ''), 'info');
-      }
-
-      await esperar(Math.round(450 * fatorVel));
-    }
-
-    if (abortarTraducao) break;
-    marcarChip(chipIdx, 'sent');
-    chipIdx++;
-    await esperar(Math.round(450 * fatorVel));
-  }
-
-  if (!abortarTraducao) {
-    finalizarTraducao();
-  } else {
-    traduzindo = false;
-    atualizarBotaoTraduzir(false);
-  }
-}
-
-async function traduzirGestoCompleto(palavra) {
-  var dados = buscarPalavra(palavra);
-  if (!dados) {
-    log('ℹ Sinal composto de "' + palavra + '" não encontrado — soletrando', 'info');
-    traduzirSequenciaTokens(palavra);
-    return;
-  }
-
-  renderizarChips([{ tipo: 'palavra', valor: palavra }]);
-  marcarChip(0, 'active');
-
-  traduzindo      = true;
-  abortarTraducao = false;
-  atualizarBotaoTraduzir(true);
-
-  var modo = dados.duas_maos ? 'Sinal com 2 mãos' : 'Sinal com 1 mão';
-  setFeedbackModo(modo + ': ' + (dados.descricao || palavra));
-  setLetraAtualGrande(palavra);
-  log('🤲 ' + palavra + ' — ' + (dados.descricao || ''), 'info');
-
-  if (libraHand3D && libraHand3D.pronto) {
-    libraHand3D.animarPalavra(dados);
-  }
-
-  falar(palavra);
-
-  if (btConectado && btCarac && dados.comando) {
-    enviarBT(dados.comando);
-    log('↗ BT: ' + dados.comando, 'success');
-  }
-
-  var fatorVel = 1 / (velocidadeTraducao || 1.0);
-  await esperar(Math.round(2400 * fatorVel));
-  if (abortarTraducao) return;
-
-  marcarChip(0, 'sent');
-  if (libraHand3D && libraHand3D.pronto) libraHand3D.posicaoNeutra();
-  setLetraAtual('✓');
-  await esperar(Math.round(550 * fatorVel));
-
-  if (!abortarTraducao) finalizarTraducao();
-}
-
-async function tratarEspaco(fatorVel) {
-  if (libraHand3D && libraHand3D.pronto) {
-    libraHand3D._ativarUmaMao();
-    libraHand3D.posicaoNeutra();
-  }
-  setLetraAtual('⎵');
-  setFeedbackModo('Espaço entre palavras');
-  log('⎵ Espaço entre palavras', 'info');
-  if (btConectado && btCarac) enviarBT('CMD_ESPACO');
-  await esperar(Math.round(650 * (fatorVel || 1)));
-  if (!abortarTraducao) setLetraAtual('');
-}
-
-function finalizarTraducao() {
-  traduzindo      = false;
-  abortarTraducao = false;
-  atualizarBotaoTraduzir(false);
-
-  log('✓ Tradução concluída!', 'success');
-  setFeedbackModo('Tradução concluída · Clique em um chip para rever');
-
-  registrarTimeout(function() {
-    if (!traduzindo && libraHand3D && libraHand3D.pronto) {
-      libraHand3D._ativarUmaMao();
-      libraHand3D.posicaoNeutra();
-      setLetraAtual('');
-    }
-  }, 1200);
-
-  if (btConectado && btCarac) {
-    registrarTimeout(function() {
-      if (!traduzindo) enviarBT('CMD_REPOUSO');
-    }, 900);
-  }
-}
-
-function limparCampo() {
-  pararTraducaoAtiva();
-  var inputEl = document.getElementById('input-texto');
-  if (inputEl) inputEl.value = '';
-  document.getElementById('fila-chips').innerHTML = '';
-  document.querySelectorAll('.btn-letra-az').forEach(function(b) {
-    b.classList.remove('active');
-  });
-  setLetraAtual('');
-  setFeedbackModo('Aguardando entrada...');
-  log('✓ Campo limpo', 'info');
-  if (libraHand3D && libraHand3D.pronto) {
-    libraHand3D._ativarUmaMao();
-    libraHand3D.posicaoNeutra();
-  }
-}
-
-// ============================================================
-// SEÇÃO 7 — CÂMERA E MEDIAPIPE HANDS (Geometria Libras Corrigida)
-// ============================================================
+const smoother = new LandmarkSmoother(0.58);
+const stabilityBuffer = new GestureStabilityBuffer(11);
 
 function toggleCamera() {
   if (cameraAtiva) pararCamera();
-  else             ligarCamera();
+  else ligarCamera();
 }
 
 async function ligarCamera() {
-  var btn = document.getElementById('btn-toggle-camera');
+  const btn = document.getElementById('btn-toggle-camera');
   if (btn) {
     btn.textContent = '⏳ Aguardando permissão...';
     btn.disabled = true;
   }
 
-  var errEl = document.getElementById('camera-erro');
+  const errEl = document.getElementById('camera-erro');
   if (errEl) errEl.style.display = 'none';
 
-  var ehMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  var constraints = ehMobile
-    ? [{ facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
-       { facingMode: 'environment' }]
+  const ehMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const constraints = ehMobile
+    ? [
+        { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        { facingMode: 'environment' }
+      ]
     : [{ facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }];
 
-  var stream     = null;
-  var ultimoErro = null;
+  let stream = null;
+  let ultimoErro = null;
 
-  for (var i = 0; i < constraints.length; i++) {
+  for (const preset of constraints) {
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: constraints[i] });
+      stream = await navigator.mediaDevices.getUserMedia({ video: preset });
       break;
-    } catch (e) {
-      ultimoErro = e;
+    } catch (err) {
+      ultimoErro = err;
     }
   }
 
-  // Se o usuário saiu da tela enquanto aguardava permissão, encerra o stream imediatamente
-  if (telaAtual !== 'camera') {
-    if (stream) stream.getTracks().forEach(function(t) { t.stop(); });
+  // Se o usuário saiu da tela enquanto o popup de permissão estava aberto
+  if (AppState.telaAtual !== 'camera') {
+    if (stream) stream.getTracks().forEach((t) => t.stop());
     return;
   }
 
@@ -737,18 +685,21 @@ async function ligarCamera() {
       btn.textContent = '📷 Ligar Câmera';
       btn.disabled = false;
     }
-    var msg = traduzirErroCameraApi(ultimoErro);
-    log('✗ ' + msg, 'error');
+    const msg = traduzirErroCameraApi(ultimoErro);
+    log(`✗ ${msg}`, 'error');
     mostrarErroCameraUI(msg);
     return;
   }
 
   cameraStream = stream;
-  var video = document.getElementById('cameraVideo');
+  const video = document.getElementById('cameraVideo');
   video.srcObject = cameraStream;
   await video.play();
 
   cameraAtiva = true;
+  smoother.reset();
+  stabilityBuffer.reset();
+
   if (btn) {
     btn.textContent = '⏹ Desligar Câmera';
     btn.disabled = false;
@@ -775,14 +726,14 @@ function traduzirErroCameraApi(e) {
     case 'NotSupportedError':
       return 'Acesso à câmera requer conexão segura (HTTPS ou localhost).';
     default:
-      return 'Erro de câmera: ' + (e.message || e.name);
+      return `Erro de câmera: ${e.message || e.name}`;
   }
 }
 
 function mostrarErroCameraUI(msg) {
-  var el = document.getElementById('camera-erro');
+  const el = document.getElementById('camera-erro');
   if (el) {
-    el.textContent = '⚠ ' + msg;
+    el.textContent = `⚠ ${msg}`;
     el.style.display = 'block';
   }
 }
@@ -795,41 +746,53 @@ function pararCamera() {
     cancelAnimationFrame(camRafId);
     camRafId = null;
   }
+
   if (mpCamera) {
-    try { mpCamera.stop(); } catch (e) {}
+    try {
+      mpCamera.stop();
+    } catch (_) {}
     mpCamera = null;
   }
+
   if (mpHands) {
-    try { mpHands.close(); } catch (e) {}
+    const inst = mpHands;
     mpHands = null;
+    try {
+      inst.close();
+    } catch (_) {}
   }
+
   if (cameraStream) {
-    cameraStream.getTracks().forEach(function(t) { t.stop(); });
+    cameraStream.getTracks().forEach((t) => {
+      try {
+        t.stop();
+      } catch (_) {}
+    });
     cameraStream = null;
   }
 
-  // Libera referência do MediaStream no elemento <video> (evita vazamento de memória)
-  var video = document.getElementById('cameraVideo');
+  const video = document.getElementById('cameraVideo');
   if (video) {
     video.pause();
     video.srcObject = null;
   }
 
-  frameBufferLetra    = '';
-  frameBufferContador = 0;
+  smoother.reset();
+  stabilityBuffer.reset();
 
-  var camCanvas = document.getElementById('cameraCanvas');
+  const camCanvas = document.getElementById('cameraCanvas');
   if (camCanvas) {
-    camCanvas.getContext('2d').clearRect(0, 0, camCanvas.width, camCanvas.height);
+    const ctx = camCanvas.getContext('2d');
+    if (ctx) ctx.clearRect(0, 0, camCanvas.width, camCanvas.height);
   }
 
-  var stab = document.getElementById('stab-fill');
+  const stab = document.getElementById('stab-fill');
   if (stab) stab.style.width = '0%';
 
-  var errEl = document.getElementById('camera-erro');
+  const errEl = document.getElementById('camera-erro');
   if (errEl) errEl.style.display = 'none';
 
-  var btn = document.getElementById('btn-toggle-camera');
+  const btn = document.getElementById('btn-toggle-camera');
   if (btn) {
     btn.textContent = '📷 Ligar Câmera';
     btn.disabled = false;
@@ -846,291 +809,161 @@ function iniciarReconhecimento() {
 }
 
 function iniciarMediaPipe() {
-  var video     = document.getElementById('cameraVideo');
-  var camCanvas = document.getElementById('cameraCanvas');
-  var camCtx    = camCanvas.getContext('2d');
+  const video = document.getElementById('cameraVideo');
+  const camCanvas = document.getElementById('cameraCanvas');
+  const camCtx = camCanvas.getContext('2d');
 
   mpHands = new Hands({
-    locateFile: function(f) {
-      return 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/' + f;
-    }
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
   });
 
   mpHands.setOptions({
-    maxNumHands:            1,
-    modelComplexity:        1,
+    maxNumHands: 1,
+    modelComplexity: 1,
     minDetectionConfidence: 0.70,
-    minTrackingConfidence:  0.60
+    minTrackingConfidence: 0.62
   });
 
-  mpHands.onResults(function(res) {
+  mpHands.onResults((res) => {
     if (!cameraAtiva) return;
-    if (camCanvas.width  !== video.videoWidth)  camCanvas.width  = video.videoWidth  || 640;
+    if (camCanvas.width !== video.videoWidth) camCanvas.width = video.videoWidth || 640;
     if (camCanvas.height !== video.videoHeight) camCanvas.height = video.videoHeight || 480;
 
     camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
 
     if (res.multiHandLandmarks && res.multiHandLandmarks.length > 0) {
-      var lm = res.multiHandLandmarks[0];
-      desenharLandmarks(camCtx, lm, camCanvas.width, camCanvas.height);
-      processarLandmarks(lm);
+      const lmSuavizado = smoother.smooth(res.multiHandLandmarks[0]);
+      desenharLandmarks(camCtx, lmSuavizado, camCanvas.width, camCanvas.height);
+      processarLandmarks(lmSuavizado);
     } else {
-      frameBufferContador = 0;
-      atualizarResultadoCamera('', 0, 0);
+      smoother.reset();
+      const status = stabilityBuffer.processarPredicao(null);
+      atualizarResultadoCamera(status.letra, status.confianca, status.estabilidadePct);
     }
   });
 
   mpCamera = new Camera(video, {
-    onFrame: async function() {
-      if (!mpHands || !cameraAtiva || processandoFrame) return;
+    onFrame: async () => {
+      // Pausa inferência se aba estiver oculta (Page Visibility API)
+      if (!mpHands || !cameraAtiva || processandoFrame || document.hidden) return;
       processandoFrame = true;
       try {
         await mpHands.send({ image: video });
-      } catch (e) {}
+      } catch (_) {}
       processandoFrame = false;
     },
     width: 640,
     height: 480
   });
+
   mpCamera.start();
-  log('✓ MediaPipe Hands ativo — reconhecimento em tempo real', 'success');
+  log('✓ MediaPipe Hands v4.0 ativo — estabilizador temporal ligado', 'success');
 }
 
 function desenharLandmarks(ctx, lm, w, h) {
-  var CONEXOES = [
-    [0,1],[1,2],[2,3],[3,4],
-    [0,5],[5,6],[6,7],[7,8],
-    [0,9],[9,10],[10,11],[11,12],
-    [0,13],[13,14],[14,15],[15,16],
-    [0,17],[17,18],[18,19],[19,20],
-    [5,9],[9,13],[13,17]
+  const CONEXOES = [
+    [0, 1], [1, 2], [2, 3], [3, 4],
+    [0, 5], [5, 6], [6, 7], [7, 8],
+    [0, 9], [9, 10], [10, 11], [11, 12],
+    [0, 13], [13, 14], [14, 15], [15, 16],
+    [0, 17], [17, 18], [18, 19], [19, 20],
+    [5, 9], [9, 13], [13, 17], [0, 17]
   ];
 
   ctx.save();
-  ctx.strokeStyle = 'rgba(0, 229, 255, 0.88)';
-  ctx.lineWidth   = 2.6;
-  CONEXOES.forEach(function(par) {
-    var a = lm[par[0]], b = lm[par[1]];
+  ctx.strokeStyle = 'rgba(0, 238, 255, 0.88)';
+  ctx.lineWidth = 2.6;
+  ctx.shadowColor = 'rgba(0, 212, 255, 0.55)';
+  ctx.shadowBlur = 6;
+
+  for (const [aIdx, bIdx] of CONEXOES) {
+    const a = lm[aIdx];
+    const b = lm[bIdx];
     ctx.beginPath();
     ctx.moveTo(a.x * w, a.y * h);
     ctx.lineTo(b.x * w, b.y * h);
     ctx.stroke();
-  });
+  }
 
-  lm.forEach(function(pt, idx) {
-    var isPonta = [4,8,12,16,20].indexOf(idx) >= 0;
-    var isPalma = idx === 0;
+  ctx.shadowBlur = 0;
+  lm.forEach((pt, idx) => {
+    const isPonta = idx === 4 || idx === 8 || idx === 12 || idx === 16 || idx === 20;
+    const isPalma = idx === 0;
     ctx.beginPath();
-    ctx.arc(pt.x * w, pt.y * h, isPalma ? 7 : (isPonta ? 6 : 4), 0, Math.PI * 2);
-    ctx.fillStyle = isPonta ? '#00ffea' : (isPalma ? '#ffffff' : '#00d4ff');
+    ctx.arc(pt.x * w, pt.y * h, isPalma ? 7 : isPonta ? 6 : 4, 0, Math.PI * 2);
+    ctx.fillStyle = isPonta ? '#00ffea' : isPalma ? '#ffffff' : '#00d4ff';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(0, 10, 20, 0.65)';
-    ctx.lineWidth   = 1.2;
+    ctx.strokeStyle = 'rgba(0, 10, 20, 0.72)';
+    ctx.lineWidth = 1.2;
     ctx.stroke();
   });
   ctx.restore();
 }
 
 function processarLandmarks(lm) {
-  var resultado = reconhecerConfiguracao(lm);
+  stabilityBuffer.registrarPontosTrajetoria(lm);
+  const predicaoBruta = reconhecerConfiguracao(lm);
+  const status = stabilityBuffer.processarPredicao(predicaoBruta);
 
-  if (resultado && resultado.confianca >= 0.70) {
-    var letra     = resultado.letra;
-    var confianca = resultado.confianca;
-    var agora     = Date.now();
+  atualizarResultadoCamera(status.letra, status.confianca, status.estabilidadePct);
 
-    if (letra === frameBufferLetra) {
-      frameBufferContador = Math.min(frameBufferContador + 1, FRAMES_NECESSARIOS);
-    } else {
-      frameBufferLetra    = letra;
-      frameBufferContador = 1;
+  if (status.confirmada && status.letra) {
+    const letra = status.letra;
+    SpeechService.falar(letra);
+
+    const dadosL = buscarLetra(letra);
+    if (dadosL?.comando) {
+      btManager.enviar(dadosL.comando);
     }
 
-    var progressoEstabilidade = Math.round((frameBufferContador / FRAMES_NECESSARIOS) * 100);
-    atualizarResultadoCamera(letra, confianca, progressoEstabilidade);
-
-    if (frameBufferContador >= FRAMES_NECESSARIOS) {
-      var novaLetra = letra !== ultimaLetra;
-      var tempoOk   = (agora - tsUltimaLetra) >= DEBOUNCE_MS;
-
-      if (novaLetra || tempoOk) {
-        ultimaLetra   = letra;
-        tsUltimaLetra = agora;
-        falar(letra);
-
-        // Envia comando também para a mão Bluetooth se conectada!
-        var dadosL = buscarLetra(letra);
-        if (btConectado && btCarac && dadosL && dadosL.comando) {
-          enviarBT(dadosL.comando);
-        }
-
-        if (novaLetra) {
-          var textoEl = document.getElementById('texto-detectado');
-          if (textoEl) textoEl.textContent += letra;
-        }
-      }
-    }
-  } else {
-    frameBufferContador = Math.max(0, frameBufferContador - 1);
-    if (frameBufferContador === 0) {
-      atualizarResultadoCamera('', 0, 0);
+    if (status.novaLetra) {
+      const textoEl = document.getElementById('texto-detectado');
+      if (textoEl) textoEl.textContent += letra;
     }
   }
-}
-
-// ----------------------------------------------------------
-// reconhecerConfiguracao(lm)
-// Classificador geométrico invariante ao lado da mão (esquerda/direita)
-// ----------------------------------------------------------
-function reconhecerConfiguracao(lm) {
-  var tamMao = dist2D(lm[0], lm[9]);
-  if (tamMao < 0.02) return null;
-
-  // Verifica se cada dedo (indicador a mindinho) está estendido comparando ponta, PIP e MCP
-  var I  = (lm[8].y  < lm[6].y  - tamMao * 0.12) && (lm[6].y  < lm[5].y);
-  var M  = (lm[12].y < lm[10].y - tamMao * 0.12) && (lm[10].y < lm[9].y);
-  var A  = (lm[16].y < lm[14].y - tamMao * 0.12) && (lm[14].y < lm[13].y);
-  var Mi = (lm[20].y < lm[18].y - tamMao * 0.10) && (lm[18].y < lm[17].y);
-
-  // Polegar aberto/estendido lateralmente (invariante a mão esquerda/direita):
-  // Compara a distância da ponta do polegar (4) à base do mindinho (17) vs articulação (2) à base (17)
-  var distPolMind  = dist2D(lm[4], lm[17]) / tamMao;
-  var distBaseMind = dist2D(lm[2], lm[17]) / tamMao;
-  var distPolIndMCP = dist2D(lm[4], lm[5]) / tamMao;
-  var P = (distPolMind > distBaseMind * 1.22) && (distPolIndMCP > 0.42);
-
-  // Distâncias normalizadas importantes
-  var distPI  = dist2D(lm[4], lm[8])  / tamMao; // Polegar ↔ Ponta Indicador
-  var distPM  = dist2D(lm[4], lm[12]) / tamMao; // Polegar ↔ Ponta Médio
-  var distIM  = dist2D(lm[8], lm[12]) / tamMao; // Ponta Indicador ↔ Ponta Médio
-  var distPIP = dist2D(lm[6], lm[10]) / tamMao; // PIP Indicador ↔ PIP Médio
-
-  // 1. Quatro dedos estendidos (B)
-  if (I && M && A && Mi) {
-    return { letra: 'B', confianca: 0.92 };
-  }
-
-  // 2. Indicador permanece dobrado, Médio + Anelar + Mindinho estendidos (F ou T)
-  if (!I && M && A && Mi) {
-    if (distPI < 0.42) return { letra: 'F', confianca: 0.86 };
-    return { letra: 'T', confianca: 0.82 };
-  }
-
-  // 3. Indicador + Médio + Anelar estendidos, Mindinho fechado (W)
-  if (I && M && A && !Mi) {
-    return { letra: 'W', confianca: 0.89 };
-  }
-
-  // 4. Indicador + Médio estendidos, Anelar + Mindinho fechados (R, U, V, K)
-  if (I && M && !A && !Mi) {
-    // Letra R: dedos indicador e médio cruzados (pontas mais próximas ou invertidas em relação às bases)
-    var dirBaseX  = lm[5].x - lm[9].x;
-    var dirPontaX = lm[8].x - lm[12].x;
-    var cruzados  = (dirBaseX * dirPontaX < 0) || (distIM < distPIP * 0.72);
-    if (cruzados) {
-      return { letra: 'R', confianca: 0.85 };
-    }
-    if (P) {
-      return { letra: 'K', confianca: 0.83 };
-    }
-    if (distIM > 0.24) {
-      return { letra: 'V', confianca: 0.90 };
-    }
-    return { letra: 'U', confianca: 0.88 };
-  }
-
-  // 5. Apenas Indicador estendido (L, D, G)
-  if (I && !M && !A && !Mi) {
-    if (P) {
-      return { letra: 'L', confianca: 0.92 };
-    }
-    if (distPM < 0.42) {
-      return { letra: 'D', confianca: 0.86 };
-    }
-    return { letra: 'G', confianca: 0.82 };
-  }
-
-  // 6. Apenas Mindinho estendido (Y ou I)
-  if (!I && !M && !A && Mi) {
-    if (P) return { letra: 'Y', confianca: 0.91 };
-    return { letra: 'I', confianca: 0.89 };
-  }
-
-  // 7. Todos os 4 dedos não estão estendidos para cima (A, S, O, C, E)
-  if (!I && !M && !A && !Mi) {
-    // Letra O: ponta do polegar tocando ponta do indicador/médio
-    if (distPI < 0.30 && distPM < 0.36) {
-      return { letra: 'O', confianca: 0.86 };
-    }
-
-    // Verifica se os dedos estão totalmente fechados na palma (pontas abaixo das juntas PIP)
-    var punhoFechado = (lm[8].y > lm[6].y) && (lm[12].y > lm[10].y) && (lm[16].y > lm[14].y);
-
-    if (punhoFechado) {
-      // Diferencia A (polegar na lateral) de S (polegar cruzado na frente dos dedos médios)
-      var distPolMedioPIP = dist2D(lm[4], lm[10]) / tamMao;
-      if (distPolMedioPIP < 0.36) {
-        return { letra: 'S', confianca: 0.84 };
-      }
-      return { letra: 'A', confianca: 0.89 };
-    }
-
-    // Dedos semi-curvados (C ou E)
-    if (distPI >= 0.30 && distPI <= 0.65 && P) {
-      return { letra: 'C', confianca: 0.80 };
-    }
-    return { letra: 'E', confianca: 0.78 };
-  }
-
-  return null;
-}
-
-function dist2D(a, b) {
-  var dx = a.x - b.x;
-  var dy = a.y - b.y;
-  return Math.sqrt(dx * dx + dy * dy);
 }
 
 function atualizarResultadoCamera(letra, confianca, estabilidadePct) {
-  var elLetra = document.getElementById('letra-camera-detectada');
+  const elLetra = document.getElementById('letra-camera-detectada');
   if (elLetra) elLetra.textContent = letra || '—';
 
-  var pctConf = letra ? Math.round(confianca * 100) : 0;
-  var elConf = document.getElementById('lbl-confianca');
+  const pctConf = letra ? Math.round(confianca * 100) : 0;
+  const elConf = document.getElementById('lbl-confianca');
   if (elConf) {
     elConf.textContent = letra
-      ? ('Confiança: ' + pctConf + '% · Estabilidade: ' + (estabilidadePct || 0) + '%')
+      ? `Confiança: ${pctConf}% · Estabilidade: ${estabilidadePct || 0}%`
       : 'Aguardando gesto...';
   }
 
-  var fill = document.getElementById('conf-fill');
-  if (fill) fill.style.width = pctConf + '%';
+  const fill = document.getElementById('conf-fill');
+  if (fill) fill.style.width = `${pctConf}%`;
 
-  var stab = document.getElementById('stab-fill');
-  if (stab) stab.style.width = (estabilidadePct || 0) + '%';
+  const stab = document.getElementById('stab-fill');
+  if (stab) stab.style.width = `${estabilidadePct || 0}%`;
 }
 
 function iniciarModoDemo() {
-  var video     = document.getElementById('cameraVideo');
-  var camCanvas = document.getElementById('cameraCanvas');
-  var camCtx    = camCanvas.getContext('2d');
-  var frame     = 0;
-  var letrasDemo = 'ABCDEFILMORUVWY'.split('');
+  const video = document.getElementById('cameraVideo');
+  const camCanvas = document.getElementById('cameraCanvas');
+  const camCtx = camCanvas.getContext('2d');
+  let frame = 0;
+  const letrasDemo = 'ABCDEFILJMRUVWY'.split('');
 
-  function loop() {
+  const loop = () => {
     if (!cameraAtiva) return;
     camRafId = requestAnimationFrame(loop);
+    if (document.hidden) return;
     frame++;
 
-    camCanvas.width  = video.videoWidth  || 640;
+    camCanvas.width = video.videoWidth || 640;
     camCanvas.height = video.videoHeight || 480;
     camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
 
-    var cx = camCanvas.width  * 0.5;
-    var cy = camCanvas.height * 0.5;
-    for (var i = 0; i < 21; i++) {
-      var px = cx + Math.cos(i * 0.87 + frame * 0.025) * 85;
-      var py = cy + Math.sin(i * 0.87 + frame * 0.020) * 80;
+    const cx = camCanvas.width * 0.5;
+    const cy = camCanvas.height * 0.5;
+    for (let i = 0; i < 21; i++) {
+      const px = cx + Math.cos(i * 0.87 + frame * 0.025) * 85;
+      const py = cy + Math.sin(i * 0.87 + frame * 0.02) * 80;
       camCtx.beginPath();
       camCtx.arc(px, py, i === 0 ? 7 : 4, 0, Math.PI * 2);
       camCtx.fillStyle = 'rgba(0, 212, 255, 0.65)';
@@ -1138,295 +971,732 @@ function iniciarModoDemo() {
     }
 
     if (frame % 95 === 0) {
-      var l    = letrasDemo[Math.floor(Math.random() * letrasDemo.length)];
-      var conf = 0.78 + Math.random() * 0.18;
+      const l = letrasDemo[Math.floor(Math.random() * letrasDemo.length)];
+      const conf = 0.80 + Math.random() * 0.16;
       atualizarResultadoCamera(l, conf, 100);
-      falar(l);
-      var textoEl = document.getElementById('texto-detectado');
+      SpeechService.falar(l);
+      const textoEl = document.getElementById('texto-detectado');
       if (textoEl) textoEl.textContent += l;
     }
-  }
+  };
   loop();
 }
 
 // ============================================================
-// SEÇÃO 8 — WEB SPEECH API (Com Mapa Fonético PT-BR)
+// 8. BANCO DE DADOS E TOKENIZADOR INTELIGENTE DE FRASES
 // ============================================================
-
-function falar(chave) {
-  if (!vozAtiva || !('speechSynthesis' in window)) return;
-  var chaveUpper = String(chave || '').toUpperCase().trim();
-  var textoFala  = MAPA_FONETICO[chaveUpper] || chave.toLowerCase();
-  falarTextoLivre(textoFala);
-}
-
-function falarTextoLivre(texto) {
-  if (!vozAtiva || !('speechSynthesis' in window) || !texto) return;
-  window.speechSynthesis.cancel();
-
-  var utt    = new SpeechSynthesisUtterance(texto);
-  utt.lang   = 'pt-BR';
-  utt.rate   = Math.min(Math.max(0.92 * velocidadeTraducao, 0.7), 1.4);
-  utt.pitch  = 1.0;
-  utt.volume = 1.0;
-
-  var vozes = window.speechSynthesis.getVoices();
-  for (var i = 0; i < vozes.length; i++) {
-    if (vozes[i].lang && vozes[i].lang.toLowerCase().indexOf('pt') === 0) {
-      utt.voice = vozes[i];
-      break;
+async function carregarBanco() {
+  try {
+    const resp = await fetch('./database.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const dados = await resp.json();
+    AppState.bancoDados = dados;
+    if (dados.configuracoes?.debounceCamera) {
+      AppState.debounceMs = dados.configuracoes.debounceCamera;
     }
+    log(
+      `✓ Banco Libras v${dados.versao || '4.0'} carregado — 26 letras + ${
+        Object.keys(dados.palavras || {}).length
+      } sinais oficiais`,
+      'success'
+    );
+  } catch (_) {
+    AppState.bancoDados = getBancoFallback();
+    log('ℹ Banco Libras interno carregado (26 letras + 10 sinais)', 'info');
   }
+}
 
-  window.speechSynthesis.speak(utt);
+function buscarLetra(l) {
+  return AppState.bancoDados?.letras?.[l] || null;
+}
+
+function buscarPalavra(p) {
+  return AppState.bancoDados?.palavras?.[p] || null;
+}
+
+function detectarPalavraChaveExata(texto) {
+  const t = texto.trim().toUpperCase();
+  return PALAVRAS_CHAVE.find((pk) => pk === t) || null;
+}
+
+function tokenizarTextoLibras(texto) {
+  const limpo = texto.trim().replace(/\s+/g, ' ').toUpperCase();
+  if (!limpo) return [];
+
+  const marcadorPF = '__POR_FAVOR__';
+  const processado = limpo.replace(/\bPOR FAVOR\b/g, marcadorPF);
+  const partes = processado.split(' ');
+  const tokens = [];
+
+  partes.forEach((parteBruta, i) => {
+    const p = parteBruta === marcadorPF ? 'POR FAVOR' : parteBruta;
+    if (!p) return;
+
+    if (i > 0) {
+      tokens.push({ tipo: 'espaco', valor: '⎵' });
+    }
+
+    if (PALAVRAS_CHAVE.includes(p) && buscarPalavra(p)) {
+      tokens.push({ tipo: 'palavra', valor: p });
+    } else {
+      for (const ch of p) {
+        if (/[A-Z]/.test(ch)) {
+          tokens.push({ tipo: 'letra', valor: ch });
+        }
+      }
+    }
+  });
+
+  return tokens;
 }
 
 // ============================================================
-// SEÇÃO 9 — BLUETOOTH BLE (Sem vazamento de listeners)
+// 9. MOTOR 3D & TRADUÇÃO DE TEXTO / GESTOS
 // ============================================================
-
-function onBtDisconnected() {
-  btConectado  = false;
-  btConectando = false;
-  btCarac      = null;
-  atualizarBTUI('disconnected', 'Desconectado');
-  log('✗ Bluetooth desconectado', 'error');
-}
-
-async function conectarBluetooth() {
-  if (!navigator.bluetooth) {
-    alert('Web Bluetooth não suportado neste navegador.\nUse Google Chrome ou Edge no Android/Desktop.');
-    log('✗ Web Bluetooth indisponível neste navegador', 'error');
+function inicializar3D() {
+  if (AppState.telaAtual !== 'text') return;
+  if (typeof THREE === 'undefined') {
+    log('⚠ Three.js não carregado — verifique sua conexão', 'error');
     return;
   }
-  if (btConectando) return;
 
-  btConectando = true;
-  atualizarBTUI('connecting', 'Conectando...');
-  log('🔍 Procurando ESP32 LibraTronic...', 'info');
+  if (libraHand3D && libraHand3D.pronto) {
+    libraHand3D._resize();
+    return;
+  }
 
-  try {
-    if (btDevice) {
-      btDevice.removeEventListener('gattserverdisconnected', onBtDisconnected);
+  if (libraHand3D) {
+    libraHand3D.destruir();
+    libraHand3D = null;
+  }
+
+  libraHand3D = new LibraHand3D('hand3d-container');
+  libraHand3D.setUp();
+
+  if (window.removerLoading3D) window.removerLoading3D();
+  log('✓ Mão biônica 3D v4.0 inicializada', 'success');
+}
+
+function toggle3DRotacao() {
+  if (!libraHand3D) return;
+  const ativo = libraHand3D.toggleRotacao();
+  const btn = document.getElementById('btn-3d-rotacionar');
+  if (btn) {
+    btn.textContent = ativo ? '⏸ Rotação' : '▶ Rotação';
+    btn.classList.toggle('ativo', ativo);
+  }
+}
+
+function resetar3DCamera() {
+  if (!libraHand3D) return;
+  libraHand3D.resetarCamera();
+  const btn = document.getElementById('btn-3d-rotacionar');
+  if (btn) {
+    btn.textContent = '▶ Rotação';
+    btn.classList.remove('ativo');
+  }
+}
+
+function visualizarLetraUnica3D(letra) {
+  const dados = buscarLetra(letra);
+  if (!dados) return;
+
+  document.querySelectorAll('.btn-letra-az').forEach((b) => {
+    b.classList.toggle('active', b.textContent === letra);
+  });
+
+  setLetraAtual(letra);
+  setFeedbackModo(dados.descricao || `Letra ${letra} em Libras`);
+
+  if (libraHand3D && libraHand3D.pronto && dados.rotacoes3d) {
+    libraHand3D.animarLetra(dados.rotacoes3d, dados.movimento, dados.pontaRastro);
+  }
+
+  SpeechService.falar(letra);
+
+  if (btManager.conectado && dados.comando) {
+    btManager.enviar(dados.comando);
+    log(`↗ ${letra} → ${dados.comando}`, 'success');
+  } else {
+    log(`👁 Visualizando letra ${letra}${dados.descricao ? ` (${dados.descricao})` : ''}`, 'info');
+  }
+}
+
+function atualizarBotaoTraduzir(emAndamento) {
+  const b = document.getElementById('btn-traduzir');
+  if (!b) return;
+  if (emAndamento) {
+    b.innerHTML = '&#9209;&nbsp; Parar';
+    b.classList.add('stop-mode');
+  } else {
+    b.innerHTML = '&#9654;&nbsp; Traduzir';
+    b.classList.remove('stop-mode');
+  }
+}
+
+function pararTraducaoAtiva() {
+  AppState.abortarTraducao = true;
+  AppState.traduzindo = false;
+  timers.clearAll();
+  SpeechService.cancelar();
+  atualizarBotaoTraduzir(false);
+}
+
+function iniciarTraducao() {
+  if (AppState.traduzindo) {
+    pararTraducaoAtiva();
+    if (libraHand3D && libraHand3D.pronto) libraHand3D.posicaoNeutra();
+    setFeedbackModo('Tradução interrompida pelo usuário');
+    log('⏹ Tradução interrompida', 'info');
+    return;
+  }
+
+  timers.clearAll();
+
+  const inputEl = document.getElementById('input-texto');
+  const texto = inputEl ? inputEl.value.trim().toUpperCase() : '';
+  if (!texto) {
+    log('⚠ Digite uma palavra ou frase para traduzir!', 'error');
+    return;
+  }
+
+  const pkExata = detectarPalavraChaveExata(texto);
+  if (pkExata) {
+    traduzirGestoCompleto(pkExata);
+  } else {
+    traduzirSequenciaTokens(texto);
+  }
+}
+
+async function traduzirSequenciaTokens(texto) {
+  const tokens = tokenizarTextoLibras(texto);
+  const tokensVisiveis = tokens.filter((t) => t.tipo !== 'espaco');
+
+  if (tokensVisiveis.length === 0) {
+    log('⚠ Nenhuma letra válida encontrada!', 'error');
+    return;
+  }
+
+  renderizarChips(tokensVisiveis);
+
+  AppState.traduzindo = true;
+  AppState.abortarTraducao = false;
+  atualizarBotaoTraduzir(true);
+
+  log(`▶ Traduzindo: "${texto}"`, 'info');
+
+  let chipIdx = 0;
+  const fatorVel = 1 / (AppState.velocidadeTraducao || 1.0);
+
+  for (const item of tokens) {
+    if (AppState.abortarTraducao) break;
+
+    if (item.tipo === 'espaco') {
+      await tratarEspaco(fatorVel);
+      continue;
     }
 
-    btDevice = await navigator.bluetooth.requestDevice({
-      filters: [
-        { name: 'LibraTronic' },
-        { services: [BT_UUID_SERVICO] }
-      ],
-      optionalServices: [BT_UUID_SERVICO]
-    });
+    marcarChip(chipIdx, 'active');
 
-    btDevice.addEventListener('gattserverdisconnected', onBtDisconnected);
-
-    log('✓ Dispositivo localizado: ' + (btDevice.name || 'ESP32'), 'success');
-    var servidor = await btDevice.gatt.connect();
-    var servico  = await servidor.getPrimaryService(BT_UUID_SERVICO);
-    btCarac      = await servico.getCharacteristic(BT_UUID_CARAC);
-
-    btConectado  = true;
-    btConectando = false;
-    atualizarBTUI('connected', btDevice.name || 'LibraTronic');
-    log('✓ Bluetooth BLE conectado com sucesso!', 'success');
-
-  } catch (e) {
-    btConectando = false;
-    atualizarBTUI('disconnected', 'Desconectado');
-    if (e && e.message && e.message.indexOf('cancelled') >= 0) {
-      log('ℹ Busca Bluetooth cancelada pelo usuário', 'info');
+    if (item.tipo === 'palavra') {
+      const dadosP = buscarPalavra(item.valor);
+      if (dadosP) {
+        const modo = dadosP.duas_maos ? 'Sinal com duas mãos' : 'Sinal com uma mão';
+        setFeedbackModo(`${modo} — ${dadosP.descricao || item.valor}`);
+        setLetraAtualGrande(item.valor);
+        if (libraHand3D && libraHand3D.pronto) {
+          libraHand3D.animarPalavra(dadosP);
+        }
+        SpeechService.falar(item.valor);
+        if (btManager.conectado && dadosP.comando) {
+          btManager.enviar(dadosP.comando);
+          log(`↗ ${item.valor} → ${dadosP.comando}`, 'success');
+        } else {
+          log(`🤲 Sinal: ${item.valor}`, 'info');
+        }
+        await timers.sleep(Math.round(2100 * fatorVel));
+      }
     } else {
-      log('✗ Erro BT: ' + (e.message || e), 'error');
+      const letra = item.valor;
+      const dados = buscarLetra(letra);
+      const cmd = dados?.comando || null;
+
+      setLetraAtual(letra);
+      setFeedbackModo(dados?.descricao ? dados.descricao : `Soletração Libras — ${letra}`);
+
+      if (libraHand3D && libraHand3D.pronto && dados?.rotacoes3d) {
+        libraHand3D.animarLetra(dados.rotacoes3d, dados.movimento, dados.pontaRastro);
+      }
+
+      SpeechService.falar(letra);
+
+      if (btManager.conectado && cmd) {
+        btManager.enviar(cmd);
+        log(`↗ ${letra} → ${cmd}`, 'success');
+      } else {
+        log(`◌ ${letra}${cmd ? ` → ${cmd}` : ''}`, 'info');
+      }
+
+      // Letras com trajetória espacial (J, Z) recebem tempo extra para completar o traçado
+      const durBase = dados?.movimento === 'tracar_j' || dados?.movimento === 'tracar_z' ? 1150 : 480;
+      await timers.sleep(Math.round(durBase * fatorVel));
     }
+
+    if (AppState.abortarTraducao) break;
+    marcarChip(chipIdx, 'sent');
+    chipIdx++;
+    await timers.sleep(Math.round(420 * fatorVel));
+  }
+
+  if (!AppState.abortarTraducao) {
+    finalizarTraducao();
+  } else {
+    AppState.traduzindo = false;
+    atualizarBotaoTraduzir(false);
   }
 }
 
-function desconectarBluetooth() {
-  if (btDevice) {
-    btDevice.removeEventListener('gattserverdisconnected', onBtDisconnected);
-    if (btDevice.gatt && btDevice.gatt.connected) {
-      btDevice.gatt.disconnect();
+async function traduzirGestoCompleto(palavra) {
+  const dados = buscarPalavra(palavra);
+  if (!dados) {
+    log(`ℹ Sinal composto de "${palavra}" não encontrado — soletrando`, 'info');
+    traduzirSequenciaTokens(palavra);
+    return;
+  }
+
+  renderizarChips([{ tipo: 'palavra', valor: palavra }]);
+  marcarChip(0, 'active');
+
+  AppState.traduzindo = true;
+  AppState.abortarTraducao = false;
+  atualizarBotaoTraduzir(true);
+
+  const modo = dados.duas_maos ? 'Sinal com 2 mãos' : 'Sinal com 1 mão';
+  setFeedbackModo(`${modo}: ${dados.descricao || palavra}`);
+  setLetraAtualGrande(palavra);
+  log(`🤲 ${palavra} — ${dados.descricao || ''}`, 'info');
+
+  if (libraHand3D && libraHand3D.pronto) {
+    libraHand3D.animarPalavra(dados);
+  }
+
+  SpeechService.falar(palavra);
+
+  if (btManager.conectado && dados.comando) {
+    btManager.enviar(dados.comando);
+    log(`↗ BT: ${dados.comando}`, 'success');
+  }
+
+  const fatorVel = 1 / (AppState.velocidadeTraducao || 1.0);
+  await timers.sleep(Math.round(2400 * fatorVel));
+  if (AppState.abortarTraducao) return;
+
+  marcarChip(0, 'sent');
+  if (libraHand3D && libraHand3D.pronto) libraHand3D.posicaoNeutra();
+  setLetraAtual('✓');
+  await timers.sleep(Math.round(520 * fatorVel));
+
+  if (!AppState.abortarTraducao) finalizarTraducao();
+}
+
+async function tratarEspaco(fatorVel = 1) {
+  if (libraHand3D && libraHand3D.pronto) {
+    libraHand3D._ativarUmaMao();
+    libraHand3D.posicaoNeutra();
+  }
+  setLetraAtual('⎵');
+  setFeedbackModo('Espaço entre palavras');
+  log('⎵ Espaço entre palavras', 'info');
+  if (btManager.conectado) btManager.enviar('CMD_ESPACO');
+  await timers.sleep(Math.round(620 * fatorVel));
+  if (!AppState.abortarTraducao) setLetraAtual('');
+}
+
+function finalizarTraducao() {
+  AppState.traduzindo = false;
+  AppState.abortarTraducao = false;
+  atualizarBotaoTraduzir(false);
+
+  log('✓ Tradução concluída!', 'success');
+  setFeedbackModo('Tradução concluída · Clique em um chip para rever');
+
+  timers.schedule(() => {
+    if (!AppState.traduzindo && libraHand3D && libraHand3D.pronto) {
+      libraHand3D._ativarUmaMao();
+      libraHand3D.posicaoNeutra();
+      setLetraAtual('');
     }
-  }
-  btConectado  = false;
-  btConectando = false;
-  btCarac      = null;
-  atualizarBTUI('disconnected', 'Desconectado');
-  log('✓ Bluetooth desconectado', 'info');
-}
+  }, 1200);
 
-async function enviarBT(comando) {
-  if (!btCarac || !btConectado) return;
-  try {
-    var bytes = new TextEncoder().encode('<' + comando + '>');
-    await btCarac.writeValue(bytes);
-  } catch (e) {
-    log('✗ Falha no envio BT: ' + (e.message || e), 'error');
-    onBtDisconnected();
+  if (btManager.conectado) {
+    timers.schedule(() => {
+      if (!AppState.traduzindo) btManager.enviar('CMD_REPOUSO');
+    }, 900);
   }
 }
 
-function atualizarBTUI(estado, texto) {
-  document.querySelectorAll('.bt-dot').forEach(function(el) {
-    el.className = 'bt-dot' +
-      (estado === 'connected'  ? ' connected'  : '') +
-      (estado === 'connecting' ? ' connecting' : '');
-  });
-  document.querySelectorAll('.bt-status-text').forEach(function(el) {
-    el.textContent = texto;
-  });
-  var nomeEl = document.getElementById('bt-device-name');
-  if (nomeEl) nomeEl.textContent = texto;
+function limparCampo() {
+  pararTraducaoAtiva();
+  const inputEl = document.getElementById('input-texto');
+  if (inputEl) inputEl.value = '';
+  const filaEl = document.getElementById('fila-chips');
+  if (filaEl) filaEl.innerHTML = '';
+  document.querySelectorAll('.btn-letra-az').forEach((b) => b.classList.remove('active'));
+  setLetraAtual('');
+  setFeedbackModo('Aguardando entrada...');
+  log('✓ Campo limpo', 'info');
+  if (libraHand3D && libraHand3D.pronto) {
+    libraHand3D._ativarUmaMao();
+    libraHand3D.posicaoNeutra();
+  }
 }
 
 // ============================================================
-// SEÇÃO 10 — FEEDBACK VISUAL E CHIPS INTERATIVOS
+// 10. UI/UX, NAVEGAÇÃO E FEEDBACK VISUAL
 // ============================================================
+function mostrarTela(id) {
+  pararTraducaoAtiva();
+  AppState.telaAtual = id;
+
+  document.querySelectorAll('.screen').forEach((t) => t.classList.remove('active'));
+
+  const tela = document.getElementById(`screen-${id}`);
+  if (tela) tela.classList.add('active');
+
+  if (id === 'text') {
+    timers.schedule(inicializar3D, 100);
+  }
+}
+
+function popularTecladoAZ() {
+  const container = document.getElementById('alfabeto-rapido');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const fragment = document.createDocumentFragment();
+  for (const letra of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-letra-az';
+    btn.textContent = letra;
+    btn.title = `Visualizar letra ${letra} na mão 3D`;
+    btn.setAttribute('aria-label', `Letra ${letra}`);
+    btn.addEventListener('click', () => {
+      if (AppState.traduzindo) pararTraducaoAtiva();
+      visualizarLetraUnica3D(letra);
+    });
+    fragment.appendChild(btn);
+  }
+  container.appendChild(fragment);
+}
 
 function renderizarChips(itens) {
-  var c = document.getElementById('fila-chips');
+  const c = document.getElementById('fila-chips');
   if (!c) return;
   c.innerHTML = '';
 
-  for (var i = 0; i < itens.length; i++) {
-    (function(idx, item) {
-      var valor = typeof item === 'string' ? item : item.valor;
-      var tipo  = typeof item === 'string' ? 'letra' : item.tipo;
+  const fragment = document.createDocumentFragment();
+  itens.forEach((item, idx) => {
+    const valor = typeof item === 'string' ? item : item.valor;
+    const tipo = typeof item === 'string' ? 'letra' : item.tipo;
 
-      var d = document.createElement('div');
-      d.className   = 'chip clickable';
-      d.textContent = valor;
-      d.id          = 'chip-' + idx;
-      d.title       = 'Clique para visualizar "' + valor + '" na mão 3D';
+    const d = document.createElement('div');
+    d.className = 'chip clickable';
+    d.textContent = valor;
+    d.id = `chip-${idx}`;
+    d.title = `Clique para visualizar "${valor}" na mão 3D`;
 
-      d.addEventListener('click', function() {
-        if (traduzindo) pararTraducaoAtiva();
-        document.querySelectorAll('#fila-chips .chip').forEach(function(ch) {
-          ch.classList.remove('active');
-        });
-        d.classList.add('active');
-        if (tipo === 'palavra') {
-          var dp = buscarPalavra(valor);
-          if (dp && libraHand3D && libraHand3D.pronto) {
-            setLetraAtualGrande(valor);
-            setFeedbackModo(dp.descricao || valor);
-            libraHand3D.animarPalavra(dp);
-            falar(valor);
-          }
-        } else {
-          visualizarLetraUnica3D(valor);
+    d.addEventListener('click', () => {
+      if (AppState.traduzindo) pararTraducaoAtiva();
+      document.querySelectorAll('#fila-chips .chip').forEach((ch) => ch.classList.remove('active'));
+      d.classList.add('active');
+      if (tipo === 'palavra') {
+        const dp = buscarPalavra(valor);
+        if (dp && libraHand3D && libraHand3D.pronto) {
+          setLetraAtualGrande(valor);
+          setFeedbackModo(dp.descricao || valor);
+          libraHand3D.animarPalavra(dp);
+          SpeechService.falar(valor);
         }
-      });
+      } else {
+        visualizarLetraUnica3D(valor);
+      }
+    });
 
-      c.appendChild(d);
-    })(i, itens[i]);
-  }
+    fragment.appendChild(d);
+  });
+
+  c.appendChild(fragment);
 }
 
 function marcarChip(idx, estado) {
-  var el = document.getElementById('chip-' + idx);
+  const el = document.getElementById(`chip-${idx}`);
   if (!el) return;
   el.classList.remove('active', 'sent');
   if (estado) el.classList.add(estado);
 }
 
 function setLetraAtual(texto) {
-  var el = document.getElementById('letra-atual');
+  const el = document.getElementById('letra-atual');
   if (!el) return;
-  el.textContent    = texto;
+  el.textContent = texto;
   el.style.fontSize = '2.6rem';
 }
 
 function setLetraAtualGrande(texto) {
-  var el = document.getElementById('letra-atual');
+  const el = document.getElementById('letra-atual');
   if (!el) return;
-  el.textContent    = texto;
+  el.textContent = texto;
   el.style.fontSize = texto.length > 6 ? '1.35rem' : '1.85rem';
 }
 
 function setFeedbackModo(texto) {
-  var el = document.getElementById('feedback-modo');
-  if (!el) return;
-  el.textContent = texto;
+  const el = document.getElementById('feedback-modo');
+  if (el) el.textContent = texto;
 }
 
-function log(msg, tipo) {
-  var box = document.getElementById('log-box');
+function log(msg, tipo = 'info') {
+  const box = document.getElementById('log-box');
   if (!box) return;
-  var d = document.createElement('div');
-  d.className = 'log-line ' + (tipo || 'info');
-  var h = new Date().toLocaleTimeString('pt-BR', {
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  const d = document.createElement('div');
+  d.className = `log-line ${tipo}`;
+  const h = new Date().toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
   });
-  d.textContent = '[' + h + '] ' + msg;
+  d.textContent = `[${h}] ${msg}`;
   box.appendChild(d);
   box.scrollTop = box.scrollHeight;
-  while (box.children.length > 50) box.removeChild(box.firstChild);
+  while (box.children.length > 50) {
+    box.removeChild(box.firstChild);
+  }
 }
 
-function esperar(ms) {
-  return new Promise(function(res) {
-    registrarTimeout(res, ms);
-  });
+function mostrarNotificacaoUI(mensagem, tipo = 'info') {
+  log(mensagem, tipo);
 }
 
 // ============================================================
-// SEÇÃO 11 — BANCO FALLBACK EMBUTIDO (Sincronizado com database.json)
+// 11. INICIALIZAÇÃO DO DOM E BINDING DE EVENTOS
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  carregarBanco();
+  popularTecladoAZ();
+  mostrarTela('home');
+
+  // ── NAVEGAÇÃO HOME ──
+  document.getElementById('btn-ir-texto')?.addEventListener('click', () => mostrarTela('text'));
+  document.getElementById('btn-ir-camera')?.addEventListener('click', () => mostrarTela('camera'));
+  document.getElementById('btn-ir-bluetooth')?.addEventListener('click', () => mostrarTela('bluetooth'));
+
+  // ── BOTÕES DE VOLTAR ──
+  document.querySelectorAll('.btn-back').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      pararTraducaoAtiva();
+      pararCamera();
+      if (libraHand3D) {
+        libraHand3D.destruir();
+        libraHand3D = null;
+      }
+      mostrarTela('home');
+    });
+  });
+
+  // ── TELA TEXTO & 3D ──
+  document.getElementById('btn-traduzir')?.addEventListener('click', iniciarTraducao);
+  document.getElementById('btn-limpar')?.addEventListener('click', limparCampo);
+
+  const btnVoz = document.getElementById('btn-toggle-voz');
+  if (btnVoz) {
+    btnVoz.addEventListener('click', () => {
+      AppState.vozAtiva = !AppState.vozAtiva;
+      btnVoz.textContent = AppState.vozAtiva ? '🔊 Voz: ON' : '🔇 Voz: OFF';
+      btnVoz.classList.toggle('muted', !AppState.vozAtiva);
+      if (!AppState.vozAtiva) SpeechService.cancelar();
+    });
+  }
+
+  const selVel = document.getElementById('select-velocidade');
+  if (selVel) {
+    selVel.addEventListener('change', function () {
+      AppState.velocidadeTraducao = parseFloat(this.value) || 1.0;
+      log(`⏱ Velocidade ajustada para ${AppState.velocidadeTraducao}x`, 'info');
+    });
+  }
+
+  const inputTexto = document.getElementById('input-texto');
+  if (inputTexto) {
+    inputTexto.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        iniciarTraducao();
+      }
+    });
+
+    inputTexto.addEventListener('input', function () {
+      const pos = this.selectionStart;
+      const limpo = this.value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z \n]/g, '');
+      if (this.value !== limpo) {
+        this.value = limpo;
+        try {
+          this.setSelectionRange(pos, pos);
+        } catch (_) {}
+      }
+    });
+  }
+
+  // ── CONTROLES 3D ──
+  document.getElementById('btn-3d-rotacionar')?.addEventListener('click', toggle3DRotacao);
+  document.getElementById('btn-3d-resetar')?.addEventListener('click', resetar3DCamera);
+
+  document.getElementById('btn-3d-neutra')?.addEventListener('click', () => {
+    if (libraHand3D && libraHand3D.pronto) {
+      libraHand3D._ativarUmaMao();
+      libraHand3D.posicaoNeutra();
+      setLetraAtual('');
+      setFeedbackModo('Posição neutra / repouso');
+    }
+  });
+
+  // ── SINAIS RÁPIDOS ──
+  document.querySelectorAll('.btn-palavra').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const palavra = btn.getAttribute('data-p');
+      if (inputTexto) inputTexto.value = palavra;
+      if (AppState.traduzindo) pararTraducaoAtiva();
+      iniciarTraducao();
+    });
+  });
+
+  // ── TELA CÂMERA ──
+  document.getElementById('btn-toggle-camera')?.addEventListener('click', toggleCamera);
+
+  const btnEspelhar = document.getElementById('btn-espelhar-camera');
+  if (btnEspelhar) {
+    btnEspelhar.addEventListener('click', () => {
+      cameraEspelhada = !cameraEspelhada;
+      const wrap = document.getElementById('camera-wrap');
+      if (wrap) wrap.classList.toggle('mirrored', cameraEspelhada);
+      btnEspelhar.textContent = cameraEspelhada ? '🪞 Espelhar: ON' : '🪞 Espelhar: OFF';
+      btnEspelhar.classList.toggle('ativo', cameraEspelhada);
+    });
+  }
+
+  document.getElementById('btn-cam-espaco')?.addEventListener('click', () => {
+    const el = document.getElementById('texto-detectado');
+    if (el && el.textContent && !el.textContent.endsWith(' ')) {
+      el.textContent += ' ';
+      stabilityBuffer.ultimaLetraConfirmada = '';
+    }
+  });
+
+  document.getElementById('btn-cam-apagar')?.addEventListener('click', () => {
+    const el = document.getElementById('texto-detectado');
+    if (el && el.textContent.length > 0) {
+      el.textContent = el.textContent.slice(0, -1);
+      stabilityBuffer.ultimaLetraConfirmada = '';
+    }
+  });
+
+  document.getElementById('btn-cam-falar')?.addEventListener('click', () => {
+    const el = document.getElementById('texto-detectado');
+    if (el && el.textContent.trim()) {
+      SpeechService.falarTextoLivre(el.textContent.trim());
+    }
+  });
+
+  document.getElementById('btn-limpar-cam')?.addEventListener('click', () => {
+    const textoEl = document.getElementById('texto-detectado');
+    if (textoEl) textoEl.textContent = '';
+    const confEl = document.getElementById('conf-fill');
+    if (confEl) confEl.style.width = '0%';
+    const stabEl = document.getElementById('stab-fill');
+    if (stabEl) stabEl.style.width = '0%';
+    const lblConf = document.getElementById('lbl-confianca');
+    if (lblConf) lblConf.textContent = 'Aguardando gesto...';
+    const letraEl = document.getElementById('letra-camera-detectada');
+    if (letraEl) letraEl.textContent = '—';
+    stabilityBuffer.ultimaLetraConfirmada = '';
+  });
+
+  // ── TELA BLUETOOTH & REFERÊNCIA A-Z ──
+  document.getElementById('btn-bt-conectar')?.addEventListener('click', () => btManager.conectar());
+  document.getElementById('btn-bt-desconectar')?.addEventListener('click', () => btManager.desconectar());
+
+  document.querySelectorAll('#ref-alfabeto-bt .chip').forEach((chip) => {
+    chip.classList.add('clickable');
+    chip.addEventListener('click', () => {
+      const letra = chip.textContent.trim();
+      mostrarTela('text');
+      timers.schedule(() => visualizarLetraUnica3D(letra), 380);
+    });
+  });
+});
+
+// ============================================================
+// 12. BANCO FALLBACK EMBUTIDO (Sincronizado com database.json v4.0)
 // ============================================================
 function getBancoFallback() {
-  var R = {
-    A: { c:'CMD_A', d:'Punho fechado com polegar na lateral', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.15,y:0.15,z:-0.22,midX:0.10},indicador:{x:1.58,y:0,z:0.03,midX:1.65,distX:1.25},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.58,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    B: { c:'CMD_B', d:'Quatro dedos estendidos e polegar na palma', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.85,y:-0.35,z:0.42,midX:0.95},indicador:{x:0.02,y:0,z:0.02,midX:0.02,distX:0.02},medio:{x:0.02,y:0,z:0,midX:0.02,distX:0.02},anelar:{x:0.02,y:0,z:-0.02,midX:0.02,distX:0.02},mindinho:{x:0.02,y:0,z:-0.05,midX:0.02,distX:0.02}}},
-    C: { c:'CMD_C', d:'Dedos e polegar curvados em arco C', r:{pulso:{x:0,y:-0.45,z:0},polegar:{x:0.55,y:-0.35,z:-0.65,midX:0.55},indicador:{x:0.65,y:0,z:0.04,midX:0.85,distX:0.65},medio:{x:0.68,y:0,z:0,midX:0.88,distX:0.65},anelar:{x:0.68,y:0,z:-0.04,midX:0.88,distX:0.65},mindinho:{x:0.65,y:0,z:-0.08,midX:0.85,distX:0.60}}},
-    D: { c:'CMD_D', d:'Indicador estendido, demais tocando polegar', r:{pulso:{x:0,y:-0.25,z:0},polegar:{x:0.65,y:-0.30,z:-0.25,midX:0.55},indicador:{x:0.02,y:0,z:0.02,midX:0.02,distX:0.02},medio:{x:1.15,y:0,z:0,midX:1.20,distX:0.90},anelar:{x:1.25,y:0,z:-0.03,midX:1.30,distX:0.95},mindinho:{x:1.30,y:0,z:-0.06,midX:1.35,distX:1.00}}},
-    E: { c:'CMD_E', d:'Dedos curvados nas falanges superiores', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.90,y:-0.30,z:0.28,midX:0.95},indicador:{x:0.45,y:0,z:0.03,midX:1.55,distX:1.35},medio:{x:0.45,y:0,z:0,midX:1.55,distX:1.35},anelar:{x:0.45,y:0,z:-0.03,midX:1.55,distX:1.35},mindinho:{x:0.45,y:0,z:-0.06,midX:1.55,distX:1.35}}},
-    F: { c:'CMD_F', d:'Indicador tocando polegar por fora, 3 dedos abertos', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.45,y:-0.15,z:-0.30,midX:0.25},indicador:{x:1.05,y:0,z:0.08,midX:0.95,distX:0.55},medio:{x:0.04,y:0,z:0,midX:0.04,distX:0.02},anelar:{x:0.04,y:0,z:-0.05,midX:0.04,distX:0.02},mindinho:{x:0.04,y:0,z:-0.12,midX:0.04,distX:0.02}}},
-    G: { c:'CMD_G', d:'Indicador e polegar paralelos apontando para cima', r:{pulso:{x:0,y:-0.35,z:0},polegar:{x:0.15,y:0.10,z:-0.25,midX:0.05},indicador:{x:0.02,y:0,z:0.02,midX:0.02,distX:0.02},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    H: { c:'CMD_H', m:'giro_pulso', d:'Indicador, médio e polegar com giro de pulso', r:{pulso:{x:0,y:-0.40,z:0},polegar:{x:0.45,y:-0.15,z:-0.25,midX:0.35},indicador:{x:0.02,y:0,z:0.16,midX:0.02,distX:0.02},medio:{x:0.20,y:0,z:-0.14,midX:0.10,distX:0.05},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    I: { c:'CMD_I', d:'Apenas dedo mínimo estendido', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.70,y:-0.20,z:0.15,midX:0.65},indicador:{x:1.60,y:0,z:0.03,midX:1.65,distX:1.25},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:0.02,y:0,z:-0.05,midX:0.02,distX:0.02}}},
-    J: { c:'CMD_J', m:'tracar_j', d:'Dedo mínimo traçando a curva do J no ar', r:{pulso:{x:0.15,y:-0.35,z:0.25},polegar:{x:0.70,y:-0.20,z:0.15,midX:0.65},indicador:{x:1.60,y:0,z:0.03,midX:1.65,distX:1.25},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:0.02,y:0,z:-0.05,midX:0.02,distX:0.02}}},
-    K: { c:'CMD_K', m:'impulso_cima', d:'Indicador e médio com polegar entre eles impulsionando p/ cima', r:{pulso:{x:-0.15,y:-0.25,z:0},polegar:{x:0.35,y:-0.15,z:-0.22,midX:0.20},indicador:{x:0.02,y:0,z:0.12,midX:0.02,distX:0.02},medio:{x:0.55,y:0,z:-0.12,midX:0.15,distX:0.05},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    L: { c:'CMD_L', d:'Indicador e polegar formando ângulo reto (L)', r:{pulso:{x:0,y:0,z:0},polegar:{x:0,y:0.20,z:-1.35,midX:0},indicador:{x:0.02,y:0,z:0.02,midX:0.02,distX:0.02},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    M: { c:'CMD_M', d:'Três dedos unidos apontando para baixo', r:{pulso:{x:0.35,y:0,z:0},polegar:{x:0.85,y:-0.35,z:0.35,midX:0.85},indicador:{x:0.95,y:0,z:0.03,midX:0.45,distX:0.25},medio:{x:0.95,y:0,z:0,midX:0.45,distX:0.25},anelar:{x:0.95,y:0,z:-0.03,midX:0.45,distX:0.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    N: { c:'CMD_N', d:'Dois dedos unidos apontando para baixo', r:{pulso:{x:0.35,y:0,z:0},polegar:{x:0.85,y:-0.35,z:0.25,midX:0.85},indicador:{x:0.95,y:0,z:0.03,midX:0.45,distX:0.25},medio:{x:0.95,y:0,z:0,midX:0.45,distX:0.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    O: { c:'CMD_O', d:'Dedos curvados formando um círculo com o polegar', r:{pulso:{x:0,y:-0.45,z:0},polegar:{x:0.72,y:-0.40,z:-0.42,midX:0.70},indicador:{x:0.95,y:0,z:0.04,midX:1.15,distX:0.85},medio:{x:0.98,y:0,z:0,midX:1.18,distX:0.85},anelar:{x:0.95,y:0,z:-0.04,midX:1.15,distX:0.85},mindinho:{x:0.90,y:0,z:-0.08,midX:1.10,distX:0.80}}},
-    P: { c:'CMD_P', d:'Configuração de K inclinada na horizontal', r:{pulso:{x:0.95,y:-0.35,z:-0.25},polegar:{x:0.35,y:-0.15,z:-0.22,midX:0.20},indicador:{x:0.02,y:0,z:0.12,midX:0.02,distX:0.02},medio:{x:0.65,y:0,z:-0.10,midX:0.15,distX:0.05},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    Q: { c:'CMD_Q', d:'Configuração de G apontando para baixo', r:{pulso:{x:1.15,y:0,z:0},polegar:{x:0.20,y:0.10,z:-0.25,midX:0.05},indicador:{x:0.15,y:0,z:0.02,midX:0.05,distX:0.02},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    R: { c:'CMD_R', d:'Indicador e médio estendidos e cruzados', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.85,y:-0.25,z:0.25,midX:0.80},indicador:{x:0.08,y:0.15,z:-0.18,midX:0.05,distX:0.05},medio:{x:-0.04,y:-0.15,z:0.18,midX:0.12,distX:0.08},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    S: { c:'CMD_S', d:'Punho fechado com polegar cruzado à frente', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.75,y:-0.35,z:0.28,midX:0.85},indicador:{x:1.60,y:0,z:0.03,midX:1.65,distX:1.25},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    T: { c:'CMD_T', d:'Indicador flexionado por trás do polegar, 3 dedos estendidos', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.55,y:-0.10,z:-0.10,midX:0.25},indicador:{x:1.10,y:0,z:-0.05,midX:1.05,distX:0.65},medio:{x:0.04,y:0,z:0,midX:0.04,distX:0.02},anelar:{x:0.04,y:0,z:-0.05,midX:0.04,distX:0.02},mindinho:{x:0.04,y:0,z:-0.12,midX:0.04,distX:0.02}}},
-    U: { c:'CMD_U', d:'Indicador e médio estendidos e unidos', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.85,y:-0.25,z:0.25,midX:0.85},indicador:{x:0.02,y:0,z:-0.04,midX:0.02,distX:0.02},medio:{x:0.02,y:0,z:0.04,midX:0.02,distX:0.02},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    V: { c:'CMD_V', d:'Indicador e médio estendidos e afastados em V', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.85,y:-0.25,z:0.25,midX:0.85},indicador:{x:0.02,y:0,z:0.24,midX:0.02,distX:0.02},medio:{x:0.02,y:0,z:-0.22,midX:0.02,distX:0.02},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    W: { c:'CMD_W', d:'Três dedos estendidos e separados em W', r:{pulso:{x:0,y:0,z:0},polegar:{x:0.85,y:-0.25,z:0.30,midX:0.85},indicador:{x:0.02,y:0,z:0.26,midX:0.02,distX:0.02},medio:{x:0.02,y:0,z:0,midX:0.02,distX:0.02},anelar:{x:0.02,y:0,z:-0.26,midX:0.02,distX:0.02},mindinho:{x:1.60,y:0,z:-0.08,midX:1.65,distX:1.25}}},
-    X: { c:'CMD_X', m:'puxar_x', d:'Indicador em gancho puxando levemente', r:{pulso:{x:0,y:-0.35,z:0},polegar:{x:0.70,y:-0.20,z:0.15,midX:0.65},indicador:{x:0.25,y:0,z:0.02,midX:1.45,distX:1.25},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}},
-    Y: { c:'CMD_Y', d:'Polegar e dedo mínimo estendidos', r:{pulso:{x:0,y:0,z:0},polegar:{x:0,y:0.20,z:-1.35,midX:0},indicador:{x:1.60,y:0,z:0.03,midX:1.65,distX:1.25},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:0.02,y:0,z:-0.18,midX:0.02,distX:0.02}}},
-    Z: { c:'CMD_Z', m:'tracar_z', d:'Indicador traçando a letra Z no ar', r:{pulso:{x:0.10,y:0,z:0},polegar:{x:0.75,y:-0.25,z:0.20,midX:0.75},indicador:{x:0.02,y:0,z:0.02,midX:0.02,distX:0.02},medio:{x:1.60,y:0,z:0,midX:1.65,distX:1.25},anelar:{x:1.60,y:0,z:-0.03,midX:1.65,distX:1.25},mindinho:{x:1.60,y:0,z:-0.06,midX:1.65,distX:1.25}}}
+  const R = {
+    A: { c: 'CMD_A', d: 'Punho fechado com polegar na lateral', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.12, y: 0.18, z: -0.20, midX: 0.08 }, indicador: { x: 1.60, y: 0, z: 0.03, midX: 1.68, distX: 1.32 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.32 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.32 }, mindinho: { x: 1.60, y: 0, z: -0.06, midX: 1.68, distX: 1.32 } } },
+    B: { c: 'CMD_B', d: 'Quatro dedos estendidos e polegar na palma', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.88, y: -0.38, z: 0.44, midX: 0.98 }, indicador: { x: 0.02, y: 0, z: 0.03, midX: 0.02, distX: 0.02 }, medio: { x: 0.02, y: 0, z: 0, midX: 0.02, distX: 0.02 }, anelar: { x: 0.02, y: 0, z: -0.03, midX: 0.02, distX: 0.02 }, mindinho: { x: 0.02, y: 0, z: -0.06, midX: 0.02, distX: 0.02 } } },
+    C: { c: 'CMD_C', d: 'Dedos e polegar curvados em arco C', r: { pulso: { x: 0, y: -0.52, z: 0 }, polegar: { x: 0.58, y: -0.38, z: -0.62, midX: 0.58 }, indicador: { x: 0.64, y: 0, z: 0.04, midX: 0.88, distX: 0.68 }, medio: { x: 0.66, y: 0, z: 0, midX: 0.90, distX: 0.68 }, anelar: { x: 0.66, y: 0, z: -0.04, midX: 0.90, distX: 0.68 }, mindinho: { x: 0.64, y: 0, z: -0.08, midX: 0.86, distX: 0.64 } } },
+    D: { c: 'CMD_D', d: 'Indicador estendido, demais tocando polegar', r: { pulso: { x: 0, y: -0.28, z: 0 }, polegar: { x: 0.68, y: -0.32, z: -0.24, midX: 0.58 }, indicador: { x: 0.02, y: 0, z: 0.02, midX: 0.02, distX: 0.02 }, medio: { x: 1.16, y: 0, z: 0, midX: 1.22, distX: 0.92 }, anelar: { x: 1.26, y: 0, z: -0.03, midX: 1.32, distX: 0.96 }, mindinho: { x: 1.32, y: 0, z: -0.06, midX: 1.36, distX: 1.02 } } },
+    E: { c: 'CMD_E', d: 'Dedos curvados nas falanges superiores', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.92, y: -0.32, z: 0.30, midX: 0.98 }, indicador: { x: 0.42, y: 0, z: 0.03, midX: 1.58, distX: 1.38 }, medio: { x: 0.42, y: 0, z: 0, midX: 1.58, distX: 1.38 }, anelar: { x: 0.42, y: 0, z: -0.03, midX: 1.58, distX: 1.38 }, mindinho: { x: 0.42, y: 0, z: -0.06, midX: 1.58, distX: 1.38 } } },
+    F: { c: 'CMD_F', d: 'Indicador tocando polegar por fora, 3 dedos abertos', r: { pulso: { x: 0, y: -0.12, z: 0 }, polegar: { x: 0.46, y: -0.16, z: -0.32, midX: 0.24 }, indicador: { x: 1.06, y: 0, z: 0.08, midX: 0.96, distX: 0.56 }, medio: { x: 0.03, y: 0, z: 0, midX: 0.03, distX: 0.02 }, anelar: { x: 0.03, y: 0, z: -0.05, midX: 0.03, distX: 0.02 }, mindinho: { x: 0.03, y: 0, z: -0.11, midX: 0.03, distX: 0.02 } } },
+    G: { c: 'CMD_G', d: 'Indicador e polegar paralelos apontando para cima', r: { pulso: { x: 0, y: -0.35, z: 0 }, polegar: { x: 0.14, y: 0.10, z: -0.24, midX: 0.05 }, indicador: { x: 0.02, y: 0, z: 0.02, midX: 0.02, distX: 0.02 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    H: { c: 'CMD_H', m: 'giro_pulso', p: 'indicador', d: 'Indicador, médio e polegar com giro de pulso', r: { pulso: { x: 0, y: -0.40, z: 0 }, polegar: { x: 0.45, y: -0.15, z: -0.25, midX: 0.35 }, indicador: { x: 0.02, y: 0, z: 0.16, midX: 0.02, distX: 0.02 }, medio: { x: 0.22, y: 0, z: -0.14, midX: 0.10, distX: 0.05 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    I: { c: 'CMD_I', d: 'Apenas dedo mínimo estendido', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.72, y: -0.22, z: 0.16, midX: 0.68 }, indicador: { x: 1.62, y: 0, z: 0.03, midX: 1.68, distX: 1.30 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 0.02, y: 0, z: -0.04, midX: 0.02, distX: 0.02 } } },
+    J: { c: 'CMD_J', m: 'tracar_j', p: 'mindinho', d: 'Dedo mínimo traçando a curva do J no ar', r: { pulso: { x: 0.12, y: -0.25, z: 0.18 }, polegar: { x: 0.72, y: -0.22, z: 0.16, midX: 0.68 }, indicador: { x: 1.62, y: 0, z: 0.03, midX: 1.68, distX: 1.30 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 0.02, y: 0, z: -0.04, midX: 0.02, distX: 0.02 } } },
+    K: { c: 'CMD_K', m: 'impulso_cima', p: 'indicador', d: 'Indicador e médio com polegar entre eles impulsionando p/ cima', r: { pulso: { x: -0.14, y: -0.25, z: 0 }, polegar: { x: 0.36, y: -0.15, z: -0.22, midX: 0.20 }, indicador: { x: 0.02, y: 0, z: 0.12, midX: 0.02, distX: 0.02 }, medio: { x: 0.56, y: 0, z: -0.12, midX: 0.15, distX: 0.05 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    L: { c: 'CMD_L', d: 'Indicador e polegar formando ângulo reto (L)', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0, y: 0.22, z: -1.36, midX: 0 }, indicador: { x: 0.02, y: 0, z: 0.02, midX: 0.02, distX: 0.02 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    M: { c: 'CMD_M', d: 'Três dedos unidos apontando para baixo', r: { pulso: { x: 0.38, y: 0, z: 0 }, polegar: { x: 0.86, y: -0.35, z: 0.35, midX: 0.86 }, indicador: { x: 0.96, y: 0, z: 0.03, midX: 0.44, distX: 0.24 }, medio: { x: 0.96, y: 0, z: 0, midX: 0.44, distX: 0.24 }, anelar: { x: 0.96, y: 0, z: -0.03, midX: 0.44, distX: 0.24 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    N: { c: 'CMD_N', d: 'Dois dedos unidos apontando para baixo', r: { pulso: { x: 0.38, y: 0, z: 0 }, polegar: { x: 0.86, y: -0.35, z: 0.25, midX: 0.86 }, indicador: { x: 0.96, y: 0, z: 0.03, midX: 0.44, distX: 0.24 }, medio: { x: 0.96, y: 0, z: 0, midX: 0.44, distX: 0.24 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    O: { c: 'CMD_O', d: 'Dedos curvados formando um círculo com o polegar', r: { pulso: { x: 0, y: -0.48, z: 0 }, polegar: { x: 0.74, y: -0.42, z: -0.40, midX: 0.72 }, indicador: { x: 0.96, y: 0, z: 0.04, midX: 1.16, distX: 0.86 }, medio: { x: 0.98, y: 0, z: 0, midX: 1.18, distX: 0.86 }, anelar: { x: 0.96, y: 0, z: -0.04, midX: 1.16, distX: 0.86 }, mindinho: { x: 0.92, y: 0, z: -0.08, midX: 1.12, distX: 0.82 } } },
+    P: { c: 'CMD_P', d: 'Configuração de K inclinada na horizontal', r: { pulso: { x: 0.96, y: -0.35, z: -0.25 }, polegar: { x: 0.36, y: -0.15, z: -0.22, midX: 0.20 }, indicador: { x: 0.02, y: 0, z: 0.12, midX: 0.02, distX: 0.02 }, medio: { x: 0.65, y: 0, z: -0.10, midX: 0.15, distX: 0.05 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    Q: { c: 'CMD_Q', d: 'Configuração de G apontando para baixo', r: { pulso: { x: 1.18, y: 0, z: 0 }, polegar: { x: 0.20, y: 0.10, z: -0.25, midX: 0.05 }, indicador: { x: 0.15, y: 0, z: 0.02, midX: 0.05, distX: 0.02 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    R: { c: 'CMD_R', d: 'Indicador e médio estendidos e cruzados', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.85, y: -0.25, z: 0.25, midX: 0.80 }, indicador: { x: 0.08, y: 0.16, z: -0.19, midX: 0.05, distX: 0.05 }, medio: { x: -0.04, y: -0.16, z: 0.19, midX: 0.12, distX: 0.08 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    S: { c: 'CMD_S', d: 'Punho fechado com polegar cruzado à frente', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.78, y: -0.36, z: 0.30, midX: 0.88 }, indicador: { x: 1.62, y: 0, z: 0.03, midX: 1.68, distX: 1.30 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    T: { c: 'CMD_T', d: 'Indicador flexionado por trás do polegar, 3 dedos estendidos', r: { pulso: { x: 0, y: -0.10, z: 0 }, polegar: { x: 0.56, y: -0.10, z: -0.08, midX: 0.26 }, indicador: { x: 1.12, y: 0, z: -0.06, midX: 1.06, distX: 0.66 }, medio: { x: 0.03, y: 0, z: 0, midX: 0.03, distX: 0.02 }, anelar: { x: 0.03, y: 0, z: -0.05, midX: 0.03, distX: 0.02 }, mindinho: { x: 0.03, y: 0, z: -0.12, midX: 0.03, distX: 0.02 } } },
+    U: { c: 'CMD_U', d: 'Indicador e médio estendidos e unidos', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.86, y: -0.26, z: 0.26, midX: 0.86 }, indicador: { x: 0.02, y: 0, z: -0.04, midX: 0.02, distX: 0.02 }, medio: { x: 0.02, y: 0, z: 0.04, midX: 0.02, distX: 0.02 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    V: { c: 'CMD_V', d: 'Indicador e médio estendidos e afastados em V', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.86, y: -0.26, z: 0.26, midX: 0.86 }, indicador: { x: 0.02, y: 0, z: 0.24, midX: 0.02, distX: 0.02 }, medio: { x: 0.02, y: 0, z: -0.22, midX: 0.02, distX: 0.02 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    W: { c: 'CMD_W', d: 'Três dedos estendidos e separados em W', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0.86, y: -0.26, z: 0.30, midX: 0.86 }, indicador: { x: 0.02, y: 0, z: 0.26, midX: 0.02, distX: 0.02 }, medio: { x: 0.02, y: 0, z: 0, midX: 0.02, distX: 0.02 }, anelar: { x: 0.02, y: 0, z: -0.26, midX: 0.02, distX: 0.02 }, mindinho: { x: 1.62, y: 0, z: -0.08, midX: 1.68, distX: 1.30 } } },
+    X: { c: 'CMD_X', m: 'puxar_x', p: 'indicador', d: 'Indicador em gancho puxando levemente', r: { pulso: { x: 0, y: -0.35, z: 0 }, polegar: { x: 0.72, y: -0.20, z: 0.15, midX: 0.66 }, indicador: { x: 0.24, y: 0, z: 0.02, midX: 1.48, distX: 1.28 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } },
+    Y: { c: 'CMD_Y', d: 'Polegar e dedo mínimo estendidos', r: { pulso: { x: 0, y: 0, z: 0 }, polegar: { x: 0, y: 0.22, z: -1.36, midX: 0 }, indicador: { x: 1.62, y: 0, z: 0.03, midX: 1.68, distX: 1.30 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 0.02, y: 0, z: -0.18, midX: 0.02, distX: 0.02 } } },
+    Z: { c: 'CMD_Z', m: 'tracar_z', p: 'indicador', d: 'Indicador traçando a letra Z no ar', r: { pulso: { x: 0.08, y: 0, z: 0 }, polegar: { x: 0.76, y: -0.25, z: 0.20, midX: 0.76 }, indicador: { x: 0.02, y: 0, z: 0.02, midX: 0.02, distX: 0.02 }, medio: { x: 1.62, y: 0, z: 0, midX: 1.68, distX: 1.30 }, anelar: { x: 1.62, y: 0, z: -0.03, midX: 1.68, distX: 1.30 }, mindinho: { x: 1.62, y: 0, z: -0.06, midX: 1.68, distX: 1.30 } } }
   };
 
-  var letras = {};
-  Object.keys(R).forEach(function(k) {
+  const letras = {};
+  for (const k of Object.keys(R)) {
     letras[k] = {
       comando: R[k].c,
       descricao: R[k].d,
       movimento: R[k].m || null,
+      pontaRastro: R[k].p || null,
       rotacoes3d: R[k].r
     };
-  });
+  }
 
   return {
-    letras: letras,
+    versao: '4.0.0',
+    letras,
     palavras: {
-      AJUDA:       { duas_maos:true,  comando:'CMD_AJUDA',    movimento:'ajuda',          descricao:'Mão aberta apoiando e impulsionando a outra para frente', mao_direita:{rotacoes3d: R.B.r}, mao_esquerda:{rotacoes3d: R.B.r} },
-      OBRIGADO:    { duas_maos:false, comando:'CMD_OBRIGADO', movimento:'obrigado',       descricao:'Mão em B partindo da testa/queixo para frente',           mao_direita:{rotacoes3d: R.B.r}, mao_esquerda:null },
-      AGUA:        { duas_maos:false, comando:'CMD_AGUA',     movimento:'agua_libras',    descricao:'Mão em L (Libras oficial) com indicador batendo duas vezes', mao_direita:{rotacoes3d: R.L.r}, mao_esquerda:null },
-      BANHEIRO:    { duas_maos:false, comando:'CMD_BANHEIRO', movimento:'oscilar_pulso',  descricao:'Sinal de banheiro com oscilação lateral',                 mao_direita:{rotacoes3d: R.T.r}, mao_esquerda:null },
-      SOCORRO:     { duas_maos:true,  comando:'CMD_SOCORRO',  movimento:'alerta_duplo',   descricao:'Ambas as mãos em alerta pedindo socorro',                 mao_direita:{rotacoes3d: R.B.r}, mao_esquerda:{rotacoes3d: R.B.r} },
-      COMIDA:      { duas_maos:false, comando:'CMD_COMIDA',   movimento:'comida_libras',  descricao:'Dedos unidos em pinça levando à boca',                    mao_direita:{rotacoes3d: R.O.r}, mao_esquerda:null },
-      PERIGO:      { duas_maos:true,  comando:'CMD_PERIGO',   movimento:'perigo',         descricao:'Sinal de perigo/cuidado com movimento de alerta',         mao_direita:{rotacoes3d: R.Y.r}, mao_esquerda:{rotacoes3d: R.Y.r} },
-      'POR FAVOR': { duas_maos:false, comando:'CMD_PORFAVOR', movimento:'circular_peito', descricao:'Mão aberta fazendo movimento circular no peito',          mao_direita:{rotacoes3d: R.B.r}, mao_esquerda:null },
-      SIM:         { duas_maos:false, comando:'CMD_SIM',      movimento:'sim_aceno',      descricao:'Punho em S acenando positivamente',                       mao_direita:{rotacoes3d: R.S.r}, mao_esquerda:null },
-      NAO:         { duas_maos:false, comando:'CMD_NAO',      movimento:'nao_abano',      descricao:'Indicador estendido abanando negativamente',              mao_direita:{rotacoes3d: R.D.r}, mao_esquerda:null }
+      AJUDA:       { duas_maos: true,  comando: 'CMD_AJUDA',    movimento: 'ajuda',          descricao: 'Mão aberta apoiando e impulsionando a outra para frente', mao_direita: { rotacoes3d: R.B.r }, mao_esquerda: { rotacoes3d: R.B.r } },
+      OBRIGADO:    { duas_maos: false, comando: 'CMD_OBRIGADO', movimento: 'obrigado',       pontaRastro: 'medio', descricao: 'Mão em B partindo da testa/queixo para frente', mao_direita: { rotacoes3d: R.B.r }, mao_esquerda: null },
+      AGUA:        { duas_maos: false, comando: 'CMD_AGUA',     movimento: 'agua_libras',    pontaRastro: 'indicador', descricao: 'Mão em L (Libras oficial) com indicador batendo duas vezes', mao_direita: { rotacoes3d: R.L.r }, mao_esquerda: null },
+      BANHEIRO:    { duas_maos: false, comando: 'CMD_BANHEIRO', movimento: 'oscilar_pulso',  descricao: 'Sinal de banheiro com oscilação lateral', mao_direita: { rotacoes3d: R.T.r }, mao_esquerda: null },
+      SOCORRO:     { duas_maos: true,  comando: 'CMD_SOCORRO',  movimento: 'alerta_duplo',   descricao: 'Ambas as mãos em alerta pedindo socorro', mao_direita: { rotacoes3d: R.B.r }, mao_esquerda: { rotacoes3d: R.B.r } },
+      COMIDA:      { duas_maos: false, comando: 'CMD_COMIDA',   movimento: 'comida_libras',  descricao: 'Dedos unidos em pinça levando à boca', mao_direita: { rotacoes3d: R.O.r }, mao_esquerda: null },
+      PERIGO:      { duas_maos: true,  comando: 'CMD_PERIGO',   movimento: 'perigo',         descricao: 'Sinal de perigo/cuidado com movimento de alerta', mao_direita: { rotacoes3d: R.Y.r }, mao_esquerda: { rotacoes3d: R.Y.r } },
+      'POR FAVOR': { duas_maos: false, comando: 'CMD_PORFAVOR', movimento: 'circular_peito', pontaRastro: 'medio', descricao: 'Mão aberta fazendo movimento circular no peito', mao_direita: { rotacoes3d: R.B.r }, mao_esquerda: null },
+      SIM:         { duas_maos: false, comando: 'CMD_SIM',      movimento: 'sim_aceno',      descricao: 'Punho em S acenando positivamente', mao_direita: { rotacoes3d: R.S.r }, mao_esquerda: null },
+      NAO:         { duas_maos: false, comando: 'CMD_NAO',      movimento: 'nao_abano',      pontaRastro: 'indicador', descricao: 'Indicador estendido abanando negativamente', mao_direita: { rotacoes3d: R.D.r }, mao_esquerda: null }
     },
-    configuracoes: { intervaloBetweenLetras: 900, tempoTransicao3d: 650, debounceCamera: 1800 }
+    configuracoes: { intervaloBetweenLetras: 850, tempoTransicao3d: 600, debounceCamera: 1650 }
   };
 }
