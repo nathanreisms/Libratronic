@@ -119,16 +119,16 @@
     },
     "J": {
       "comando": "CMD_J",
-      "descricao": "Mão em I desenhando a haste vertical e a curva inferior da letra J no espaço",
+      "descricao": "Mão em I desenhando a haste vertical e a curva inferior fluida da letra J no espaço",
       "movimento": "tracar_j",
       "pontaRastro": "mindinho",
       "rotacoes3d": {
-        "pulso": { "x": 0.12, "y": -0.25, "z": 0.18 },
+        "pulso": { "x": 0.04, "y": -0.10, "z": 0.0 },
         "polegar":   { "x": 0.72, "y": -0.22, "z": 0.16,  "midX": 0.68 },
         "indicador": { "x": 1.62, "y": 0.0,   "z": 0.03,  "midX": 1.68, "distX": 1.30 },
         "medio":     { "x": 1.62, "y": 0.0,   "z": 0.00,  "midX": 1.68, "distX": 1.30 },
         "anelar":    { "x": 1.62, "y": 0.0,   "z": -0.03, "midX": 1.68, "distX": 1.30 },
-        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.04, "midX": 0.02, "distX": 0.02 }
+        "mindinho":  { "x": 0.02, "y": 0.0,   "z": -0.02, "midX": 0.02, "distX": 0.02 }
       }
     },
     "K": {

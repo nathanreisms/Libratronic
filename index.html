@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <!--
   ============================================================
-  LibraTronic v4.0 — index.html
-  Tradução Libras Oficial · Mão Biônica 3D (Rastro Espacial) · ESP32 BLE
+  LibraTronic v5.0 — Dark UI Clean & Futurista (Apple / SpaceX Inspired)
+  Tradução de Libras · Robótica Biomimética · Visão Computacional · Laboratório 3D
   Integrado com: style.css · hand3d.js · script.js · database.json
   ============================================================
 -->
@@ -10,13 +10,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>LibraTronic — Tradutor Robótico de Libras</title>
+  <title>LibraTronic — Tradução de Libras através de Robótica e Visão Computacional</title>
 
-  <meta name="theme-color" content="#020812" />
+  <meta name="theme-color" content="#050505" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="LibraTronic" />
-  <meta name="description" content="Sistema de tradução Libras com mão robótica biônica 3D articulada, rastro espacial de trajetórias, visão computacional MediaPipe e controle via Bluetooth ESP32." />
+  <meta name="description" content="Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética." />
 
   <!-- CSS PRINCIPAL -->
   <link rel="stylesheet" href="style.css" />
@@ -54,86 +54,198 @@
 <div id="app">
 
   <!-- ===========================================================
-       TELA 1 — HOME
+       TELA 1 — HOME (LANDING PAGE SCROLLABLE · 3 SECÇÕES FULL-SCREEN)
        =========================================================== -->
-  <section id="screen-home" class="screen" aria-label="Tela inicial LibraTronic">
+  <section id="screen-home" class="screen active" aria-label="Página inicial LibraTronic">
 
-    <div class="logo-wrap">
-      <div class="logo-circle" role="img" aria-label="Logo LibraTronic">
-        <svg width="68" height="68" viewBox="0 0 68 68"
-             fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <!-- Palma -->
-          <rect x="14" y="34" width="40" height="26" rx="7"
-                fill="rgba(0,212,255,0.18)" stroke="#00d4ff" stroke-width="1.6"/>
-          <!-- Polegar -->
-          <rect x="7" y="27" width="10" height="19" rx="5"
-                fill="rgba(0,212,255,0.25)" stroke="#00d4ff" stroke-width="1.6"/>
-          <!-- Indicador -->
-          <rect x="19" y="10" width="9" height="27" rx="4"
-                fill="rgba(0,212,255,0.25)" stroke="#00d4ff" stroke-width="1.6"/>
-          <!-- Médio -->
-          <rect x="30" y="6" width="9" height="31" rx="4"
-                fill="rgba(0,255,234,0.35)" stroke="#00ffea" stroke-width="1.6"/>
-          <!-- Anelar -->
-          <rect x="41" y="10" width="9" height="27" rx="4"
-                fill="rgba(0,212,255,0.25)" stroke="#00d4ff" stroke-width="1.6"/>
-          <!-- Mindinho -->
-          <rect x="52" y="18" width="8" height="21" rx="4"
-                fill="rgba(0,212,255,0.18)" stroke="#00d4ff" stroke-width="1.6"/>
-          <!-- Articulações e núcleo -->
-          <circle cx="23.5" cy="35" r="2.6" fill="#00d4ff"/>
-          <circle cx="34.5" cy="35" r="2.6" fill="#00ffea"/>
-          <circle cx="45.5" cy="35" r="2.6" fill="#00d4ff"/>
-          <circle cx="34.5" cy="47" r="5" stroke="#00ffea" stroke-width="1.4" fill="rgba(0,255,234,0.2)"/>
-        </svg>
+    <!-- Barra Superior Minimalista Fixa -->
+    <header class="home-topbar">
+      <a href="#hero-section" class="brand-mark" aria-label="LibraTronic Início">
+        <span class="brand-dot" aria-hidden="true"></span>
+        LIBRATRONIC
+      </a>
+
+      <nav class="home-anchor-nav" aria-label="Secções da página inicial">
+        <a href="#hero-section" class="anchor-link">Início</a>
+        <a href="#about-section" class="anchor-link">Sobre o Projeto</a>
+        <a href="#lab3d-section" class="anchor-link">Laboratório 3D</a>
+      </nav>
+
+      <div class="bt-status" role="status" aria-live="polite">
+        <span class="bt-dot" aria-hidden="true"></span>
+        <span class="bt-status-text">Bluetooth desconectado</span>
+      </div>
+    </header>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECÇÃO 1: HERO SECTION (TOPO · ECRÃ INTEIRO)
+         ───────────────────────────────────────────────────────── -->
+    <div id="hero-section" class="home-section hero-section">
+
+      <div class="hero-grid">
+        <!-- Coluna Editorial e Navegação -->
+        <div class="hero-content">
+          <span class="hero-eyebrow">ROBÓTICA BIOMIMÉTICA &middot; IA EM TEMPO REAL</span>
+          <h1 class="app-title">LibraTronic</h1>
+          <p class="app-subtitle">
+            Tradução de Libras através de Robótica e Visão Computacional
+          </p>
+
+          <nav class="home-buttons" aria-label="Menu principal">
+            <button id="btn-ir-texto" class="btn-ghost-pill primary-pill" aria-label="Abrir Tradução por Texto">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              <span>Tradução por Texto</span>
+            </button>
+
+            <button id="btn-ir-camera" class="btn-ghost-pill" aria-label="Abrir Tradução por Câmera">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <span>Tradução por Câmera</span>
+            </button>
+
+            <button id="btn-ir-bluetooth" class="btn-ghost-pill" aria-label="Conectar via Bluetooth">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+              </svg>
+              <span>Conectar Bluetooth</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- Imagem Real em Alta Resolução da Prótese Impressa em 3D -->
+        <div class="hero-visual" aria-label="Fotografia da mão robótica branca real impressa em 3D">
+          <div class="hero-hand-frame">
+            <img
+              src="hero-hand.jpg"
+              alt="Mão robótica branca real LibraTronic impressa em 3D com iluminação dramática de estúdio"
+              class="hero-hand-img"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+        </div>
       </div>
 
-      <h1 class="app-title">LibraTronic</h1>
-      <p class="app-subtitle">Mão Biônica Tradutora de Libras</p>
+      <!-- Indicador Minimalista de Scroll -->
+      <a href="#about-section" class="scroll-cue" aria-label="Rolar para a secção Sobre o Projeto">
+        <span class="scroll-cue-label">Explorar</span>
+        <span class="scroll-cue-line" aria-hidden="true"></span>
+      </a>
 
-      <div class="home-badges" aria-hidden="true">
-        <span class="badge-tech">LIBRAS OFICIAL</span>
-        <span class="badge-tech">3D RASTRO HOLO</span>
-        <span class="badge-tech">VISÃO IA EMA</span>
-        <span class="badge-tech">ESP32 BLE AUTO</span>
-      </div>
     </div>
 
-    <nav class="home-buttons" aria-label="Menu principal">
-      <button id="btn-ir-texto" class="btn-primary" aria-label="Abrir tradução por texto">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="2" y="3" width="20" height="14" rx="2"/>
-          <line x1="8" y1="21" x2="16" y2="21"/>
-          <line x1="12" y1="17" x2="12" y2="21"/>
-        </svg>
-        Tradução por Texto &amp; 3D
-      </button>
+    <!-- ─────────────────────────────────────────────────────────
+         SECÇÃO 2: SOBRE O PROJETO (ECRÃ INTEIRO)
+         ───────────────────────────────────────────────────────── -->
+    <div id="about-section" class="home-section about-section" aria-label="Sobre o Projeto">
 
-      <button id="btn-ir-camera" class="btn-primary" aria-label="Abrir tradução por câmera">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-          <circle cx="12" cy="13" r="4"/>
-        </svg>
-        Reconhecimento por Câmera
-      </button>
+      <div class="about-inner">
+        <span class="section-index">01 &mdash; PROPÓSITO</span>
 
-      <button id="btn-ir-bluetooth" class="btn-secondary" aria-label="Conectar à mão robótica via Bluetooth">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
-        </svg>
-        Conectar à Mão Robótica
-      </button>
-    </nav>
+        <p class="about-statement">
+          Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética.
+        </p>
 
-    <div class="bt-status" role="status" aria-live="polite">
-      <span class="bt-dot" aria-hidden="true"></span>
-      <span class="bt-status-text">Bluetooth desconectado</span>
+        <div class="about-metrics" aria-label="Especificações de engenharia">
+          <div class="metric-item">
+            <span class="metric-value">21 Pontos</span>
+            <span class="metric-label">Rastreamento Óptico MediaPipe</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-value">15 Juntas</span>
+            <span class="metric-label">Cinemática Articulada 3D</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-value">ESP32 BLE</span>
+            <span class="metric-label">Acionamento Físico em Tempo Real</span>
+          </div>
+        </div>
+
+        <div class="about-next">
+          <a href="#lab3d-section" class="btn-ghost-pill subtle-pill">
+            <span>Inspecionar Modelo 3D</span>
+            <span aria-hidden="true">&darr;</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────
+         SECÇÃO 3: MODELO 3D INTERATIVO (LABORATÓRIO VIRTUAL · NOVA)
+         ───────────────────────────────────────────────────────── -->
+    <div id="lab3d-section" class="home-section lab3d-section" aria-label="Modelo 3D Interativo">
+
+      <div class="lab3d-header">
+        <span class="section-index">02 &mdash; LABORATÓRIO VIRTUAL</span>
+        <h2 class="lab3d-title">Modelo 3D Interativo</h2>
+        <p class="lab3d-subtitle">
+          Arraste para orbitar em 360° e inspecione a mecânica articular da mão virtual.
+        </p>
+      </div>
+
+      <!-- Palco Dedicado do Laboratório 3D -->
+      <div class="lab3d-stage-wrap">
+        <div id="home-hand3d-container"
+             class="lab3d-viewport"
+             role="img"
+             aria-label="Laboratório virtual 3D interativo da mão robótica">
+
+          <div id="home-hand3d-loading" class="loading-overlay-3d" aria-hidden="true">
+            <span class="loading-ring"></span>
+            <span>Inicializando Laboratório 3D...</span>
+          </div>
+        </div>
+
+        <!-- HUD Minimalista Flutuante do Laboratório -->
+        <div class="lab3d-hud-overlay">
+          <span id="home-letra-atual" class="lab3d-pose-badge">POSE NEUTRA</span>
+          <span id="home-feedback-modo" class="lab3d-pose-desc">Arraste na cena para rodar &middot; Scroll para zoom</span>
+        </div>
+      </div>
+
+      <!-- Controles do Laboratório Virtual -->
+      <div class="lab3d-controls-bar">
+        <div class="controles-3d" role="group" aria-label="Controles de câmara do laboratório 3D">
+          <button id="btn-home-3d-rotacionar" class="btn-ctrl3d ativo"
+                  title="Alternar rotação orbital automática">
+            &#9208; Rotação Orbital
+          </button>
+          <button id="btn-home-3d-resetar" class="btn-ctrl3d"
+                  title="Alinhar câmara frontalmente">
+            &#8962; Vista Frontal
+          </button>
+          <button id="btn-home-3d-neutra" class="btn-ctrl3d"
+                  title="Repor articulações na pose aberta">
+            &#9995; Pose Neutra
+          </button>
+        </div>
+
+        <div class="lab3d-quick-poses" role="group" aria-label="Testar poses cinemáticas no laboratório">
+          <span class="quick-poses-label">Inspecionar Pose:</span>
+          <button type="button" class="btn-pose-demo" data-home-letra="A">A</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="B">B</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="C">C</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="L">L</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="V">V</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="Y">Y</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="J" title="Traçado espacial J">J &middot; Rastro</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="Z" title="Traçado espacial Z">Z &middot; Rastro</button>
+        </div>
+      </div>
+
     </div>
 
   </section>
@@ -146,8 +258,11 @@
 
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
-      <h2>Tradução por Texto</h2>
-      <div class="bt-status" style="margin-left:auto;font-size:0.75rem;" role="status" aria-live="polite">
+      <div class="header-titles">
+        <span class="header-eyebrow">MODO 01</span>
+        <h2>Tradução por Texto</h2>
+      </div>
+      <div class="bt-status" style="margin-left:auto;" role="status" aria-live="polite">
         <span class="bt-dot" aria-hidden="true"></span>
         <span class="bt-status-text">Desconectado</span>
       </div>
@@ -159,7 +274,7 @@
       <div class="panel panel-left">
 
         <div class="panel-header-row">
-          <p class="panel-label">&#9998;&nbsp; Entrada de Texto</p>
+          <p class="panel-label">Entrada de Texto</p>
           <div class="audio-speed-controls">
             <button id="btn-toggle-voz" type="button" class="btn-mini" title="Ativar/Desativar narração por voz">
               🔊 Voz: ON
@@ -184,7 +299,7 @@
           autocapitalize="characters"
         ></textarea>
 
-        <p class="tip">Digite A–Z &middot; <kbd>Enter</kbd> traduz &middot; Reconhece sinais compostos mesmo dentro de frases</p>
+        <p class="tip">Digite A–Z &middot; <kbd>Enter</kbd> traduz &middot; Reconhece sinais compostos automaticamente</p>
 
         <div class="btn-row">
           <button id="btn-traduzir" class="btn-act blue" aria-label="Iniciar tradução">
@@ -196,7 +311,7 @@
         </div>
 
         <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">&#9889;&nbsp; Sinais Rápidos em Libras</p>
+        <p class="panel-label">Sinais Rápidos em Libras</p>
 
         <div class="palavras-rapidas" role="group" aria-label="Gestos rápidos em Libras">
           <button class="btn-palavra" data-p="AJUDA"      aria-label="Sinal AJUDA">AJUDA</button>
@@ -212,20 +327,20 @@
         </div>
 
         <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">&#9000;&nbsp; Datilologia Interativa (A–Z)</p>
+        <p class="panel-label">Datilologia Interativa (A–Z)</p>
         <div id="alfabeto-rapido" class="alfabeto-rapido" role="group" aria-label="Teclado rápido de letras A a Z">
           <!-- Gerado via script.js -->
         </div>
 
         <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">&#8677;&nbsp; Fila de Execução (Clique p/ Rever)</p>
+        <p class="panel-label">Fila de Execução</p>
 
         <div id="fila-chips" class="queue-box"
              role="list" aria-label="Letras e sinais na fila de tradução" aria-live="polite">
         </div>
 
         <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">&#9776;&nbsp; Log do Sistema</p>
+        <p class="panel-label">Telemetria do Sistema</p>
 
         <div id="log-box" class="log-box"
              role="log" aria-live="polite" aria-label="Log de status do sistema">
@@ -233,34 +348,20 @@
 
       </div>
 
-      <!-- PAINEL DIREITO — Mão Robótica 3D -->
+      <!-- PAINEL DIREITO — Simulador Sincronizado 3D -->
       <div class="panel panel-right">
 
         <div class="panel-header-row">
-          <p class="panel-label">&#9881;&nbsp; Mão Biônica 3D — Libras Oficial</p>
-          <span class="badge-tech">WEBGL THREE.JS v4.0</span>
+          <p class="panel-label">Simulador Cinético 3D</p>
+          <span class="badge-tech">THREE.JS WEBGL</span>
         </div>
 
         <div id="hand3d-container"
              role="img"
              aria-label="Visualização 3D interativa da mão robótica">
 
-          <div id="hand3d-loading" style="
-            position:absolute; inset:0;
-            display:flex; flex-direction:column;
-            align-items:center; justify-content:center;
-            color:rgba(0,212,255,0.65);
-            font-family:'Share Tech Mono',monospace;
-            font-size:0.80rem; gap:0.8rem;
-            pointer-events:none;
-          " aria-hidden="true">
-            <svg width="42" height="42" viewBox="0 0 40 40" fill="none"
-                 style="animation:rotSlow 1.8s linear infinite;">
-              <circle cx="20" cy="20" r="17"
-                      stroke="rgba(0,212,255,0.22)" stroke-width="2.5"/>
-              <path d="M20 3 A17 17 0 0 1 37 20"
-                    stroke="#00ffea" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
+          <div id="hand3d-loading" class="loading-overlay-3d" aria-hidden="true">
+            <span class="loading-ring"></span>
             <span>Inicializando Mão Biônica 3D...</span>
           </div>
 
@@ -277,10 +378,10 @@
         </div>
 
         <div class="controles-3d" role="group" aria-label="Controles da visualização 3D">
-          <button id="btn-3d-rotacionar" class="btn-ctrl3d ativo"
+          <button id="btn-3d-rotacionar" class="btn-ctrl3d"
                   title="Ligar/desligar rotação automática"
                   aria-label="Alternar rotação automática da câmera 3D">
-            &#9208; Rotação
+            &#9654; Rotação
           </button>
           <button id="btn-3d-resetar" class="btn-ctrl3d"
                   title="Resetar posição da câmera 3D"
@@ -294,7 +395,7 @@
           </button>
         </div>
 
-        <p class="tip">Arraste na cena 3D para orbitar &middot; Roda do mouse para zoom &middot; Trajetórias de J e Z com rastro 3D</p>
+        <p class="tip">Arraste para orbitar &middot; Scroll para zoom &middot; Trajetórias de J e Z com rastro espacial</p>
 
       </div>
 
@@ -310,8 +411,11 @@
 
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
-      <h2>Reconhecimento por Câmera</h2>
-      <div class="bt-status" style="margin-left:auto;font-size:0.75rem;" role="status" aria-live="polite">
+      <div class="header-titles">
+        <span class="header-eyebrow">MODO 02</span>
+        <h2>Tradução por Câmera</h2>
+      </div>
+      <div class="bt-status" style="margin-left:auto;" role="status" aria-live="polite">
         <span class="bt-dot" aria-hidden="true"></span>
         <span class="bt-status-text">Desconectado</span>
       </div>
@@ -345,21 +449,10 @@
           </button>
         </div>
 
-        <p id="camera-erro" style="
-          display:none;
-          color:#ff6b78;
-          font-family:'Share Tech Mono',monospace;
-          font-size:0.82rem;
-          text-align:center;
-          padding:0.7rem 1rem;
-          background:rgba(255,77,94,0.10);
-          border:1px solid rgba(255,77,94,0.35);
-          border-radius:10px;
-          width:100%;
-        " role="alert" aria-live="assertive"></p>
+        <p id="camera-erro" class="camera-error-msg" role="alert" aria-live="assertive"></p>
 
         <p class="tip">
-          Reconhecimento geométrico de 21 pontos via MediaPipe Hands &middot; Suavização EMA + Histerese Anti-Flicker
+          Análise biomecânica de ângulos articulares &middot; Filtro cinemático anti-spam &middot; Trajetórias de J e Z
         </p>
       </div>
 
@@ -367,8 +460,8 @@
       <div class="camera-result">
 
         <div class="panel-header-row">
-          <p class="panel-label">&#128065;&nbsp; Letra Detectada</p>
-          <span class="badge-tech">ESTABILIZADOR EMA</span>
+          <p class="panel-label">Letra Detectada</p>
+          <span class="badge-tech">VISÃO COMPUTACIONAL</span>
         </div>
 
         <div id="letra-camera-detectada"
@@ -388,8 +481,8 @@
           <div id="stab-fill" class="stab-fill"></div>
         </div>
 
-        <div class="sep" aria-hidden="true" style="margin:0.45rem 0 0.25rem;"></div>
-        <p class="panel-label">&#128172;&nbsp; Palavra / Frase Formada</p>
+        <div class="sep" aria-hidden="true"></div>
+        <p class="panel-label">Palavra / Frase Formada</p>
 
         <div id="texto-detectado"
              class="detected-text"
@@ -411,8 +504,8 @@
           </button>
         </div>
 
-        <p class="tip" style="margin-top:0.25rem;">
-          Mantenha o gesto firme por ~0.5s para confirmar a letra e enviá-la ao texto e Bluetooth
+        <p class="tip">
+          Sustente o sinal estático por ~0.85s para confirmar &middot; Desenhe J (mindinho) ou Z (indicador) no ar
         </p>
 
       </div>
@@ -429,16 +522,19 @@
 
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
-      <h2>Conexão Bluetooth BLE</h2>
+      <div class="header-titles">
+        <span class="header-eyebrow">MODO 03</span>
+        <h2>Conectar Bluetooth</h2>
+      </div>
     </header>
 
     <div class="bt-container">
 
-      <!-- Card 1: Pareamento ESP32 -->
+      <!-- Coluna 1: Pareamento ESP32 -->
       <div class="bt-card">
 
         <svg class="bt-icon-big" viewBox="0 0 24 24"
-             fill="none" stroke="#00d4ff" stroke-width="1.6"
+             fill="none" stroke="currentColor" stroke-width="1.4"
              stroke-linecap="round" stroke-linejoin="round"
              role="img" aria-label="Ícone Bluetooth">
           <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
@@ -451,50 +547,40 @@
         </div>
 
         <div class="bt-instrucoes" aria-label="Instruções de conexão Bluetooth">
-          <p><strong>Passo a passo para pareamento:</strong></p>
-          <p>1. Ligue a alimentação do <strong>ESP32 (LibraTronic)</strong></p>
-          <p>2. Clique em <strong>Conectar</strong> abaixo</p>
-          <p>3. Selecione <strong>"LibraTronic"</strong> na janela do navegador</p>
-          <p>4. Aguarde o indicador ficar <span style="color:var(--neon-green);">verde</span></p>
-          <p style="color:var(--neon-amber);font-size:0.78rem;margin-top:0.5rem;">
-            &#9888;&nbsp; Reconexão automática ativa em caso de oscilação de sinal BLE.
-          </p>
+          <p><strong>Procedimento de pareamento:</strong></p>
+          <p>1. Ligue a alimentação do controlador <strong>ESP32 (LibraTronic)</strong></p>
+          <p>2. Selecione <strong>Conectar</strong> abaixo</p>
+          <p>3. Escolha <strong>"LibraTronic"</strong> na janela do navegador</p>
+          <p>4. Aguarde a confirmação de telemetria ativa</p>
         </div>
 
         <div class="bt-btn-row">
           <button id="btn-bt-conectar" class="btn-act blue"
                   aria-label="Iniciar conexão Bluetooth com o ESP32">
-            &#128275;&nbsp; Conectar
+            Conectar Hardware
           </button>
           <button id="btn-bt-desconectar" class="btn-act gray"
                   aria-label="Encerrar conexão Bluetooth">
-            &#128274;&nbsp; Desconectar
+            Desconectar
           </button>
         </div>
 
         <div class="sep" aria-hidden="true"></div>
 
-        <div style="
-          font-family:'Share Tech Mono',monospace;
-          font-size:0.74rem;
-          color:var(--text-dim);
-          text-align:left;
-          width:100%;
-          line-height:1.95;
-        " aria-label="Informações técnicas do serviço Bluetooth">
-          <p>Serviço BLE&nbsp;&nbsp;&nbsp;: <span style="color:var(--neon-blue);">0000FFE0-0000-1000-8000-00805F9B34FB</span></p>
-          <p>Característica: <span style="color:var(--neon-blue);">0000FFE1-0000-1000-8000-00805F9B34FB</span></p>
-          <p>Baud Rate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: <span style="color:var(--neon-cyan);">115200 bps</span></p>
-          <p>Frame Serial&nbsp;&nbsp;: <span style="color:var(--neon-cyan);">&lt;CMD_LETRA&gt; / &lt;CMD_GESTO&gt;</span></p>
+        <div class="bt-specs" aria-label="Informações técnicas do serviço Bluetooth">
+          <p><span>SERVIÇO BLE</span> <code>0000FFE0-0000-1000-8000-00805F9B34FB</code></p>
+          <p><span>CARACTERÍSTICA</span> <code>0000FFE1-0000-1000-8000-00805F9B34FB</code></p>
+          <p><span>BAUD RATE</span> <code>115200 bps</code></p>
+          <p><span>PROTOCOLO</span> <code>&lt;CMD_LETRA&gt; / &lt;CMD_GESTO&gt;</code></p>
         </div>
 
       </div>
 
-      <!-- Card 2: Referência Interativa do Alfabeto Libras -->
+      <!-- Coluna 2: Referência Interativa do Alfabeto Libras -->
       <div class="bt-card" aria-label="Referência do alfabeto Libras">
 
-        <p class="panel-label">&#9997;&nbsp; Guia Rápido Datilologia Libras (A–Z)</p>
-        <p class="tip">Clique em qualquer letra abaixo para inspecioná-la no modelo 3D:</p>
+        <p class="panel-label">Índice de Datilologia Libras (A–Z)</p>
+        <p class="tip" style="text-align:left;">Selecione qualquer letra para inspecionar sua configuração articular:</p>
 
         <div id="ref-alfabeto-bt" class="ref-alfabeto" role="list" aria-label="Letras A a Z do alfabeto Libras">
           <span class="chip sent" role="listitem" title="A - Punho fechado, polegar na lateral">A</span>
@@ -527,11 +613,10 @@
 
         <div class="sep" aria-hidden="true"></div>
 
-        <div class="bt-instrucoes" style="font-size:0.80rem;">
-          <p><strong>Destaques da Cinemática 3D v4.0:</strong></p>
-          <p>&bull; <strong>Rastro Espacial 3D:</strong> <em>J, Z, H, K, X</em> desenham uma trilha holográfica luminosa acompanhando a trajetória real da ponta do dedo.</p>
-          <p>&bull; <strong>Geometria Biônica:</strong> Palma chanfrada esculpida, escudos dorsais nas 3 falanges, pistões duplos e amortecimento físico independente de FPS.</p>
-          <p>&bull; <strong>Sinais Oficiais:</strong> <em>ÁGUA</em> (em L no queixo), <em>OBRIGADO, AJUDA, COMIDA, SIM, NÃO</em> com animação contínua.</p>
+        <div class="bt-instrucoes">
+          <p><strong>Arquitetura Mecânica &amp; Digital:</strong></p>
+          <p>&bull; <strong>Trajetória Espacial:</strong> Sinais dinâmicos (<em>J, Z, H, K, X</em>) descrevem vetores tridimensionais contínuos no espaço.</p>
+          <p>&bull; <strong>Atuação Biomimética:</strong> Cascata de tendões mecânicos independentes (MCP &rarr; PIP &rarr; DIP) impressos em polímero branco de alta precisão.</p>
         </div>
 
       </div>
@@ -561,10 +646,10 @@
 <script src="hand3d.js"></script>
 <script src="script.js"></script>
 
-<!-- REMOVEDOR DE SPINNER 3D -->
+<!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
 <script>
-  function removerLoading3D() {
-    const el = document.getElementById('hand3d-loading');
+  function removerLoading3D(id = 'hand3d-loading') {
+    const el = document.getElementById(id);
     if (!el) return;
     el.style.transition = 'opacity 0.35s';
     el.style.opacity = '0';
@@ -572,8 +657,27 @@
       if (el && el.parentNode) el.parentNode.removeChild(el);
     }, 400);
   }
-  setTimeout(removerLoading3D, 4500);
   window.removerLoading3D = removerLoading3D;
+
+  // Reveal suave ao rolar pelas secções da Home
+  document.addEventListener('DOMContentLoaded', () => {
+    const revealSections = document.querySelectorAll('.about-section, .lab3d-section');
+    if ('IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+            }
+          });
+        },
+        { threshold: 0.18 }
+      );
+      revealSections.forEach((sec) => io.observe(sec));
+    } else {
+      revealSections.forEach((sec) => sec.classList.add('in-view'));
+    }
+  });
 </script>
 
 </body>

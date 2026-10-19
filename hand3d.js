@@ -88,10 +88,138 @@ function damp(current, target, lambda, delta) {
   return current + (target - current) * (1 - Math.exp(-lambda * delta));
 }
 
+/**
+ * Integrador Físico de Mola Criticamente Amortecida de 2ª Ordem (Critically Damped Spring):
+ * Produz aceleração suave na partida e desaceleração orgânica na chegada,
+ * eliminando travamentos robóticos bruscos entre trocas de sinais.
+ */
+function springStep(current, velocity, target, omega, delta) {
+  const dt = Math.min(delta, 0.05);
+  const exp = Math.exp(-omega * dt);
+  const diff = current - target;
+  const temp = (velocity + omega * diff) * dt;
+  const nextPos = target + (diff + temp) * exp;
+  const nextVel = (velocity - omega * temp) * exp;
+  return [nextPos, nextVel];
+}
+
 // Interpolação linear simples com clamp
 function lerpVal(a, b, t) {
   return a + (b - a) * Math.max(0, Math.min(1, t));
 }
+
+// ============================================================
+// 1.5 GERADOR PROCEDURAL DE TEXTURAS PBR (CanvasTexture)
+// ============================================================
+const BionicTextureFactory = {
+  criarTexturaPolimero3D() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Base cerâmica acetinada clara
+    ctx.fillStyle = '#f2f4f7';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Micro-camadas sutis de manufatura aditiva de alta resolução (SLA/SLS)
+    for (let y = 0; y < 256; y += 2) {
+      const lum = y % 4 === 0 ? 248 : 235;
+      ctx.fillStyle = `rgb(${lum}, ${lum + 1}, ${lum + 3})`;
+      ctx.fillRect(0, y, 256, 1);
+    }
+
+    // Grade celular hexagonal técnica ultra-sutil
+    ctx.strokeStyle = 'rgba(175, 186, 198, 0.16)';
+    ctx.lineWidth = 0.8;
+    const r = 14;
+    const dx = r * 1.5;
+    const dy = r * Math.sqrt(3);
+    for (let gx = 0; gx < 256 + dx; gx += dx) {
+      for (let gy = 0; gy < 256 + dy; gy += dy) {
+        const offsetY = Math.round(gx / dx) % 2 === 0 ? 0 : dy / 2;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const ang = (Math.PI / 3) * i;
+          const px = gx + r * 0.65 * Math.cos(ang);
+          const py = gy + offsetY + r * 0.65 * Math.sin(ang);
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+    }
+
+    // Linhas de costura de painéis aeroespaciais
+    ctx.strokeStyle = 'rgba(150, 164, 178, 0.22)';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(6, 6, 244, 244);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    return tex;
+  },
+
+  criarTexturaFibraCarbono() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#121418';
+    ctx.fillRect(0, 0, 128, 128);
+
+    // Trama diagonal 2x2 Twill de Fibra de Carbono + relevo tátil
+    const passo = 8;
+    for (let y = 0; y < 128; y += passo) {
+      for (let x = 0; x < 128; x += passo) {
+        const fase = ((x / passo) + (y / passo)) % 4;
+        if (fase === 0 || fase === 1) {
+          ctx.fillStyle = fase === 0 ? '#242932' : '#1d2129';
+          ctx.fillRect(x, y, passo - 1, passo - 1);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+          ctx.fillRect(x, y, passo - 1, 2);
+        } else {
+          ctx.fillStyle = '#0e1014';
+          ctx.fillRect(x, y, passo - 1, passo - 1);
+        }
+      }
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(5, 5);
+    return tex;
+  },
+
+  criarTexturaMetalEscovado() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#808690';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Micro-estrias horizontais de usinagem CNC / titânio escovado
+    for (let y = 0; y < 256; y++) {
+      const variacao = Math.sin(y * 0.9) * 14 + Math.cos(y * 2.7) * 9;
+      const v = Math.max(90, Math.min(185, Math.round(132 + variacao)));
+      ctx.fillStyle = `rgb(${v}, ${v + 2}, ${v + 5})`;
+      ctx.fillRect(0, y, 256, 1);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(2, 2);
+    return tex;
+  }
+};
 
 // ============================================================
 // 2. CLASSE: MaoRobotica (Modelo Biônico Articulado + Rastro 3D)
@@ -105,15 +233,39 @@ class MaoRobotica {
     // Grupo raiz (controla posição X da mão direita/esquerda e espelhamento)
     this.grupo = new THREE.Group();
 
-    // Grupo do pulso (controla orientação anatômica e trajetórias espaciais)
+    // Grupo do antebraço (base estrutural estabilizada + translação espacial do braço)
+    this.grupoAntebraco = new THREE.Group();
+    this.grupo.add(this.grupoAntebraco);
+
+    // Anel cardânico intermediário (segue 50% da inclinação do pulso para realismo mecânico)
+    this.anelCardanIntermediario = new THREE.Group();
+    this.anelCardanIntermediario.position.set(0, -0.02, 0);
+    this.grupoAntebraco.add(this.anelCardanIntermediario);
+
+    // Grupo do pulso (articulação esférica 3-DOF real no centro do carpo y=0)
+    // Rotaciona a palma e os dedos independentemente do antebraço!
     this.grupoPulso = new THREE.Group();
-    this.grupo.add(this.grupoPulso);
+    this.grupoPulso.position.set(0, 0, 0);
+    this.grupoAntebraco.add(this.grupoPulso);
 
     this.dedos = {};
     this.pulso = {
       alvoX: 0, alvoY: 0, alvoZ: 0,
-      atualX: 0, atualY: 0, atualZ: 0
+      atualX: 0, atualY: 0, atualZ: 0,
+      velX: 0, velY: 0, velZ: 0
     };
+
+    // Estado cinemático suavizado da trajetória espacial (evita teleporte entre poses e ciclos)
+    this.trajetoria = {
+      px: 0, py: 0, pz: 0,
+      vpx: 0, vpy: 0, vpz: 0,
+      rx: 0, ry: 0, rz: 0,
+      vrx: 0, vry: 0, vrz: 0
+    };
+
+    // Referências às hastes dos pistões hidráulicos do pulso p/ compressão/extensão dinâmica
+    this.hastesPistao = [];
+    this._texturasProcedurais = [];
 
     this.movimentoAtivo = null;
     this.tempoMovimento = 0;
@@ -121,8 +273,10 @@ class MaoRobotica {
 
     // Rastro Holográfico 3D (Motion Trail para J, Z e sinais dinâmicos)
     this.rastroAtivo = true;
+    this.gravandoRastro = false;
     this.dedoRastro = null;
-    this.maxPontosRastro = 44;
+    this.maxPontosRastro = 360;
+    this.maxVerticesLinha = 480;
     this.pontosRastro = [];
     this.linhaRastro = null;
     this.pontoCursorRastro = null;
@@ -132,41 +286,59 @@ class MaoRobotica {
   }
 
   _inicializarMateriais() {
-    // Cerâmica Aeroespacial Branca Acetinada (Carcaça externa)
-    this.matBranco = new THREE.MeshStandardMaterial({
-      color: 0xeaf4fc,
-      roughness: 0.26,
-      metalness: 0.18
+    const texPolimero = BionicTextureFactory.criarTexturaPolimero3D();
+    const texCarbono  = BionicTextureFactory.criarTexturaFibraCarbono();
+    const texMetal    = BionicTextureFactory.criarTexturaMetalEscovado();
+    this._texturasProcedurais.push(texPolimero, texCarbono, texMetal);
+
+    const MatClass = THREE.MeshPhysicalMaterial || THREE.MeshStandardMaterial;
+
+    // Polímero Técnico / Cerâmica Aeroespacial Branca Texturizada com Clearcoat
+    this.matBranco = new MatClass({
+      color: 0xf5f6f8,
+      map: texPolimero,
+      bumpMap: texPolimero,
+      bumpScale: 0.0055,
+      roughness: 0.22,
+      metalness: 0.10,
+      ...(THREE.MeshPhysicalMaterial ? { clearcoat: 0.36, clearcoatRoughness: 0.20 } : {})
     });
 
-    // Liga de Titânio Anodizado Escuro (Juntas, rolamentos e atuadores)
+    // Titânio Space Gray Anodizado Escovado (Juntas, rolamentos e atuadores)
     this.matMetal = new THREE.MeshStandardMaterial({
-      color: 0x4b6b85,
-      roughness: 0.24,
+      color: 0x3b404a,
+      bumpMap: texMetal,
+      bumpScale: 0.006,
+      roughness: 0.26,
       metalness: 0.86
     });
 
-    // Cromo Técnico Polido (Hastes de pistões e anéis de precisão)
+    // Aço Inoxidável / Cromo Usinado (Hastes de pistões, tendões e eixos de precisão)
     this.matCromo = new THREE.MeshStandardMaterial({
-      color: 0xc8e0f4,
+      color: 0xd8dfe6,
+      bumpMap: texMetal,
+      bumpScale: 0.0035,
       roughness: 0.14,
-      metalness: 0.92
+      metalness: 0.93
     });
 
-    // Compósito de Fibra de Carbono Azul-Noturno (Chassi interno e pads palmares)
+    // Compósito de Fibra de Carbono 2x2 Twill (Chassi interno, fole carpal e sensores palmares)
     this.matDetalhe = new THREE.MeshStandardMaterial({
-      color: 0x16293a,
-      roughness: 0.46,
-      metalness: 0.42
+      color: 0x1a1d23,
+      map: texCarbono,
+      bumpMap: texCarbono,
+      bumpScale: 0.011,
+      roughness: 0.44,
+      metalness: 0.38
     });
 
-    // Emissor LED Neon Ciano (Sensores táteis, núcleo palmar e anel de pulso)
+    // Indicador Luminoso Ciano-Prateado Dessaturado (Telemetria limpa e discreta)
     this.matNeon = new THREE.MeshStandardMaterial({
-      color: 0x00f0ff,
-      roughness: 0.12,
-      metalness: 0.10,
-      emissive: new THREE.Color(0x00b8e6),
-      emissiveIntensity: 0.95
+      color: 0xc2dceb,
+      roughness: 0.16,
+      metalness: 0.15,
+      emissive: new THREE.Color(0x6e9bb3),
+      emissiveIntensity: 0.72
     });
   }
 
@@ -179,11 +351,11 @@ class MaoRobotica {
     this._criarPulsoEAntebraco();
     this._criarPalmaBionica();
 
-    // 4 dedos principais: (nome, ox, oy, raio, [prox, med, dist], incZ)
-    this._criarDedo('mindinho',  -0.55, 0.95, 0.088, [0.48, 0.33, 0.25],  0.09);
-    this._criarDedo('anelar',    -0.19, 1.02, 0.098, [0.58, 0.39, 0.27],  0.03);
-    this._criarDedo('medio',      0.17, 1.06, 0.105, [0.64, 0.42, 0.29],  0.00);
-    this._criarDedo('indicador',  0.53, 1.00, 0.100, [0.57, 0.38, 0.27], -0.04);
+    // 4 dedos principais: (nome, ox, oy, raio, [prox, med, dist], incZ, cascata)
+    this._criarDedo('mindinho',  -0.55, 0.95, 0.088, [0.48, 0.33, 0.25],  0.09, 0.90);
+    this._criarDedo('anelar',    -0.19, 1.02, 0.098, [0.58, 0.39, 0.27],  0.03, 0.95);
+    this._criarDedo('medio',      0.17, 1.06, 0.105, [0.64, 0.42, 0.29],  0.00, 1.00);
+    this._criarDedo('indicador',  0.53, 1.00, 0.100, [0.57, 0.38, 0.27], -0.04, 1.05);
 
     this._criarPolegarOpositor();
     this._criarSistemaRastro3D();
@@ -193,81 +365,77 @@ class MaoRobotica {
 
   // ----------------------------------------------------------
   // _criarPulsoEAntebraco()
-  // Articulação cardânica de pulso + antebraço com pistões duplos
+  // Articulação cardânica de pulso 3-DOF independente do antebraço + pistões ativos
   // ----------------------------------------------------------
   _criarPulsoEAntebraco() {
-    // Núcleo esférico central do pulso
-    const esferaPulso = new THREE.Mesh(
-      new THREE.SphereGeometry(0.33, 20, 16),
-      this.matMetal
-    );
-    esferaPulso.position.y = -0.05;
-    this.grupoPulso.add(esferaPulso);
-
-    // Anel cardânico metálico ao redor da junta do pulso
-    const anelCardan = new THREE.Mesh(
-      new THREE.TorusGeometry(0.35, 0.028, 12, 32),
-      this.matCromo
-    );
-    anelCardan.position.y = -0.05;
-    this.grupoPulso.add(anelCardan);
-
-    // Colar superior chanfrado de transição pulso-antebraço
-    const colarSup = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.45, 0.38, 0.22, 20),
+    // ── 1. ESTRUTURA DO ANTEBRAÇO (Fixada em this.grupoAntebraco) ──
+    const bercoPulso = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.39, 0.43, 0.18, 24),
       this.matBranco
     );
-    colarSup.position.y = -0.16;
-    colarSup.castShadow = true;
-    this.grupoPulso.add(colarSup);
+    bercoPulso.position.y = -0.19;
+    bercoPulso.castShadow = true;
+    this.grupoAntebraco.add(bercoPulso);
 
-    // Anel LED luminoso de telemetria no pulso
+    // Garfos laterais de titânio (Yokes do Cardan) com calotas de encoder e anel LED
+    for (const sinalX of [-1, 1]) {
+      const garfo = new THREE.Mesh(
+        new THREE.BoxGeometry(0.075, 0.25, 0.185),
+        this.matMetal
+      );
+      garfo.position.set(sinalX * 0.365, -0.055, 0);
+      this.grupoAntebraco.add(garfo);
+
+      const pinoCardan = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.055, 0.055, 0.095, 16),
+        this.matCromo
+      );
+      pinoCardan.rotation.z = Math.PI / 2;
+      pinoCardan.position.set(sinalX * 0.378, -0.015, 0);
+      this.grupoAntebraco.add(pinoCardan);
+
+      const anelEncoder = new THREE.Mesh(
+        new THREE.TorusGeometry(0.052, 0.009, 8, 20),
+        this.matNeon
+      );
+      anelEncoder.rotation.y = Math.PI / 2;
+      anelEncoder.position.set(sinalX * 0.422, -0.015, 0);
+      this.grupoAntebraco.add(anelEncoder);
+    }
+
+    // Anel LED luminoso de telemetria no topo do antebraço
     const anelLed = new THREE.Mesh(
       new THREE.TorusGeometry(0.425, 0.022, 12, 36),
       this.matNeon
     );
     anelLed.rotation.x = Math.PI / 2;
-    anelLed.position.y = -0.27;
-    this.grupoPulso.add(anelLed);
+    anelLed.position.y = -0.28;
+    this.grupoAntebraco.add(anelLed);
 
     // Carcaça principal do antebraço biônico
     const antebraco = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.39, 0.48, 0.54, 20),
+      new THREE.CylinderGeometry(0.39, 0.48, 0.54, 24),
       this.matBranco
     );
-    antebraco.position.y = -0.55;
+    antebraco.position.y = -0.56;
     antebraco.castShadow = true;
     antebraco.receiveShadow = true;
-    this.grupoPulso.add(antebraco);
+    this.grupoAntebraco.add(antebraco);
 
-    // Recortes técnicos em fibra escura no antebraço
+    // Recortes técnicos em fibra de carbono no antebraço (frontal e dorsal)
     const placaAntebraco = new THREE.Mesh(
       new THREE.CylinderGeometry(0.405, 0.46, 0.34, 16, 1, false, -0.55, 1.1),
       this.matDetalhe
     );
-    placaAntebraco.position.y = -0.54;
-    this.grupoPulso.add(placaAntebraco);
+    placaAntebraco.position.y = -0.55;
+    this.grupoAntebraco.add(placaAntebraco);
 
-    // 4 Pistões hidráulicos (2 frontais e 2 dorsais) com camisa e haste cromada
-    const offsetsPistao = [
-      [-0.33, 0.14], [0.33, 0.14],
-      [-0.31, -0.14], [0.31, -0.14]
-    ];
-    for (const [px, pz] of offsetsPistao) {
-      const camisa = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.052, 0.052, 0.34, 10),
-        this.matMetal
-      );
-      camisa.position.set(px, -0.46, pz);
-      this.grupoPulso.add(camisa);
-
-      const haste = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.030, 0.030, 0.32, 10),
-        this.matCromo
-      );
-      haste.position.set(px, -0.22, pz);
-      this.grupoPulso.add(haste);
-    }
+    const placaAntebracoDorso = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.405, 0.46, 0.34, 16, 1, false, Math.PI - 0.55, 1.1),
+      this.matDetalhe
+    );
+    placaAntebracoDorso.position.y = -0.55;
+    this.grupoAntebraco.add(placaAntebracoDorso);
 
     // Flange metálica de fechamento inferior do antebraço
     const anelBase = new THREE.Mesh(
@@ -275,8 +443,99 @@ class MaoRobotica {
       this.matMetal
     );
     anelBase.rotation.x = Math.PI / 2;
-    anelBase.position.y = -0.81;
-    this.grupoPulso.add(anelBase);
+    anelBase.position.y = -0.82;
+    this.grupoAntebraco.add(anelBase);
+
+    // ── 2. ANEL CARDÂNICO INTERMEDIÁRIO + FOLE CARPAL SEGMENTADO ──
+    const anelCardanExt = new THREE.Mesh(
+      new THREE.TorusGeometry(0.345, 0.028, 14, 36),
+      this.matCromo
+    );
+    anelCardanExt.rotation.x = Math.PI / 2;
+    this.anelCardanIntermediario.add(anelCardanExt);
+
+    // Fole flexível de fibra de carbono que veda a transição interna do pulso
+    for (const fy of [-0.07, -0.02, 0.03]) {
+      const anelFole = new THREE.Mesh(
+        new THREE.TorusGeometry(0.285, 0.028, 10, 24),
+        this.matDetalhe
+      );
+      anelFole.rotation.x = Math.PI / 2;
+      anelFole.position.y = fy;
+      this.anelCardanIntermediario.add(anelFole);
+    }
+
+    // ── 3. JUNTA ESFÉRICA E COLAR DO CARPO (Fixados em this.grupoPulso, pivô em y=0) ──
+    const esferaPulso = new THREE.Mesh(
+      new THREE.SphereGeometry(0.305, 24, 20),
+      this.matMetal
+    );
+    esferaPulso.position.y = -0.015;
+    this.grupoPulso.add(esferaPulso);
+
+    // Anéis equatoriais cruzados cromados no núcleo esférico do pulso
+    const anelRotorPulso = new THREE.Mesh(
+      new THREE.TorusGeometry(0.312, 0.019, 12, 32),
+      this.matCromo
+    );
+    anelRotorPulso.position.y = -0.015;
+    this.grupoPulso.add(anelRotorPulso);
+
+    // Colar carpal superior que conecta o pivô do pulso à base da palma
+    const colarCarpo = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.43, 0.30, 0.14, 22),
+      this.matDetalhe
+    );
+    colarCarpo.position.y = 0.05;
+    this.grupoPulso.add(colarCarpo);
+
+    // ── 4. 4 PISTÕES HIDRÁULICOS ATIVOS (Camisa no antebraço + Haste dinâmica) ──
+    this.hastesPistao = [];
+    const offsetsPistao = [
+      [-0.32,  0.145],
+      [ 0.32,  0.145],
+      [-0.30, -0.145],
+      [ 0.30, -0.145]
+    ];
+    for (const [px, pz] of offsetsPistao) {
+      const camisa = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.054, 0.054, 0.35, 12),
+        this.matMetal
+      );
+      camisa.position.set(px, -0.47, pz);
+      this.grupoAntebraco.add(camisa);
+
+      const anelVedacao = new THREE.Mesh(
+        new THREE.TorusGeometry(0.052, 0.010, 8, 16),
+        this.matCromo
+      );
+      anelVedacao.rotation.x = Math.PI / 2;
+      anelVedacao.position.set(px, -0.30, pz);
+      this.grupoAntebraco.add(anelVedacao);
+
+      const haste = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.030, 0.030, 0.34, 12),
+        this.matCromo
+      );
+      haste.position.set(px, -0.21, pz);
+      this.grupoAntebraco.add(haste);
+
+      // Rótula superior na extremidade da haste do pistão
+      const rotula = new THREE.Mesh(
+        new THREE.SphereGeometry(0.044, 10, 10),
+        this.matMetal
+      );
+      rotula.position.y = 0.16;
+      haste.add(rotula);
+
+      this.hastesPistao.push({
+        mesh: haste,
+        camisa,
+        px,
+        pz,
+        baseY: -0.21
+      });
+    }
   }
 
   // ----------------------------------------------------------
@@ -300,7 +559,7 @@ class MaoRobotica {
       bevelEnabled: true,
       bevelThickness: 0.055,
       bevelSize: 0.045,
-      bevelSegments: 4
+      bevelSegments: 5
     };
 
     const geoPalma = new THREE.ExtrudeGeometry(shapePalma, extrudeSettings);
@@ -312,33 +571,33 @@ class MaoRobotica {
     malhaPalma.receiveShadow = true;
     this.grupoPulso.add(malhaPalma);
 
-    // Chassi palmar interno segmentado (almofadas táteis de aderência)
+    // Chassi palmar interno segmentado em Fibra de Carbono (almofadas táteis de aderência)
     const padSup = new THREE.Mesh(
-      new THREE.BoxGeometry(1.16, 0.28, 0.045),
+      new THREE.BoxGeometry(1.16, 0.28, 0.048),
       this.matDetalhe
     );
     padSup.position.set(0, 0.69, 0.145);
     this.grupoPulso.add(padSup);
 
     const padInfEsq = new THREE.Mesh(
-      new THREE.BoxGeometry(0.50, 0.34, 0.045),
+      new THREE.BoxGeometry(0.50, 0.34, 0.048),
       this.matDetalhe
     );
     padInfEsq.position.set(-0.30, 0.30, 0.142);
     this.grupoPulso.add(padInfEsq);
 
-    // Eminência tenar (músculo mecânico opositor na base do polegar)
+    // Eminência tenar (músculo mecânico opositor na base do polegar com colar CMC)
     const tenar = new THREE.Mesh(
-      new THREE.SphereGeometry(0.26, 16, 14),
+      new THREE.SphereGeometry(0.26, 20, 16),
       this.matDetalhe
     );
     tenar.scale.set(1.15, 1.38, 0.76);
     tenar.position.set(0.46, 0.26, 0.11);
     this.grupoPulso.add(tenar);
 
-    // Blindagem dorsal e nervuras metacarpais (4 tendões mecânicos no dorso)
+    // Blindagem dorsal e nervuras metacarpais (4 tendões mecânicos cromados no dorso)
     const placaDorsal = new THREE.Mesh(
-      new THREE.BoxGeometry(1.12, 0.62, 0.045),
+      new THREE.BoxGeometry(1.12, 0.62, 0.048),
       this.matDetalhe
     );
     placaDorsal.position.set(0, 0.46, -0.145);
@@ -347,32 +606,41 @@ class MaoRobotica {
     const posMetacarpos = [-0.50, -0.17, 0.17, 0.50];
     for (const mx of posMetacarpos) {
       const tendaoDorsal = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.022, 0.028, 0.66, 8),
+        new THREE.CylinderGeometry(0.022, 0.028, 0.68, 10),
         this.matCromo
       );
-      tendaoDorsal.position.set(mx * 0.92, 0.52, -0.165);
+      tendaoDorsal.position.set(mx * 0.92, 0.52, -0.166);
       tendaoDorsal.rotation.z = -mx * 0.10;
       this.grupoPulso.add(tendaoDorsal);
+
+      // Anel guia de tendão no dorso
+      const guiaTendao = new THREE.Mesh(
+        new THREE.TorusGeometry(0.032, 0.008, 8, 14),
+        this.matMetal
+      );
+      guiaTendao.rotation.x = Math.PI / 2;
+      guiaTendao.position.set(mx * 0.95, 0.76, -0.166);
+      this.grupoPulso.add(guiaTendao);
     }
 
     // Núcleo Energético Biônico (Palma e Dorso)
-    const nucleoAnelGeo = new THREE.RingGeometry(0.105, 0.165, 28);
-    const nucleoCentroGeo = new THREE.CircleGeometry(0.075, 24);
+    const nucleoAnelGeo = new THREE.RingGeometry(0.105, 0.165, 32);
+    const nucleoCentroGeo = new THREE.CircleGeometry(0.075, 28);
 
     const nucleoFrente = new THREE.Mesh(nucleoAnelGeo, this.matNeon);
-    nucleoFrente.position.set(-0.02, 0.46, 0.172);
+    nucleoFrente.position.set(-0.02, 0.46, 0.174);
     this.grupoPulso.add(nucleoFrente);
 
     const centroFrente = new THREE.Mesh(nucleoCentroGeo, this.matNeon);
-    centroFrente.position.set(-0.02, 0.46, 0.171);
+    centroFrente.position.set(-0.02, 0.46, 0.173);
     this.grupoPulso.add(centroFrente);
 
     const nucleoDorso = new THREE.Mesh(nucleoAnelGeo, this.matNeon);
     nucleoDorso.rotation.y = Math.PI;
-    nucleoDorso.position.set(0, 0.46, -0.172);
+    nucleoDorso.position.set(0, 0.46, -0.174);
     this.grupoPulso.add(nucleoDorso);
 
-    // Knuckles (Juntas Metacarpofalangeanas MCP com anel duplo)
+    // Knuckles (Juntas Metacarpofalangeanas MCP com anel duplo de retenção e eixo cromado)
     const posKnuckles = [
       [-0.55, 0.93, 0.088],
       [-0.19, 1.00, 0.098],
@@ -381,27 +649,37 @@ class MaoRobotica {
     ];
     for (const [kx, ky, kr] of posKnuckles) {
       const knuckle = new THREE.Mesh(
-        new THREE.SphereGeometry(kr * 1.15, 14, 12),
+        new THREE.SphereGeometry(kr * 1.16, 16, 14),
         this.matMetal
       );
       knuckle.position.set(kx, ky, 0);
       this.grupoPulso.add(knuckle);
 
       const pinoKnuckle = new THREE.Mesh(
-        new THREE.CylinderGeometry(kr * 0.42, kr * 0.42, kr * 2.4, 10),
+        new THREE.CylinderGeometry(kr * 0.44, kr * 0.44, kr * 2.48, 12),
         this.matCromo
       );
       pinoKnuckle.rotation.z = Math.PI / 2;
       pinoKnuckle.position.set(kx, ky, 0);
       this.grupoPulso.add(pinoKnuckle);
+
+      for (const s of [-1, 1]) {
+        const anelRetencao = new THREE.Mesh(
+          new THREE.TorusGeometry(kr * 0.88, kr * 0.14, 10, 20),
+          this.matCromo
+        );
+        anelRetencao.rotation.y = Math.PI / 2;
+        anelRetencao.position.set(kx + s * kr * 0.72, ky, 0);
+        this.grupoPulso.add(anelRetencao);
+      }
     }
   }
 
   // ----------------------------------------------------------
-  // _criarDedo(nome, ox, oy, raio, comps, incZ)
+  // _criarDedo(nome, ox, oy, raio, comps, incZ, cascata)
   // Cria um dedo com 3 falanges articuladas e ponteira de rastreio
   // ----------------------------------------------------------
-  _criarDedo(nome, ox, oy, raio, comps, incZ = 0) {
+  _criarDedo(nome, ox, oy, raio, comps, incZ = 0, cascata = 1.0) {
     const grupoBase = new THREE.Group();
     grupoBase.position.set(ox, oy, 0);
     grupoBase.rotation.z = incZ;
@@ -442,10 +720,13 @@ class MaoRobotica {
       dist: juntaDist,
       ponta: pontaAnchor,
       defaultZ: incZ,
+      cascata,
       alvoX: 0.05, alvoMidX: 0.05, alvoDistX: 0.04,
       alvoY: 0,    alvoZ: incZ,
       atualX: 0.05, atualMidX: 0.05, atualDistX: 0.04,
-      atualY: 0,    atualZ: incZ
+      atualY: 0,    atualZ: incZ,
+      velX: 0, velMidX: 0, velDistX: 0,
+      velY: 0, velZ: 0
     };
   }
 
@@ -483,10 +764,13 @@ class MaoRobotica {
       dist: null,
       ponta: pontaAnchor,
       defaultZ: -1.05,
+      cascata: 1.06,
       alvoX: 0.05, alvoMidX: 0.05, alvoDistX: 0,
       alvoY: 0.20, alvoZ: -1.05,
       atualX: 0.05, atualMidX: 0.05, atualDistX: 0,
-      atualY: 0.20, atualZ: -1.05
+      atualY: 0.20, atualZ: -1.05,
+      velX: 0, velMidX: 0, velDistX: 0,
+      velY: 0, velZ: 0
     };
   }
 
@@ -496,8 +780,8 @@ class MaoRobotica {
   _criarSegmentoFalange(raio, altura, comPonta) {
     const grupo = new THREE.Group();
 
-    // Carcaça estrutural cônica-cilíndrica
-    const cilGeo = new THREE.CylinderGeometry(raio * 0.87, raio, altura, 16, 1);
+    // Carcaça estrutural cônica-cilíndrica em polímero cerâmico texturizado
+    const cilGeo = new THREE.CylinderGeometry(raio * 0.87, raio, altura, 20, 1);
     const cil = new THREE.Mesh(cilGeo, this.matBranco);
     cil.position.y = altura / 2;
     cil.castShadow = true;
@@ -505,44 +789,57 @@ class MaoRobotica {
     grupo.add(cil);
 
     // Escudo dorsal chanfrado (placa de blindagem traseira do dedo -Z)
-    const escudoGeo = new THREE.BoxGeometry(raio * 1.35, altura * 0.72, raio * 0.32);
+    const escudoGeo = new THREE.BoxGeometry(raio * 1.36, altura * 0.74, raio * 0.34);
     const escudo = new THREE.Mesh(escudoGeo, this.matBranco);
     escudo.position.set(0, altura * 0.52, -raio * 0.78);
     grupo.add(escudo);
 
-    // Almofada palmar interna de aderência (+Z)
-    const padGeo = new THREE.BoxGeometry(raio * 1.38, altura * 0.64, raio * 0.34);
+    // Haste de tendão extensor cromada ao longo do dorso da falange
+    const tendaoFalange = new THREE.Mesh(
+      new THREE.CylinderGeometry(raio * 0.14, raio * 0.14, altura * 0.84, 8),
+      this.matCromo
+    );
+    tendaoFalange.position.set(0, altura * 0.50, -raio * 0.96);
+    grupo.add(tendaoFalange);
+
+    // Almofada palmar interna de aderência em Fibra de Carbono (+Z)
+    const padGeo = new THREE.BoxGeometry(raio * 1.38, altura * 0.66, raio * 0.36);
     const pad = new THREE.Mesh(padGeo, this.matDetalhe);
     pad.position.set(0, altura * 0.50, raio * 0.80);
     grupo.add(pad);
 
-    // Anel cromado técnico de tensão
-    const anelGeo = new THREE.CylinderGeometry(raio * 0.96, raio * 0.96, altura * 0.09, 14);
-    const anel = new THREE.Mesh(anelGeo, this.matCromo);
-    anel.position.y = altura * 0.20;
-    grupo.add(anel);
+    // Anéis cromados técnicos de tensão (proximal e distal)
+    const anelProxGeo = new THREE.CylinderGeometry(raio * 0.97, raio * 0.97, altura * 0.08, 16);
+    const anelProx = new THREE.Mesh(anelProxGeo, this.matCromo);
+    anelProx.position.y = altura * 0.18;
+    grupo.add(anelProx);
+
+    const anelDistGeo = new THREE.CylinderGeometry(raio * 0.90, raio * 0.90, altura * 0.06, 16);
+    const anelDist = new THREE.Mesh(anelDistGeo, this.matMetal);
+    anelDist.position.y = altura * 0.82;
+    grupo.add(anelDist);
 
     if (comPonta) {
       // Cúpula hemisférica anatômica na extremidade distal
       const cupolaGeo = new THREE.SphereGeometry(
-        raio * 0.87, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2
+        raio * 0.87, 18, 14, 0, Math.PI * 2, 0, Math.PI / 2
       );
       const cupola = new THREE.Mesh(cupolaGeo, this.matBranco);
       cupola.position.y = altura;
       grupo.add(cupola);
 
-      // Placa ungueal biônica (unha técnica metálica no dorso da ponta)
-      const unhaGeo = new THREE.BoxGeometry(raio * 1.10, altura * 0.42, raio * 0.18);
+      // Placa ungueal biônica (unha técnica metálica escovada no dorso da ponta)
+      const unhaGeo = new THREE.BoxGeometry(raio * 1.12, altura * 0.44, raio * 0.18);
       const unha = new THREE.Mesh(unhaGeo, this.matMetal);
       unha.position.set(0, altura * 0.82, -raio * 0.76);
       unha.rotation.x = 0.14;
       grupo.add(unha);
 
       // Sensor óptico-tátil LED neon na polpa digital (+Z)
-      const sensorGeo = new THREE.SphereGeometry(raio * 0.46, 12, 10);
+      const sensorGeo = new THREE.SphereGeometry(raio * 0.46, 14, 12);
       const sensor = new THREE.Mesh(sensorGeo, this.matNeon);
       sensor.scale.set(1.0, 1.25, 0.46);
-      sensor.position.set(0, altura * 0.78, raio * 0.79);
+      sensor.position.set(0, altura * 0.78, raio * 0.80);
       grupo.add(sensor);
     }
 
@@ -551,17 +848,48 @@ class MaoRobotica {
 
   // ----------------------------------------------------------
   // _adicionarJuntaMecanica(grupoJunta, raio)
+  // Articulação mecânica de duplo anel (Double-Clevis Hinge) + guarda palmar
   // ----------------------------------------------------------
   _adicionarJuntaMecanica(grupoJunta, raio) {
+    // Núcleo esférico de rolamento em titânio escovado
     const esfera = new THREE.Mesh(
-      new THREE.SphereGeometry(raio * 0.92, 14, 12),
+      new THREE.SphereGeometry(raio * 0.94, 16, 14),
       this.matMetal
     );
     grupoJunta.add(esfera);
 
-    // Eixo transversal de titânio
+    // Guarda flexora interna em fibra de carbono (veda o vão articular ao dobrar)
+    const guardaFlexao = new THREE.Mesh(
+      new THREE.CylinderGeometry(raio * 0.78, raio * 0.78, raio * 1.55, 14),
+      this.matDetalhe
+    );
+    guardaFlexao.rotation.z = Math.PI / 2;
+    guardaFlexao.position.z = raio * 0.22;
+    grupoJunta.add(guardaFlexao);
+
+    // Anéis laterais cromados de retenção da dobradiça (Double-Clevis Rings)
+    for (const sinal of [-1, 1]) {
+      const anelClevis = new THREE.Mesh(
+        new THREE.TorusGeometry(raio * 0.76, raio * 0.13, 10, 20),
+        this.matCromo
+      );
+      anelClevis.rotation.y = Math.PI / 2;
+      anelClevis.position.x = sinal * raio * 0.68;
+      grupoJunta.add(anelClevis);
+
+      // Calota lateral de fechamento do pino
+      const calotaPino = new THREE.Mesh(
+        new THREE.CylinderGeometry(raio * 0.24, raio * 0.24, raio * 0.12, 10),
+        this.matDetalhe
+      );
+      calotaPino.rotation.z = Math.PI / 2;
+      calotaPino.position.x = sinal * raio * 1.15;
+      grupoJunta.add(calotaPino);
+    }
+
+    // Eixo transversal de aço cromado
     const eixo = new THREE.Mesh(
-      new THREE.CylinderGeometry(raio * 0.36, raio * 0.36, raio * 2.28, 12),
+      new THREE.CylinderGeometry(raio * 0.36, raio * 0.36, raio * 2.26, 12),
       this.matCromo
     );
     eixo.rotation.z = Math.PI / 2;
@@ -575,15 +903,14 @@ class MaoRobotica {
   _criarSistemaRastro3D() {
     if (this.espelhar) return; // Apenas a mão principal desenha trilha didática
 
-    const positions = new Float32Array(this.maxPontosRastro * 3);
-    const colors = new Float32Array(this.maxPontosRastro * 3);
+    const positions = new Float32Array(this.maxVerticesLinha * 3);
+    const colors = new Float32Array(this.maxVerticesLinha * 3);
 
-    for (let i = 0; i < this.maxPontosRastro; i++) {
-      const ratio = i / (this.maxPontosRastro - 1);
-      // Gradiente ciano -> azul neon -> roxo suave na cauda
-      colors[i * 3 + 0] = lerpVal(0.45, 0.0, ratio);
-      colors[i * 3 + 1] = lerpVal(0.25, 1.0, ratio);
-      colors[i * 3 + 2] = 1.0;
+    for (let i = 0; i < this.maxVerticesLinha; i++) {
+      const ratio = i / (this.maxVerticesLinha - 1);
+      colors[i * 3 + 0] = lerpVal(0.62, 0.94, ratio);
+      colors[i * 3 + 1] = lerpVal(0.78, 0.98, ratio);
+      colors[i * 3 + 2] = lerpVal(0.90, 1.00, ratio);
     }
 
     const geo = new THREE.BufferGeometry();
@@ -594,7 +921,7 @@ class MaoRobotica {
     const mat = new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.92,
+      opacity: 0.94,
       linewidth: 2
     });
 
@@ -603,12 +930,12 @@ class MaoRobotica {
     this.linhaRastro.visible = false;
     this.scene.add(this.linhaRastro);
 
-    // Esfera luminosa no ponto focal do traçado
-    const cursorGeo = new THREE.SphereGeometry(0.055, 12, 12);
+    // Esfera luminosa discreta no ponto focal do traçado
+    const cursorGeo = new THREE.SphereGeometry(0.052, 14, 14);
     const cursorMat = new THREE.MeshBasicMaterial({
-      color: 0x00ffea,
+      color: 0xe6f4fc,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.95
     });
     this.pontoCursorRastro = new THREE.Mesh(cursorGeo, cursorMat);
     this.pontoCursorRastro.visible = false;
@@ -627,7 +954,13 @@ class MaoRobotica {
   }
 
   _atualizarRastro3D() {
-    if (!this.linhaRastro || !this.rastroAtivo || !this.movimentoAtivo || !this.dedoRastro) {
+    if (
+      !this.linhaRastro ||
+      !this.rastroAtivo ||
+      !this.movimentoAtivo ||
+      !this.dedoRastro ||
+      !this.gravandoRastro
+    ) {
       if (this.linhaRastro && this.linhaRastro.visible) this.limparRastro();
       return;
     }
@@ -638,25 +971,55 @@ class MaoRobotica {
     this.grupo.updateMatrixWorld(true);
     objDedo.ponta.getWorldPosition(this._vecTemp);
 
-    // Evita empilhar pontos idênticos
+    // Amostragem espacial densa sem descartar o início de J ou Z
     const ultimo = this.pontosRastro[this.pontosRastro.length - 1];
-    if (!ultimo || ultimo.distanceToSquared(this._vecTemp) > 0.00025) {
+    if (!ultimo || ultimo.distanceToSquared(this._vecTemp) > 0.00004) {
       this.pontosRastro.push(this._vecTemp.clone());
       if (this.pontosRastro.length > this.maxPontosRastro) {
-        this.pontosRastro.shift();
+        // Para traçados contínuos longos além de 360 pontos, remove o mais antigo
+        if (this.movimentoAtivo !== 'tracar_j' && this.movimentoAtivo !== 'tracar_z') {
+          this.pontosRastro.shift();
+        } else {
+          this.pontosRastro.pop();
+        }
       }
     }
 
     const n = this.pontosRastro.length;
     if (n < 2) return;
 
-    const posAttr = this.linhaRastro.geometry.attributes.position;
-    for (let i = 0; i < n; i++) {
-      const pt = this.pontosRastro[i];
-      posAttr.setXYZ(i, pt.x, pt.y, pt.z);
+    // Para a letra J e curvas contínuas, interpola via Spline Centripeta Catmull-Rom para curvatura fluida perfeita
+    let pontosRender = this.pontosRastro;
+    if (
+      this.movimentoAtivo !== 'tracar_z' &&
+      n >= 4 &&
+      typeof THREE.CatmullRomCurve3 === 'function'
+    ) {
+      const curva = new THREE.CatmullRomCurve3(this.pontosRastro, false, 'centripetal', 0.5);
+      const numSubdivisoes = Math.min(this.maxVerticesLinha - 1, Math.max(n * 2, 28));
+      pontosRender = curva.getPoints(numSubdivisoes);
     }
+
+    const totalV = Math.min(pontosRender.length, this.maxVerticesLinha);
+    const posAttr = this.linhaRastro.geometry.attributes.position;
+    const colAttr = this.linhaRastro.geometry.attributes.color;
+
+    for (let i = 0; i < totalV; i++) {
+      const pt = pontosRender[i];
+      posAttr.setXYZ(i, pt.x, pt.y, pt.z);
+
+      const ratio = totalV > 1 ? i / (totalV - 1) : 1;
+      colAttr.setXYZ(
+        i,
+        lerpVal(0.62, 0.96, ratio),
+        lerpVal(0.78, 0.99, ratio),
+        lerpVal(0.90, 1.00, ratio)
+      );
+    }
+
     posAttr.needsUpdate = true;
-    this.linhaRastro.geometry.setDrawRange(0, n);
+    colAttr.needsUpdate = true;
+    this.linhaRastro.geometry.setDrawRange(0, totalV);
     this.linhaRastro.visible = true;
 
     if (this.pontoCursorRastro) {
@@ -710,6 +1073,7 @@ class MaoRobotica {
 
     this.movimentoAtivo = movimento || null;
     this.tempoMovimento = 0;
+    this.gravandoRastro = false;
 
     // Define qual ponta de dedo desenha a trilha espacial 3D
     const mapaPontaDefault = {
@@ -729,27 +1093,30 @@ class MaoRobotica {
 
   // ----------------------------------------------------------
   // atualizar(delta)
-  // Executa cinemática amortecida das 15 juntas + trajetórias espaciais
+  // Executa cinemática de mola criticamente amortecida (2ª ordem) + trajetórias espaciais
   // ----------------------------------------------------------
   atualizar(delta) {
     this.tempoGlobal += delta;
 
-    // Cascata mecânica realista: junta base (MCP) responde ligeiramente antes de PIP e DIP
-    const lambdaBase = 10.5;
-    const lambdaMid  = 9.0;
-    const lambdaDist = 7.8;
+    // Frequências naturais (omega) das juntas em cascata (MCP -> PIP -> DIP)
+    const omegaBase = 14.5;
+    const omegaMid  = 12.8;
+    const omegaDist = 11.2;
 
-    // Micro-oscilação orgânica de servo em standby
-    const idleBreath = this.movimentoAtivo ? 0 : Math.sin(this.tempoGlobal * 1.9) * 0.012;
+    // Micro-oscilação orgânica multi-harmônica de servo em standby
+    const idleBreath = this.movimentoAtivo
+      ? 0
+      : Math.sin(this.tempoGlobal * 1.8) * 0.011 + Math.cos(this.tempoGlobal * 0.9) * 0.005;
 
     for (const nome of Object.keys(this.dedos)) {
       const d = this.dedos[nome];
+      const c = d.cascata || 1.0;
 
-      d.atualX     = damp(d.atualX,     d.alvoX + idleBreath, lambdaBase, delta);
-      d.atualMidX  = damp(d.atualMidX,  d.alvoMidX,           lambdaMid,  delta);
-      d.atualDistX = damp(d.atualDistX, d.alvoDistX,          lambdaDist, delta);
-      d.atualY     = damp(d.atualY,     d.alvoY,              lambdaBase, delta);
-      d.atualZ     = damp(d.atualZ,     d.alvoZ,              lambdaBase, delta);
+      [d.atualX,     d.velX]     = springStep(d.atualX,     d.velX,     d.alvoX + idleBreath * c, omegaBase * c, delta);
+      [d.atualMidX,  d.velMidX]  = springStep(d.atualMidX,  d.velMidX,  d.alvoMidX,               omegaMid  * c, delta);
+      [d.atualDistX, d.velDistX] = springStep(d.atualDistX, d.velDistX, d.alvoDistX,              omegaDist * c, delta);
+      [d.atualY,     d.velY]     = springStep(d.atualY,     d.velY,     d.alvoY,                  omegaBase * c, delta);
+      [d.atualZ,     d.velZ]     = springStep(d.atualZ,     d.velZ,     d.alvoZ,                  omegaBase * c, delta);
 
       if (d.base) {
         d.base.rotation.x = d.atualX;
@@ -760,14 +1127,15 @@ class MaoRobotica {
       if (d.dist) d.dist.rotation.x = d.atualDistX;
     }
 
-    // Interpola orientação base do pulso
-    this.pulso.atualX = damp(this.pulso.atualX, this.pulso.alvoX, 8.5, delta);
-    this.pulso.atualY = damp(this.pulso.atualY, this.pulso.alvoY, 8.5, delta);
-    this.pulso.atualZ = damp(this.pulso.atualZ, this.pulso.alvoZ, 8.5, delta);
+    // Interpola orientação base do pulso com mola de 2ª ordem suave
+    [this.pulso.atualX, this.pulso.velX] = springStep(this.pulso.atualX, this.pulso.velX, this.pulso.alvoX, 12.5, delta);
+    [this.pulso.atualY, this.pulso.velY] = springStep(this.pulso.atualY, this.pulso.velY, this.pulso.alvoY, 12.5, delta);
+    [this.pulso.atualZ, this.pulso.velZ] = springStep(this.pulso.atualZ, this.pulso.velZ, this.pulso.alvoZ, 12.5, delta);
 
     // Calcula trajetórias espaciais 3D (Posição + Rotação dinâmica de pulso/dedos)
     let modRx = 0, modRy = 0, modRz = 0;
     let modPx = 0, modPy = 0, modPz = 0;
+    let omegaTrajetoria = 14.0;
 
     if (this.movimentoAtivo) {
       this.tempoMovimento += delta;
@@ -775,103 +1143,156 @@ class MaoRobotica {
 
       switch (this.movimentoAtivo) {
         case 'tracar_j': {
-          // Traçado espacial fiel da letra 'J' em Libras:
-          // Fase 0..1 (Desce verticalmente) -> Fase 1..2 (Curva inferior em U para dentro/frente com giro de pulso) -> Fase 2..2.5 (Pausa no fim do J)
-          const durCicloJ = 2.4;
-          const faseJ = (t * 1.45) % durCicloJ;
+          // Ciclo de 2.50s da letra 'J':
+          //  - 0.00s..0.44s: Preparação (dedos fecham em J e mão posiciona no topo da haste sem riscar o rastro)
+          //  - 0.44s..1.78s: Traçado único contínuo C1/C2 (haste vertical reta + gancho semicircular suave)
+          //  - 1.78s..2.50s: Sustentação final exibindo o J completo desenhado no ar
+          const durCicloJ = 2.50;
+          const faseJ = t % durCicloJ;
 
-          if (faseJ < 0.06) this.limparRastro();
+          const xTopo = 0.16;
+          const yTopo = 0.28;
+          const yInicioArco = -0.06;
+          const rxGancho = 0.17;
+          const ryGancho = 0.18;
+          const thetaMax = 0.92 * Math.PI;
+          const sHaste = 0.3952; // Razão exata de comprimento de arco p/ continuidade C1 perfeita
 
-          if (faseJ < 0.95) {
-            // Haste vertical descendente
-            const p = Easing.easeInOutCubic(faseJ / 0.95);
-            modPx = 0.18;
-            modPy = lerpVal(0.26, -0.18, p);
-            modPz = lerpVal(0.0, 0.06, p);
-            modRy = lerpVal(0.0, 0.12, p);
-            modRz = lerpVal(0.0, 0.10, p);
-          } else if (faseJ < 1.95) {
-            // Gancho inferior semicircular + supinação de pulso
-            const p = (faseJ - 0.95) / 1.0;
-            const ang = p * Math.PI; // 0 a PI
-            modPx = 0.02 + Math.cos(ang) * 0.16;
-            modPy = -0.18 - Math.sin(ang) * 0.15;
-            modPz = 0.06 + Math.sin(ang) * 0.14;
-            modRy = 0.12 + Math.sin(ang * 0.85) * 0.42;
-            modRz = 0.10 + Math.sin(ang) * 0.28;
-            modRx = -Math.sin(ang) * 0.16;
+          if (faseJ < 0.44) {
+            this.gravandoRastro = false;
+            if (this.pontosRastro.length > 0) this.limparRastro();
+            omegaTrajetoria = 13.5;
+            modPx = xTopo;
+            modPy = yTopo;
+            modPz = 0.04;
+            modRx = 0;
+            modRy = 0;
+            modRz = 0;
+          } else if (faseJ < 1.78) {
+            this.gravandoRastro = true;
+            omegaTrajetoria = 26.0;
+
+            const u = (faseJ - 0.44) / 1.34;
+            // Progressão global suave por cosseno (sem parar entre haste e curva!)
+            const s = 0.5 - 0.5 * Math.cos(Math.PI * u);
+
+            if (s <= sHaste) {
+              const w = s / sHaste;
+              modPx = xTopo;
+              modPy = lerpVal(yTopo, yInicioArco, w);
+              modPz = 0.04;
+              modRx = 0;
+              modRy = 0;
+              modRz = 0;
+            } else {
+              const q = (s - sHaste) / (1 - sHaste);
+              const theta = q * thetaMax;
+              // Fator monotônico C2 (derivada zero em theta=0 e theta=pi, sem reversão!)
+              const k = 0.5 * (1 - Math.cos(theta));
+
+              modPx = (xTopo - rxGancho) + rxGancho * Math.cos(theta);
+              modPy = yInicioArco - ryGancho * Math.sin(theta);
+              modPz = 0.04 + 0.05 * Math.sin(theta);
+              modRy = k * 0.22;
+              modRz = k * 0.05;
+              modRx = -k * 0.06;
+            }
           } else {
-            // Breve sustentação final da letra J
-            modPx = -0.14;
-            modPy = -0.18;
-            modPz = 0.06;
-            modRy = 0.34;
-            modRz = 0.12;
+            this.gravandoRastro = true;
+            omegaTrajetoria = 22.0;
+            const kFim = 0.5 * (1 - Math.cos(thetaMax));
+            modPx = (xTopo - rxGancho) + rxGancho * Math.cos(thetaMax);
+            modPy = yInicioArco - ryGancho * Math.sin(thetaMax);
+            modPz = 0.04 + 0.05 * Math.sin(thetaMax);
+            modRy = kFim * 0.22;
+            modRz = kFim * 0.05;
+            modRx = -kFim * 0.06;
           }
           break;
         }
 
         case 'tracar_z': {
-          // Traçado espacial fiel da letra 'Z' em 3 segmentos retilíneos + sustentação:
-          // Seg 1 (0..0.8): Topo Esquerda -> Topo Direita
-          // Seg 2 (0.8..1.7): Topo Direita -> Diagonal Base Esquerda
-          // Seg 3 (1.7..2.5): Base Esquerda -> Base Direita
-          // Pausa (2.5..3.0): Mantém no fim antes de reiniciar
-          const durCicloZ = 3.0;
-          const faseZ = (t * 1.55) % durCicloZ;
+          // Ciclo de 2.75s da letra 'Z':
+          //  - 0.00s..0.44s: Preparação (dedos formam Z e mão vai ao topo esquerdo sem riscar o rastro)
+          //  - 0.44s..0.94s: Reta horizontal superior
+          //  - 0.94s..1.56s: Reta diagonal descendente
+          //  - 1.56s..2.06s: Reta horizontal inferior
+          //  - 2.06s..2.75s: Sustentação final exibindo o Z completo sem apagar o início
+          const durCicloZ = 2.75;
+          const faseZ = t % durCicloZ;
 
-          if (faseZ < 0.06) this.limparRastro();
-
-          if (faseZ < 0.80) {
-            const p = Easing.easeInOutCubic(faseZ / 0.80);
-            modPx = lerpVal(-0.30, 0.30, p);
+          if (faseZ < 0.44) {
+            this.gravandoRastro = false;
+            if (this.pontosRastro.length > 0) this.limparRastro();
+            omegaTrajetoria = 13.5;
+            modPx = -0.28;
             modPy = 0.24;
             modPz = 0.08;
-            modRz = lerpVal(0.10, -0.10, p);
-          } else if (faseZ < 1.70) {
-            const p = Easing.easeInOutCubic((faseZ - 0.80) / 0.90);
-            modPx = lerpVal(0.30, -0.30, p);
+            modRz = 0.05;
+            modRx = 0;
+          } else if (faseZ < 0.94) {
+            this.gravandoRastro = true;
+            omegaTrajetoria = 28.0;
+            const p = Easing.easeInOutCubic((faseZ - 0.44) / 0.50);
+            modPx = lerpVal(-0.28, 0.28, p);
+            modPy = 0.24;
+            modPz = 0.08;
+            modRz = lerpVal(0.05, -0.05, p);
+          } else if (faseZ < 1.56) {
+            this.gravandoRastro = true;
+            omegaTrajetoria = 28.0;
+            const p = Easing.easeInOutCubic((faseZ - 0.94) / 0.62);
+            modPx = lerpVal(0.28, -0.28, p);
             modPy = lerpVal(0.24, -0.22, p);
-            modPz = lerpVal(0.08, 0.14, Math.sin(p * Math.PI));
-            modRz = lerpVal(-0.10, 0.12, p);
+            modPz = 0.08;
+            modRz = lerpVal(-0.05, 0.06, p);
             modRx = lerpVal(0.0, 0.14, p);
-          } else if (faseZ < 2.50) {
-            const p = Easing.easeInOutCubic((faseZ - 1.70) / 0.80);
-            modPx = lerpVal(-0.30, 0.30, p);
+          } else if (faseZ < 2.06) {
+            this.gravandoRastro = true;
+            omegaTrajetoria = 28.0;
+            const p = Easing.easeInOutCubic((faseZ - 1.56) / 0.50);
+            modPx = lerpVal(-0.28, 0.28, p);
             modPy = -0.22;
             modPz = 0.08;
-            modRz = lerpVal(0.12, -0.08, p);
+            modRz = lerpVal(0.06, -0.05, p);
             modRx = 0.14;
           } else {
-            modPx = 0.30;
+            this.gravandoRastro = true;
+            omegaTrajetoria = 22.0;
+            modPx = 0.28;
             modPy = -0.22;
             modPz = 0.08;
-            modRz = -0.08;
+            modRz = -0.05;
             modRx = 0.14;
           }
           break;
         }
 
         case 'giro_pulso': {
-          // Letra H: Giro de supinação/pronação no eixo Y + leve arco Z
-          modRy = Math.sin(t * 5.2) * 0.44;
-          modRz = Math.cos(t * 5.2) * 0.14;
+          this.gravandoRastro = t >= 0.40;
+          const ts = Math.max(0, t - 0.40);
+          modRy = Math.sin(ts * 5.2) * 0.52;
+          modRz = Math.cos(ts * 5.2) * 0.18;
+          modRx = Math.sin(ts * 5.2) * 0.12;
           break;
         }
 
         case 'impulso_cima': {
-          // Letra K: Impulso vertical com leve inclinação de pulso
-          const pulsoK = Math.abs(Math.sin(t * 4.6));
-          modPy = pulsoK * 0.22;
-          modRx = -pulsoK * 0.15;
+          this.gravandoRastro = t >= 0.40;
+          const ts = Math.max(0, t - 0.40);
+          const pulsoK = Math.abs(Math.sin(ts * 4.6));
+          modPy = pulsoK * 0.20;
+          modRx = -pulsoK * 0.24;
           break;
         }
 
         case 'puxar_x': {
-          // Letra X: Gancho do indicador tracionando horizontalmente
-          const puxada = Math.sin(t * 4.5);
+          this.gravandoRastro = t >= 0.40;
+          const ts = Math.max(0, t - 0.40);
+          const puxada = Math.sin(ts * 4.5);
           modPz = puxada * 0.18;
           modPx = -puxada * 0.10;
+          modRx = Math.max(0, puxada) * 0.15;
           if (this.dedos.indicador) {
             this.dedos.indicador.mid.rotation.x = this.dedos.indicador.atualMidX + Math.max(0, puxada) * 0.22;
           }
@@ -879,8 +1300,9 @@ class MaoRobotica {
         }
 
         case 'agua_libras': {
-          // Sinal oficial de ÁGUA: Mão em L com o indicador batendo duas vezes seguidas
-          const cicloAgua = (t * 4.2) % (Math.PI * 2);
+          this.gravandoRastro = t >= 0.40;
+          const ts = Math.max(0, t - 0.40);
+          const cicloAgua = (ts * 4.2) % (Math.PI * 2);
           const batidaDupla = cicloAgua < Math.PI * 1.35 ? Math.abs(Math.sin(cicloAgua * 2.0)) : 0;
           if (this.dedos.indicador && this.dedos.indicador.base) {
             this.dedos.indicador.base.rotation.x = this.dedos.indicador.atualX + batidaDupla * 0.58;
@@ -890,31 +1312,33 @@ class MaoRobotica {
         }
 
         case 'sim_aceno': {
-          // Sinal de SIM: Punho em S flexionando o pulso afirmativamente
-          modRx = Math.sin(t * 5.8) * 0.38;
-          modPy = -Math.sin(t * 5.8) * 0.08;
+          this.gravandoRastro = false;
+          modRx = Math.sin(t * 5.8) * 0.45;
+          modPy = -Math.sin(t * 5.8) * 0.05;
           break;
         }
 
         case 'nao_abano': {
-          // Sinal de NÃO: Indicador abanando lateralmente com o pulso
-          modRz = Math.sin(t * 7.8) * 0.32;
-          modPx = -Math.sin(t * 7.8) * 0.10;
+          this.gravandoRastro = t >= 0.40;
+          const ts = Math.max(0, t - 0.40);
+          modRz = Math.sin(ts * 7.8) * 0.36;
+          modPx = -Math.sin(ts * 7.8) * 0.06;
           break;
         }
 
         case 'obrigado': {
-          // Sinal de OBRIGADO: Mão parte da região frontal superior para frente
-          const cicloOb = (t * 2.4) % (Math.PI * 2);
+          this.gravandoRastro = t >= 0.40;
+          const ts = Math.max(0, t - 0.40);
+          const cicloOb = (ts * 2.4) % (Math.PI * 2);
           const avanco = (1 - Math.cos(cicloOb)) * 0.5;
-          modRx = avanco * 0.34;
-          modPz = avanco * 0.26;
-          modPy = 0.12 - avanco * 0.18;
+          modRx = avanco * 0.42;
+          modPz = avanco * 0.24;
+          modPy = 0.12 - avanco * 0.16;
           break;
         }
 
         case 'ajuda': {
-          // Sinal de AJUDA (2 mãos): Elevação e avanço conjunto
+          this.gravandoRastro = false;
           const avancoAj = (1 - Math.cos(t * 3.8)) * 0.5;
           modPz = avancoAj * 0.26;
           modPy = avancoAj * 0.16;
@@ -922,43 +1346,85 @@ class MaoRobotica {
         }
 
         case 'comida_libras': {
-          // Sinal de COMIDA: Dedos em pinça aproximando-se da boca repetidamente
+          this.gravandoRastro = false;
           const toqueBoca = Math.sin(t * 5.6);
-          modRx = toqueBoca * 0.24;
-          modPy = toqueBoca * 0.14;
-          modPz = -toqueBoca * 0.12;
+          modRx = toqueBoca * 0.30;
+          modPy = toqueBoca * 0.12;
+          modPz = -toqueBoca * 0.10;
           break;
         }
 
         case 'circular_peito': {
-          // Sinal de POR FAVOR: Trajetória circular contínua no plano XY
-          modPx = Math.cos(t * 4.2) * 0.20;
-          modPy = Math.sin(t * 4.2) * 0.20;
-          modRz = -Math.cos(t * 4.2) * 0.12;
+          this.gravandoRastro = t >= 0.40;
+          const ts = Math.max(0, t - 0.40);
+          modPx = Math.cos(ts * 4.2) * 0.20;
+          modPy = Math.sin(ts * 4.2) * 0.20;
+          modRz = -Math.cos(ts * 4.2) * 0.15;
           break;
         }
 
         case 'oscilar_pulso':
         case 'alerta_duplo':
         case 'perigo': {
-          modRz = Math.sin(t * 7.2) * 0.26;
-          modPy = Math.abs(Math.cos(t * 7.2)) * 0.08;
+          this.gravandoRastro = false;
+          modRz = Math.sin(t * 7.2) * 0.30;
+          modPy = Math.abs(Math.cos(t * 7.2)) * 0.06;
           break;
         }
       }
     } else {
-      // Respiração mecânica sutil quando parado
-      modPy = Math.sin(this.tempoGlobal * 1.6) * 0.025;
+      this.gravandoRastro = false;
+      // Respiração mecânica multi-harmônica suave quando em standby
+      modPy = Math.sin(this.tempoGlobal * 1.6) * 0.024;
+      modRx = Math.cos(this.tempoGlobal * 1.6) * 0.018;
     }
 
-    this.grupoPulso.rotation.set(
-      this.pulso.atualX + modRx,
-      this.pulso.atualY + modRy,
-      this.pulso.atualZ + modRz
-    );
-    this.grupoPulso.position.set(modPx, modPy, modPz);
+    // Filtra a translação e rotação dinâmica com mola de 2ª ordem para eliminar saltos bruscos
+    const tr = this.trajetoria;
+    [tr.px, tr.vpx] = springStep(tr.px, tr.vpx, modPx, omegaTrajetoria, delta);
+    [tr.py, tr.vpy] = springStep(tr.py, tr.vpy, modPy, omegaTrajetoria, delta);
+    [tr.pz, tr.vpz] = springStep(tr.pz, tr.vpz, modPz, omegaTrajetoria, delta);
+    [tr.rx, tr.vrx] = springStep(tr.rx, tr.vrx, modRx, omegaTrajetoria, delta);
+    [tr.ry, tr.vry] = springStep(tr.ry, tr.vry, modRy, omegaTrajetoria, delta);
+    [tr.rz, tr.vrz] = springStep(tr.rz, tr.vrz, modRz, omegaTrajetoria, delta);
 
-    // Atualiza trilha espacial 3D se houver movimento ativo
+    const totalRx = this.pulso.atualX + tr.rx;
+    const totalRy = this.pulso.atualY + tr.ry;
+    const totalRz = this.pulso.atualZ + tr.rz;
+
+    // 1. Articulação própria do pulso (gira a mão em torno do pivô esférico no carpo)
+    this.grupoPulso.rotation.set(totalRx, totalRy, totalRz);
+
+    // 2. Anel Cardânico Intermediário acompanha 50% da angulação (cinemática de junta universal)
+    if (this.anelCardanIntermediario) {
+      this.anelCardanIntermediario.rotation.set(
+        totalRx * 0.5,
+        totalRy * 0.35,
+        totalRz * 0.5
+      );
+    }
+
+    // 3. Pistões Hidráulicos do Pulso comprimem e estendem dinamicamente conforme a inclinação
+    if (this.hastesPistao && this.hastesPistao.length > 0) {
+      for (const p of this.hastesPistao) {
+        const curso = -p.pz * Math.sin(totalRx) * 0.42 + p.px * Math.sin(totalRz) * 0.28;
+        p.mesh.position.y = p.baseY + curso;
+        p.mesh.rotation.x = totalRx * 0.26;
+        p.mesh.rotation.z = totalRz * 0.26;
+      }
+    }
+
+    // 4. Translação espacial e acompanhamento suave do antebraço
+    if (this.grupoAntebraco) {
+      this.grupoAntebraco.position.set(tr.px, tr.py, tr.pz);
+      this.grupoAntebraco.rotation.set(
+        tr.rx * 0.12,
+        tr.ry * 0.14,
+        tr.rz * 0.12
+      );
+    }
+
+    // Atualiza trilha espacial 3D se houver movimento ativo e preparação concluída
     this._atualizarRastro3D();
   }
 
@@ -967,6 +1433,7 @@ class MaoRobotica {
   // ----------------------------------------------------------
   posicaoNeutra() {
     this.movimentoAtivo = null;
+    this.gravandoRastro = false;
     this.dedoRastro = null;
     this.tempoMovimento = 0;
     this.limparRastro();
@@ -980,7 +1447,7 @@ class MaoRobotica {
   }
 
   // ----------------------------------------------------------
-  // destruir() — Libera 100% dos recursos WebGL da mão e do rastro
+  // destruir() — Libera 100% dos recursos WebGL da mão, texturas e rastro
   // ----------------------------------------------------------
   destruir() {
     if (this.linhaRastro) {
@@ -995,6 +1462,13 @@ class MaoRobotica {
       if (this.pontoCursorRastro.geometry) this.pontoCursorRastro.geometry.dispose();
       if (this.pontoCursorRastro.material) this.pontoCursorRastro.material.dispose();
       this.pontoCursorRastro = null;
+    }
+
+    if (this._texturasProcedurais && this._texturasProcedurais.length > 0) {
+      for (const tex of this._texturasProcedurais) {
+        if (tex && tex.dispose) tex.dispose();
+      }
+      this._texturasProcedurais = [];
     }
 
     if (!this.grupo) return;
@@ -1012,7 +1486,10 @@ class MaoRobotica {
     });
 
     this.grupo = null;
+    this.grupoAntebraco = null;
+    this.anelCardanIntermediario = null;
     this.grupoPulso = null;
+    this.hastesPistao = [];
     this.dedos = {};
   }
 }
@@ -1036,11 +1513,12 @@ class LibraHand3D {
     this.modoDuasMaos = false;
     this.pronto = false;
 
-    // Estado de órbita esférica da câmera
+    // Estado de órbita esférica da câmera (afastamento calibrado p/ nunca cortar a ponta dos dedos)
     this.autoRotando = true;
     this.orbitaTheta = 0;
-    this.orbitaPhi = 0.15;
-    this.orbitaRaio = 5.25;
+    this.orbitaPhi = 0.14;
+    this.orbitaRaioPadrao = containerId === 'hand3d-container' ? 6.20 : 5.75;
+    this.orbitaRaio = this.orbitaRaioPadrao;
     this.arrastando = false;
     this.ultimoMouseX = 0;
     this.ultimoMouseY = 0;
@@ -1084,9 +1562,9 @@ class LibraHand3D {
       'width:100%;height:100%;display:block;cursor:grab;touch-action:none;outline:none;';
     this.container.appendChild(this.renderer.domElement);
 
-    // ── CENA & ATMOSFERA ──
+    // ── CENA & ATMOSFERA DE LABORATÓRIO ESCURO ──
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x020a14, 0.045);
+    this.scene.fog = new THREE.FogExp2(0x050505, 0.042);
 
     // ── CÂMERA ──
     const w = this.container.clientWidth || 480;
@@ -1095,27 +1573,27 @@ class LibraHand3D {
     this._atualizarPosicaoCamera();
     this._resize();
 
-    // ── ILUMINAÇÃO DE ESTÚDIO BIOMÉDICO (4 PONTOS) ──
-    const hemiLight = new THREE.HemisphereLight(0xbbe4ff, 0x081828, 0.88);
+    // ── ILUMINAÇÃO DE ESTÚDIO MINIMALISTA (ESTILO KEYNOTE APPLE / SPACEX) ──
+    const hemiLight = new THREE.HemisphereLight(0xf5f7fa, 0x08090c, 0.85);
     this.scene.add(hemiLight);
 
-    const luzPrincipal = new THREE.DirectionalLight(0xffffff, 1.85);
-    luzPrincipal.position.set(3.2, 5.8, 4.6);
+    const luzPrincipal = new THREE.DirectionalLight(0xffffff, 2.05);
+    luzPrincipal.position.set(3.4, 6.0, 4.8);
     luzPrincipal.castShadow = true;
     luzPrincipal.shadow.mapSize.set(1024, 1024);
     luzPrincipal.shadow.camera.near = 0.5;
     luzPrincipal.shadow.camera.far = 16;
     this.scene.add(luzPrincipal);
 
-    const luzRimCiano = new THREE.PointLight(0x00e5ff, 1.65, 13);
-    luzRimCiano.position.set(-3.8, 1.9, 2.4);
-    this.scene.add(luzRimCiano);
+    const luzRimPrata = new THREE.PointLight(0xc2d6e3, 1.45, 14);
+    luzRimPrata.position.set(-4.0, 2.2, 2.4);
+    this.scene.add(luzRimPrata);
 
-    const luzRimVioleta = new THREE.PointLight(0xa855f7, 0.95, 13);
-    luzRimVioleta.position.set(3.5, -0.6, -2.6);
-    this.scene.add(luzRimVioleta);
+    const luzContraFria = new THREE.PointLight(0x6e8798, 0.85, 14);
+    luzContraFria.position.set(3.6, -0.5, -2.8);
+    this.scene.add(luzContraFria);
 
-    // ── PLATAFORMA HOLOGRÁFICA & PARTÍCULAS ──
+    // ── PLATAFORMA DE CALIBRAÇÃO & PARTÍCULAS DE LABORATÓRIO ──
     this._criarBaseHolografica();
     this._criarParticulas();
 
@@ -1139,20 +1617,20 @@ class LibraHand3D {
   _criarBaseHolografica() {
     const planoSombra = new THREE.Mesh(
       new THREE.PlaneGeometry(16, 16),
-      new THREE.ShadowMaterial({ opacity: 0.20 })
+      new THREE.ShadowMaterial({ opacity: 0.32 })
     );
     planoSombra.rotation.x = -Math.PI / 2;
     planoSombra.position.y = -1.36;
     planoSombra.receiveShadow = true;
     this.scene.add(planoSombra);
 
-    // Anel externo fixo
+    // Anel externo de calibração (prata translúcido muito subtil)
     const anelExterno = new THREE.Mesh(
-      new THREE.RingGeometry(0.92, 0.96, 64),
+      new THREE.RingGeometry(0.94, 0.96, 64),
       new THREE.MeshBasicMaterial({
-        color: 0x00d4ff,
+        color: 0x9bb4c4,
         transparent: true,
-        opacity: 0.30,
+        opacity: 0.16,
         side: THREE.DoubleSide
       })
     );
@@ -1162,11 +1640,11 @@ class LibraHand3D {
 
     // Anel interno técnico segmentado
     this.anelHoloInterno = new THREE.Mesh(
-      new THREE.RingGeometry(0.62, 0.65, 32, 1, 0, Math.PI * 1.65),
+      new THREE.RingGeometry(0.63, 0.65, 32, 1, 0, Math.PI * 1.65),
       new THREE.MeshBasicMaterial({
-        color: 0x00ffea,
+        color: 0xc8dce8,
         transparent: true,
-        opacity: 0.24,
+        opacity: 0.14,
         side: THREE.DoubleSide
       })
     );
@@ -1176,7 +1654,7 @@ class LibraHand3D {
   }
 
   _criarParticulas() {
-    const count = 120;
+    const count = 90;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
 
@@ -1188,10 +1666,10 @@ class LibraHand3D {
 
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const mat = new THREE.PointsMaterial({
-      color: 0x00e5ff,
-      size: 0.042,
+      color: 0xa8c0ce,
+      size: 0.032,
       transparent: true,
-      opacity: 0.38
+      opacity: 0.22
     });
 
     this.particulas = new THREE.Points(geo, mat);
@@ -1252,7 +1730,7 @@ class LibraHand3D {
 
     this._onWheel = (e) => {
       e.preventDefault();
-      this.orbitaRaio = Math.max(3.1, Math.min(8.5, this.orbitaRaio + e.deltaY * 0.003));
+      this.orbitaRaio = Math.max(3.2, Math.min(9.5, this.orbitaRaio + e.deltaY * 0.003));
       this._atualizarPosicaoCamera();
     };
 
@@ -1269,9 +1747,9 @@ class LibraHand3D {
     const th = this.orbitaTheta;
 
     this.camera.position.x = r * Math.sin(th) * Math.cos(phi);
-    this.camera.position.y = 0.54 + r * Math.sin(phi);
+    this.camera.position.y = 0.64 + r * Math.sin(phi);
     this.camera.position.z = r * Math.cos(th) * Math.cos(phi);
-    this.camera.lookAt(0, 0.45, 0);
+    this.camera.lookAt(0, 0.56, 0);
   }
 
   _loop() {
@@ -1391,21 +1869,22 @@ class LibraHand3D {
   resetarCamera() {
     this.autoRotando = false;
     this.orbitaTheta = 0;
-    this.orbitaPhi = 0.15;
-    this.orbitaRaio = 5.25;
+    this.orbitaPhi = 0.14;
+    this.orbitaRaio = this.orbitaRaioPadrao || 6.20;
+    const r = this.orbitaRaio;
 
     if (this.camera) {
       smoothLerp(
         this.camera.position,
         {
           x: 0,
-          y: 0.54 + 5.25 * Math.sin(0.15),
-          z: 5.25 * Math.cos(0.15)
+          y: 0.64 + r * Math.sin(0.14),
+          z: r * Math.cos(0.14)
         },
         520,
         Easing.easeOutCubic,
         () => {
-          if (this.camera) this.camera.lookAt(0, 0.45, 0);
+          if (this.camera) this.camera.lookAt(0, 0.56, 0);
         }
       );
     }
