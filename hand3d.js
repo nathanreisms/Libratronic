@@ -286,14 +286,22 @@ class MaoRobotica {
   }
 
   _inicializarMateriais() {
+    const ehMobile =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(max-width: 980px), (pointer: coarse)').matches;
+
     const texPolimero = BionicTextureFactory.criarTexturaPolimero3D();
     const texCarbono  = BionicTextureFactory.criarTexturaFibraCarbono();
     const texMetal    = BionicTextureFactory.criarTexturaMetalEscovado();
     this._texturasProcedurais.push(texPolimero, texCarbono, texMetal);
 
-    const MatClass = THREE.MeshPhysicalMaterial || THREE.MeshStandardMaterial;
+    const MatClass =
+      !ehMobile && THREE.MeshPhysicalMaterial
+        ? THREE.MeshPhysicalMaterial
+        : THREE.MeshStandardMaterial;
 
-    // Polímero Técnico / Cerâmica Aeroespacial Branca Texturizada com Clearcoat
+    // Polímero Técnico / Cerâmica Aeroespacial Branca Texturizada
     this.matBranco = new MatClass({
       color: 0xf5f6f8,
       map: texPolimero,
@@ -301,7 +309,9 @@ class MaoRobotica {
       bumpScale: 0.0055,
       roughness: 0.22,
       metalness: 0.10,
-      ...(THREE.MeshPhysicalMaterial ? { clearcoat: 0.36, clearcoatRoughness: 0.20 } : {})
+      ...(!ehMobile && THREE.MeshPhysicalMaterial
+        ? { clearcoat: 0.36, clearcoatRoughness: 0.20 }
+        : {})
     });
 
     // Titânio Space Gray Anodizado Escovado (Juntas, rolamentos e atuadores)
@@ -1523,7 +1533,13 @@ class LibraHand3D {
     this.ultimoMouseX = 0;
     this.ultimoMouseY = 0;
 
-    // Referências para cleanup
+    // Referências para cleanup e controle de redimensionamento sem thrashing no mobile
+    this.ehMobile =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(max-width: 980px), (pointer: coarse)').matches;
+    this._lastW = 0;
+    this._lastH = 0;
     this._resizeObserver = null;
     this._onResize = null;
     this._onVisibilityChange = null;
@@ -1542,15 +1558,18 @@ class LibraHand3D {
 
     this.clock = new THREE.Clock();
 
-    // ── RENDERER WEBGL DE ALTA EFICIÊNCIA ──
+    // ── RENDERER WEBGL DE ALTA EFICIÊNCIA (Otimizado p/ Mobile sem queda de FPS no scroll) ──
     this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: !this.ehMobile,
       alpha: true,
       powerPreference: 'high-performance'
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const maxDpr = this.ehMobile ? 1.3 : 2.0;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
+    this.renderer.shadowMap.enabled = !this.ehMobile;
+    if (!this.ehMobile) {
+      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
 
     if ('outputColorSpace' in this.renderer && THREE.SRGBColorSpace) {
       this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -1579,10 +1598,12 @@ class LibraHand3D {
 
     const luzPrincipal = new THREE.DirectionalLight(0xffffff, 2.05);
     luzPrincipal.position.set(3.4, 6.0, 4.8);
-    luzPrincipal.castShadow = true;
-    luzPrincipal.shadow.mapSize.set(1024, 1024);
-    luzPrincipal.shadow.camera.near = 0.5;
-    luzPrincipal.shadow.camera.far = 16;
+    luzPrincipal.castShadow = !this.ehMobile;
+    if (!this.ehMobile) {
+      luzPrincipal.shadow.mapSize.set(1024, 1024);
+      luzPrincipal.shadow.camera.near = 0.5;
+      luzPrincipal.shadow.camera.far = 16;
+    }
     this.scene.add(luzPrincipal);
 
     const luzRimPrata = new THREE.PointLight(0xc2d6e3, 1.45, 14);
@@ -1615,14 +1636,16 @@ class LibraHand3D {
   }
 
   _criarBaseHolografica() {
-    const planoSombra = new THREE.Mesh(
-      new THREE.PlaneGeometry(16, 16),
-      new THREE.ShadowMaterial({ opacity: 0.32 })
-    );
-    planoSombra.rotation.x = -Math.PI / 2;
-    planoSombra.position.y = -1.36;
-    planoSombra.receiveShadow = true;
-    this.scene.add(planoSombra);
+    if (!this.ehMobile) {
+      const planoSombra = new THREE.Mesh(
+        new THREE.PlaneGeometry(16, 16),
+        new THREE.ShadowMaterial({ opacity: 0.32 })
+      );
+      planoSombra.rotation.x = -Math.PI / 2;
+      planoSombra.position.y = -1.36;
+      planoSombra.receiveShadow = true;
+      this.scene.add(planoSombra);
+    }
 
     // Anel externo de calibração (prata translúcido muito subtil)
     const anelExterno = new THREE.Mesh(
@@ -1654,7 +1677,7 @@ class LibraHand3D {
   }
 
   _criarParticulas() {
-    const count = 90;
+    const count = this.ehMobile ? 32 : 90;
     const geo = new THREE.BufferGeometry();
     const pos = new Float32Array(count * 3);
 
@@ -1791,6 +1814,9 @@ class LibraHand3D {
     if (!this.container || !this.renderer || !this.camera) return;
     const w = this.container.clientWidth || 480;
     const h = this.container.clientHeight || 400;
+    if (Math.abs(w - this._lastW) <= 1 && Math.abs(h - this._lastH) <= 1) return;
+    this._lastW = w;
+    this._lastH = h;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();

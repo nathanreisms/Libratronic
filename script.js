@@ -1069,6 +1069,32 @@ function toggleCamera() {
   else ligarCamera();
 }
 
+function ehDispositivoMovelCamera() {
+  return (
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+    Boolean(window.matchMedia && window.matchMedia('(max-width: 980px) and (pointer: coarse)').matches)
+  );
+}
+
+function ajustarContainerCameraOrientacao(video) {
+  const wrap = document.getElementById('camera-wrap');
+  if (!wrap) return;
+
+  if (!ehDispositivoMovelCamera()) {
+    wrap.style.removeProperty('aspect-ratio');
+    return;
+  }
+
+  const vw = video?.videoWidth || 0;
+  const vh = video?.videoHeight || 0;
+  if (vw > 0 && vh > 0) {
+    wrap.style.aspectRatio = `${vw} / ${vh}`;
+  } else {
+    const emRetrato = window.innerHeight >= window.innerWidth;
+    wrap.style.aspectRatio = emRetrato ? '3 / 4' : '16 / 9';
+  }
+}
+
 async function ligarCamera() {
   const btn = document.getElementById('btn-toggle-camera');
   if (btn) {
@@ -1079,10 +1105,12 @@ async function ligarCamera() {
   const errEl = document.getElementById('camera-erro');
   if (errEl) errEl.style.display = 'none';
 
-  const ehMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const ehMobile = ehDispositivoMovelCamera();
+  // Em dispositivos móveis, não força width/height fixos em paisagem para que o sensor
+  // entregue retrato (vertical) quando o celular está em pé e paisagem quando deitado.
   const constraints = ehMobile
     ? [
-        { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        { facingMode: 'user' },
         { facingMode: 'environment' }
       ]
     : [{ facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }];
@@ -1118,8 +1146,11 @@ async function ligarCamera() {
 
   cameraStream = stream;
   const video = document.getElementById('cameraVideo');
+  video.onloadedmetadata = () => ajustarContainerCameraOrientacao(video);
+  video.onresize = () => ajustarContainerCameraOrientacao(video);
   video.srcObject = cameraStream;
   await video.play();
+  ajustarContainerCameraOrientacao(video);
 
   cameraAtiva = true;
   smoother.reset();
@@ -1225,7 +1256,7 @@ function pararCamera() {
 }
 
 function iniciarReconhecimento() {
-  if (typeof Hands !== 'undefined' && typeof Camera !== 'undefined') {
+  if (typeof Hands !== 'undefined') {
     iniciarMediaPipe();
   } else {
     log('ℹ MediaPipe indisponível — modo demonstração ativo', 'info');
@@ -1251,8 +1282,13 @@ function iniciarMediaPipe() {
 
   mpHands.onResults((res) => {
     if (!cameraAtiva) return;
-    if (camCanvas.width !== video.videoWidth) camCanvas.width = video.videoWidth || 640;
-    if (camCanvas.height !== video.videoHeight) camCanvas.height = video.videoHeight || 480;
+    const vw = video.videoWidth || 640;
+    const vh = video.videoHeight || 480;
+    if (camCanvas.width !== vw || camCanvas.height !== vh) {
+      camCanvas.width = vw;
+      camCanvas.height = vh;
+      ajustarContainerCameraOrientacao(video);
+    }
 
     camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
 
@@ -1268,21 +1304,20 @@ function iniciarMediaPipe() {
     }
   });
 
-  mpCamera = new Camera(video, {
-    onFrame: async () => {
-      // Pausa inferência se aba estiver oculta (Page Visibility API)
-      if (!mpHands || !cameraAtiva || processandoFrame || document.hidden) return;
-      processandoFrame = true;
-      try {
-        await mpHands.send({ image: video });
-      } catch (_) {}
-      processandoFrame = false;
-    },
-    width: 640,
-    height: 480
-  });
+  // Loop de envio direto a partir do stream nativo (preserva orientação retrato/paisagem no mobile!)
+  const loopInferencia = async () => {
+    if (!cameraAtiva || !mpHands) return;
+    camRafId = requestAnimationFrame(loopInferencia);
 
-  mpCamera.start();
+    if (document.hidden || processandoFrame || video.readyState < 2) return;
+    processandoFrame = true;
+    try {
+      await mpHands.send({ image: video });
+    } catch (_) {}
+    processandoFrame = false;
+  };
+
+  camRafId = requestAnimationFrame(loopInferencia);
   log('✓ Visão IA ativa — sustentação de 0.85s + trajetória dinâmica J/Z', 'success');
 }
 
@@ -1890,6 +1925,19 @@ function limparCampo() {
 // ============================================================
 // 10. UI/UX, NAVEGAÇÃO E FEEDBACK VISUAL
 // ============================================================
+function selecionarAbaTexto(abaId) {
+  if (!abaId) return;
+  document.querySelectorAll('.text-tab-btn').forEach((btn) => {
+    const ativa = btn.getAttribute('data-text-tab') === abaId;
+    btn.classList.toggle('active', ativa);
+    btn.setAttribute('aria-selected', ativa ? 'true' : 'false');
+  });
+  document.querySelectorAll('.text-tab-pane').forEach((pane) => {
+    const ativa = pane.getAttribute('data-tab-pane') === abaId;
+    pane.classList.toggle('active', ativa);
+  });
+}
+
 function mostrarTela(id) {
   pararTraducaoAtiva();
   AppState.telaAtual = id;
@@ -2063,6 +2111,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ── ABAS COMPACTAS (TELA TEXTO) ──
+  document.querySelectorAll('.text-tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const aba = btn.getAttribute('data-text-tab');
+      if (aba) selecionarAbaTexto(aba);
+    });
+  });
+
   // ── TELA TEXTO & 3D ──
   document.getElementById('btn-traduzir')?.addEventListener('click', iniciarTraducao);
   document.getElementById('btn-limpar')?.addEventListener('click', limparCampo);
@@ -2184,6 +2240,15 @@ document.addEventListener('DOMContentLoaded', () => {
     stabilityBuffer.ultimaLetraConfirmada = '';
   });
 
+  // Adaptação dinâmica da proporção da câmera conforme rotação da tela em dispositivos móveis
+  const aoMudarOrientacaoCamera = () => {
+    if (!cameraAtiva) return;
+    const v = document.getElementById('cameraVideo');
+    setTimeout(() => ajustarContainerCameraOrientacao(v), 120);
+  };
+  window.addEventListener('orientationchange', aoMudarOrientacaoCamera, { passive: true });
+  window.addEventListener('resize', aoMudarOrientacaoCamera, { passive: true });
+
   // ── TELA BLUETOOTH & REFERÊNCIA A-Z ──
   document.getElementById('btn-bt-conectar')?.addEventListener('click', () => btManager.conectar());
   document.getElementById('btn-bt-desconectar')?.addEventListener('click', () => btManager.desconectar());
@@ -2193,6 +2258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chip.addEventListener('click', () => {
       const letra = chip.textContent.trim();
       mostrarTela('text');
+      selecionarAbaTexto('alfabeto');
       timers.schedule(() => visualizarLetraUnica3D(letra), 380);
     });
   });

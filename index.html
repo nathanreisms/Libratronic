@@ -270,80 +270,100 @@
 
     <div class="text-body">
 
-      <!-- PAINEL ESQUERDO -->
+      <!-- PAINEL ESQUERDO — Organizado em Abas Compactas -->
       <div class="panel panel-left">
 
-        <div class="panel-header-row">
-          <p class="panel-label">Entrada de Texto</p>
-          <div class="audio-speed-controls">
-            <button id="btn-toggle-voz" type="button" class="btn-mini" title="Ativar/Desativar narração por voz">
-              🔊 Voz: ON
+        <!-- Barra de Abas para alternar 1 módulo por vez -->
+        <div class="text-tabs-nav" role="tablist" aria-label="Modos de entrada em Libras">
+          <button type="button" class="text-tab-btn active" role="tab" aria-selected="true" data-text-tab="texto">
+            &#9997; Texto
+          </button>
+          <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="sinais">
+            &#9889; Sinais
+          </button>
+          <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="alfabeto">
+            &#128292; A–Z
+          </button>
+          <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="telemetria">
+            &#128225; Log
+          </button>
+        </div>
+
+        <!-- ABA 1: ENTRADA DE TEXTO + FILA COMPACTA -->
+        <div class="text-tab-pane active" data-tab-pane="texto" role="tabpanel">
+          <div class="panel-header-row">
+            <p class="panel-label">Entrada de Texto</p>
+            <div class="audio-speed-controls">
+              <button id="btn-toggle-voz" type="button" class="btn-mini" title="Ativar/Desativar narração por voz">
+                🔊 Voz: ON
+              </button>
+              <select id="select-velocidade" class="select-speed" aria-label="Velocidade de tradução" title="Velocidade da tradução">
+                <option value="0.7">0.7x Lento</option>
+                <option value="1" selected>1.0x Normal</option>
+                <option value="1.5">1.5x Rápido</option>
+              </select>
+            </div>
+          </div>
+
+          <textarea
+            id="input-texto"
+            class="text-input"
+            placeholder="Digite uma palavra ou frase (ex: OLA POR FAVOR ME AJUDA)..."
+            rows="2"
+            aria-label="Texto a traduzir em Libras"
+            spellcheck="false"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="characters"
+          ></textarea>
+
+          <p class="tip">Digite A–Z &middot; <kbd>Enter</kbd> traduz &middot; Reconhece sinais compostos automaticamente</p>
+
+          <div class="btn-row">
+            <button id="btn-traduzir" class="btn-act blue" aria-label="Iniciar tradução">
+              &#9654;&nbsp; Traduzir
             </button>
-            <select id="select-velocidade" class="select-speed" aria-label="Velocidade de tradução" title="Velocidade da tradução">
-              <option value="0.7">0.7x Lento</option>
-              <option value="1" selected>1.0x Normal</option>
-              <option value="1.5">1.5x Rápido</option>
-            </select>
+            <button id="btn-limpar" class="btn-act gray" aria-label="Limpar campo">
+              &#10005;&nbsp; Limpar
+            </button>
+          </div>
+
+          <div id="fila-chips" class="queue-box"
+               role="list" aria-label="Letras e sinais na fila de tradução" aria-live="polite">
           </div>
         </div>
 
-        <textarea
-          id="input-texto"
-          class="text-input"
-          placeholder="Digite uma palavra ou frase (ex: OLA POR FAVOR ME AJUDA)..."
-          rows="3"
-          aria-label="Texto a traduzir em Libras"
-          spellcheck="false"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="characters"
-        ></textarea>
-
-        <p class="tip">Digite A–Z &middot; <kbd>Enter</kbd> traduz &middot; Reconhece sinais compostos automaticamente</p>
-
-        <div class="btn-row">
-          <button id="btn-traduzir" class="btn-act blue" aria-label="Iniciar tradução">
-            &#9654;&nbsp; Traduzir
-          </button>
-          <button id="btn-limpar" class="btn-act gray" aria-label="Limpar campo">
-            &#10005;&nbsp; Limpar
-          </button>
+        <!-- ABA 2: SINAIS RÁPIDOS EM LIBRAS -->
+        <div class="text-tab-pane" data-tab-pane="sinais" role="tabpanel">
+          <p class="panel-label">Sinais Rápidos em Libras</p>
+          <div class="palavras-rapidas" role="group" aria-label="Gestos rápidos em Libras">
+            <button class="btn-palavra" data-p="AJUDA"      aria-label="Sinal AJUDA">AJUDA</button>
+            <button class="btn-palavra" data-p="SOCORRO"    aria-label="Sinal SOCORRO">SOCORRO</button>
+            <button class="btn-palavra" data-p="OBRIGADO"   aria-label="Sinal OBRIGADO">OBRIGADO</button>
+            <button class="btn-palavra" data-p="AGUA"       aria-label="Sinal ÁGUA">ÁGUA</button>
+            <button class="btn-palavra" data-p="COMIDA"     aria-label="Sinal COMIDA">COMIDA</button>
+            <button class="btn-palavra" data-p="BANHEIRO"   aria-label="Sinal BANHEIRO">BANHEIRO</button>
+            <button class="btn-palavra" data-p="PERIGO"     aria-label="Sinal PERIGO">PERIGO</button>
+            <button class="btn-palavra" data-p="SIM"        aria-label="Sinal SIM">SIM</button>
+            <button class="btn-palavra" data-p="NAO"        aria-label="Sinal NÃO">NÃO</button>
+            <button class="btn-palavra" data-p="POR FAVOR"  aria-label="Sinal POR FAVOR">POR FAVOR</button>
+          </div>
         </div>
 
-        <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">Sinais Rápidos em Libras</p>
-
-        <div class="palavras-rapidas" role="group" aria-label="Gestos rápidos em Libras">
-          <button class="btn-palavra" data-p="AJUDA"      aria-label="Sinal AJUDA">AJUDA</button>
-          <button class="btn-palavra" data-p="SOCORRO"    aria-label="Sinal SOCORRO">SOCORRO</button>
-          <button class="btn-palavra" data-p="OBRIGADO"   aria-label="Sinal OBRIGADO">OBRIGADO</button>
-          <button class="btn-palavra" data-p="AGUA"       aria-label="Sinal ÁGUA">ÁGUA</button>
-          <button class="btn-palavra" data-p="COMIDA"     aria-label="Sinal COMIDA">COMIDA</button>
-          <button class="btn-palavra" data-p="BANHEIRO"   aria-label="Sinal BANHEIRO">BANHEIRO</button>
-          <button class="btn-palavra" data-p="PERIGO"     aria-label="Sinal PERIGO">PERIGO</button>
-          <button class="btn-palavra" data-p="SIM"        aria-label="Sinal SIM">SIM</button>
-          <button class="btn-palavra" data-p="NAO"        aria-label="Sinal NÃO">NÃO</button>
-          <button class="btn-palavra" data-p="POR FAVOR"  aria-label="Sinal POR FAVOR">POR FAVOR</button>
+        <!-- ABA 3: DATILOLOGIA INTERATIVA (A–Z) -->
+        <div class="text-tab-pane" data-tab-pane="alfabeto" role="tabpanel">
+          <p class="panel-label">Datilologia Interativa (A–Z)</p>
+          <div id="alfabeto-rapido" class="alfabeto-rapido" role="group" aria-label="Teclado rápido de letras A a Z">
+            <!-- Gerado via script.js -->
+          </div>
         </div>
 
-        <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">Datilologia Interativa (A–Z)</p>
-        <div id="alfabeto-rapido" class="alfabeto-rapido" role="group" aria-label="Teclado rápido de letras A a Z">
-          <!-- Gerado via script.js -->
-        </div>
-
-        <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">Fila de Execução</p>
-
-        <div id="fila-chips" class="queue-box"
-             role="list" aria-label="Letras e sinais na fila de tradução" aria-live="polite">
-        </div>
-
-        <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">Telemetria do Sistema</p>
-
-        <div id="log-box" class="log-box"
-             role="log" aria-live="polite" aria-label="Log de status do sistema">
+        <!-- ABA 4: TELEMETRIA DO SISTEMA -->
+        <div class="text-tab-pane" data-tab-pane="telemetria" role="tabpanel">
+          <p class="panel-label">Telemetria do Sistema</p>
+          <div id="log-box" class="log-box"
+               role="log" aria-live="polite" aria-label="Log de status do sistema">
+          </div>
         </div>
 
       </div>
