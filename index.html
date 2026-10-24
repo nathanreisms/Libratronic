@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--
   ============================================================
-  LibraTronic v5.0 — Dark UI Clean & Futurista (Apple / SpaceX Inspired)
-  Tradução de Libras · Robótica Biomimética · Visão Computacional · Laboratório 3D
-  Integrado com: style.css · hand3d.js · script.js · database.json
+  LibraTronic v5.0 â€” Dark UI Clean & Futurista (Apple / SpaceX Inspired)
+  TraduÃ§Ã£o de Libras Â· RobÃ³tica BiomimÃ©tica Â· VisÃ£o Computacional Â· LaboratÃ³rio 3D
+  Integrado com: style.css Â· hand3d.js Â· script.js Â· database.json
   ============================================================
 -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>LibraTronic — Tradução de Libras através de Robótica e Visão Computacional</title>
+  <title>LibraTronic â€” TraduÃ§Ã£o de Libras atravÃ©s de RobÃ³tica e VisÃ£o Computacional</title>
 
   <meta name="theme-color" content="#050505" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="LibraTronic" />
-  <meta name="description" content="Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética." />
+  <meta name="description" content="Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a LÃ­ngua Brasileira de Sinais em tempo real atravÃ©s de inteligÃªncia artificial e aciona uma prÃ³tese robÃ³tica biomimÃ©tica." />
 
   <!-- CSS PRINCIPAL -->
   <link rel="stylesheet" href="style.css" />
@@ -28,11 +28,11 @@
     referrerpolicy="no-referrer">
   </script>
 
-  <!-- THREE.JS FBXLoader (compatível com r128) -->
+  <!-- THREE.JS FBXLoader (compatÃ­vel com r128) -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js" crossorigin="anonymous"></script>
 
-  <!-- POLYFILL — CanvasRenderingContext2D.roundRect -->
+  <!-- POLYFILL â€” CanvasRenderingContext2D.roundRect -->
   <script>
     if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
       CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
@@ -58,21 +58,21 @@
 <div id="app">
 
   <!-- ===========================================================
-       TELA 1 — HOME (LANDING PAGE SCROLLABLE · 3 SECÇÕES FULL-SCREEN)
+       TELA 1 â€” HOME (LANDING PAGE SCROLLABLE Â· 3 SECÃ‡Ã•ES FULL-SCREEN)
        =========================================================== -->
-  <section id="screen-home" class="screen active" aria-label="Página inicial LibraTronic">
+  <section id="screen-home" class="screen active" aria-label="PÃ¡gina inicial LibraTronic">
 
     <!-- Barra Superior Minimalista Fixa -->
     <header class="home-topbar">
-      <a href="#hero-section" class="brand-mark" aria-label="LibraTronic Início">
+      <a href="#hero-section" class="brand-mark" aria-label="LibraTronic InÃ­cio">
         <span class="brand-dot" aria-hidden="true"></span>
         LIBRATRONIC
       </a>
 
-      <nav class="home-anchor-nav" aria-label="Secções da página inicial">
-        <a href="#hero-section" class="anchor-link">Início</a>
+      <nav class="home-anchor-nav" aria-label="SecÃ§Ãµes da pÃ¡gina inicial">
+        <a href="#hero-section" class="anchor-link">InÃ­cio</a>
         <a href="#about-section" class="anchor-link">Sobre o Projeto</a>
-        <a href="#lab3d-section" class="anchor-link">Modelo 3d do Projeto</a>
+        <a href="#lab3d-section" class="anchor-link">Modelo 3D</a>
       </nav>
 
       <div class="bt-status" role="status" aria-live="polite">
@@ -81,22 +81,22 @@
       </div>
     </header>
 
-    <!-- ─────────────────────────────────────────────────────────
-         SECÇÃO 1: HERO SECTION (TOPO · ECRÃ INTEIRO)
-         ───────────────────────────────────────────────────────── -->
+    <!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+         SECÃ‡ÃƒO 1: HERO SECTION (TOPO Â· ECRÃƒ INTEIRO)
+         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div id="hero-section" class="home-section hero-section">
 
       <div class="hero-grid">
-        <!-- Coluna Editorial e Navegação -->
+        <!-- Coluna Editorial e NavegaÃ§Ã£o -->
         <div class="hero-content">
-          <span class="hero-eyebrow">ROBÓTICA BIOMIMÉTICA &middot; IA EM TEMPO REAL</span>
+          <span class="hero-eyebrow">ROBÃ“TICA BIOMIMÃ‰TICA &middot; IA EM TEMPO REAL</span>
           <h1 class="app-title">LibraTronic</h1>
           <p class="app-subtitle">
-            Tradução de Libras através de Robótica e Visão Computacional
+            TraduÃ§Ã£o de Libras atravÃ©s de RobÃ³tica e VisÃ£o Computacional
           </p>
 
           <nav class="home-buttons" aria-label="Menu principal">
-            <button id="btn-ir-texto" class="btn-ghost-pill primary-pill" aria-label="Abrir Tradução por Texto">
+            <button id="btn-ir-texto" class="btn-ghost-pill primary-pill" aria-label="Abrir TraduÃ§Ã£o por Texto">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="1.6"
                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -104,17 +104,17 @@
                 <line x1="8" y1="21" x2="16" y2="21"/>
                 <line x1="12" y1="17" x2="12" y2="21"/>
               </svg>
-              <span>Tradução por Texto</span>
+              <span>TraduÃ§Ã£o por Texto</span>
             </button>
 
-            <button id="btn-ir-camera" class="btn-ghost-pill" aria-label="Abrir Tradução por Câmera">
+            <button id="btn-ir-camera" class="btn-ghost-pill" aria-label="Abrir TraduÃ§Ã£o por CÃ¢mera">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="1.6"
                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
               </svg>
-              <span>Tradução por Câmera</span>
+              <span>TraduÃ§Ã£o por CÃ¢mera</span>
             </button>
 
             <button id="btn-ir-bluetooth" class="btn-ghost-pill" aria-label="Conectar via Bluetooth">
@@ -128,12 +128,12 @@
           </nav>
         </div>
 
-        <!-- Imagem Real em Alta Resolução da Prótese Impressa em 3D -->
-        <div class="hero-visual" aria-label="Fotografia da mão robótica branca real impressa em 3D">
+        <!-- Imagem Real em Alta ResoluÃ§Ã£o da PrÃ³tese Impressa em 3D -->
+        <div class="hero-visual" aria-label="Fotografia da mÃ£o robÃ³tica branca real impressa em 3D">
           <div class="hero-hand-frame">
             <img
               src="hero-hand.jpg"
-              alt="Mão robótica branca real LibraTronic impressa em 3D com iluminação dramática de estúdio"
+              alt="MÃ£o robÃ³tica branca real LibraTronic impressa em 3D com iluminaÃ§Ã£o dramÃ¡tica de estÃºdio"
               class="hero-hand-img"
               loading="eager"
               decoding="async"
@@ -143,37 +143,37 @@
       </div>
 
       <!-- Indicador Minimalista de Scroll -->
-      <a href="#about-section" class="scroll-cue" aria-label="Rolar para a secção Sobre o Projeto">
+      <a href="#about-section" class="scroll-cue" aria-label="Rolar para a secÃ§Ã£o Sobre o Projeto">
         <span class="scroll-cue-label">Explorar</span>
         <span class="scroll-cue-line" aria-hidden="true"></span>
       </a>
 
     </div>
 
-    <!-- ─────────────────────────────────────────────────────────
-         SECÇÃO 2: SOBRE O PROJETO (ECRÃ INTEIRO)
-         ───────────────────────────────────────────────────────── -->
+    <!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+         SECÃ‡ÃƒO 2: SOBRE O PROJETO (ECRÃƒ INTEIRO)
+         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div id="about-section" class="home-section about-section" aria-label="Sobre o Projeto">
 
       <div class="about-inner">
-        <span class="section-index">01 &mdash; PROPÓSITO</span>
+        <span class="section-index">01 &mdash; PROPÃ“SITO</span>
 
         <p class="about-statement">
-          Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética.
+          Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a LÃ­ngua Brasileira de Sinais em tempo real atravÃ©s de inteligÃªncia artificial e aciona uma prÃ³tese robÃ³tica biomimÃ©tica.
         </p>
 
-        <div class="about-metrics" aria-label="Especificações de engenharia">
+        <div class="about-metrics" aria-label="EspecificaÃ§Ãµes de engenharia">
           <div class="metric-item">
             <span class="metric-value">21 Pontos</span>
-            <span class="metric-label">Rastreamento Óptico MediaPipe</span>
+            <span class="metric-label">Rastreamento Ã“ptico MediaPipe</span>
           </div>
           <div class="metric-item">
             <span class="metric-value">15 Juntas</span>
-            <span class="metric-label">Cinemática Articulada 3D</span>
+            <span class="metric-label">CinemÃ¡tica Articulada 3D</span>
           </div>
           <div class="metric-item">
             <span class="metric-value">ESP32 BLE</span>
-            <span class="metric-label">Acionamento Físico em Tempo Real</span>
+            <span class="metric-label">Acionamento FÃ­sico em Tempo Real</span>
           </div>
         </div>
 
@@ -187,16 +187,16 @@
 
     </div>
 
-    <!-- ─────────────────────────────────────────────────────────
-         SECÇÃO 3: MODELO 3D DO PROJETO (VISUALIZADOR FBX REAL)
-         ───────────────────────────────────────────────────────── -->
-    <div id="lab3d-section" class="home-section lab3d-section" aria-label="Modelo 3D do Projeto">
+    <!-- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+         SECÃ‡ÃƒO 3: Modelo 3D (VISUALIZADOR FBX REAL)
+         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+    <div id="lab3d-section" class="home-section lab3d-section" aria-label="Modelo 3D">
 
       <div class="lab3d-header">
-        <span class="section-index">02 &mdash; MODELO 3D DO PROJETO</span>
-        <h2 class="lab3d-title">Modelo 3d do Projeto</h2>
+        <span class="section-index">02 &mdash; Modelo 3D</span>
+        <h2 class="lab3d-title">Modelo 3D</h2>
         <p class="lab3d-subtitle">
-          Arraste para orbitar em 360° &middot; Scroll para zoom &middot; Modelo real da prótese LibraTronic.
+          Arraste para orbitar em 360Â° &middot; Scroll para zoom &middot; Modelo real da prÃ³tese LibraTronic.
         </p>
       </div>
 
@@ -205,7 +205,7 @@
         <div id="home-hand3d-container"
              class="lab3d-viewport"
              role="img"
-             aria-label="Visualizador 3D interativo do modelo real da prótese LibraTronic">
+             aria-label="Visualizador 3D interativo do modelo real da prÃ³tese LibraTronic">
 
           <div id="home-hand3d-loading" class="loading-overlay-3d" aria-hidden="true">
             <span class="loading-ring"></span>
@@ -222,13 +222,13 @@
 
       <!-- Controles do Visualizador -->
       <div class="lab3d-controls-bar">
-        <div class="controles-3d" role="group" aria-label="Controles de câmara do modelo 3D">
+        <div class="controles-3d" role="group" aria-label="Controles de cÃ¢mara do modelo 3D">
           <button id="btn-modelo3d-rotacionar" class="btn-ctrl3d ativo"
-                  title="Alternar rotação orbital automática">
-            &#9208; Rotação Orbital
+                  title="Alternar rotaÃ§Ã£o orbital automÃ¡tica">
+            &#9208; RotaÃ§Ã£o Orbital
           </button>
           <button id="btn-modelo3d-resetar" class="btn-ctrl3d"
-                  title="Alinhar câmara frontalmente">
+                  title="Alinhar cÃ¢mara frontalmente">
             &#8962; Vista Frontal
           </button>
         </div>
@@ -240,15 +240,15 @@
 
 
   <!-- ===========================================================
-       TELA 2 — TRADUÇÃO POR TEXTO E SIMULADOR 3D
+       TELA 2 â€” TRADUÃ‡ÃƒO POR TEXTO E SIMULADOR 3D
        =========================================================== -->
-  <section id="screen-text" class="screen" aria-label="Tradução por texto">
+  <section id="screen-text" class="screen" aria-label="TraduÃ§Ã£o por texto">
 
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
       <div class="header-titles">
         <span class="header-eyebrow">MODO 01</span>
-        <h2>Tradução por Texto</h2>
+        <h2>TraduÃ§Ã£o por Texto</h2>
       </div>
       <div class="bt-status" style="margin-left:auto;" role="status" aria-live="polite">
         <span class="bt-dot" aria-hidden="true"></span>
@@ -258,10 +258,10 @@
 
     <div class="text-body">
 
-      <!-- PAINEL ESQUERDO — Organizado em Abas Compactas -->
+      <!-- PAINEL ESQUERDO â€” Organizado em Abas Compactas -->
       <div class="panel panel-left">
 
-        <!-- Barra de Abas para alternar 1 módulo por vez -->
+        <!-- Barra de Abas para alternar 1 mÃ³dulo por vez -->
         <div class="text-tabs-nav" role="tablist" aria-label="Modos de entrada em Libras">
           <button type="button" class="text-tab-btn active" role="tab" aria-selected="true" data-text-tab="texto">
             &#9997; Texto
@@ -270,7 +270,7 @@
             &#9889; Sinais
           </button>
           <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="alfabeto">
-            &#128292; A–Z
+            &#128292; Aâ€“Z
           </button>
           <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="telemetria">
             &#128225; Log
@@ -282,13 +282,13 @@
           <div class="panel-header-row">
             <p class="panel-label">Entrada de Texto</p>
             <div class="audio-speed-controls">
-              <button id="btn-toggle-voz" type="button" class="btn-mini muted" aria-pressed="false" title="Ativar/Desativar narração por voz">
-                🔇 Voz: OFF
+              <button id="btn-toggle-voz" type="button" class="btn-mini muted" aria-pressed="false" title="Ativar/Desativar narraÃ§Ã£o por voz">
+                ðŸ”‡ Voz: OFF
               </button>
-              <select id="select-velocidade" class="select-speed" aria-label="Velocidade de tradução" title="Velocidade da tradução">
+              <select id="select-velocidade" class="select-speed" aria-label="Velocidade de traduÃ§Ã£o" title="Velocidade da traduÃ§Ã£o">
                 <option value="0.7">0.7x Lento</option>
                 <option value="1" selected>1.0x Normal</option>
-                <option value="1.5">1.5x Rápido</option>
+                <option value="1.5">1.5x RÃ¡pido</option>
               </select>
             </div>
           </div>
@@ -305,10 +305,10 @@
             autocapitalize="characters"
           ></textarea>
 
-          <p class="tip">Digite A–Z &middot; <kbd>Enter</kbd> traduz &middot; Reconhece sinais compostos automaticamente</p>
+          <p class="tip">Digite Aâ€“Z &middot; <kbd>Enter</kbd> traduz &middot; Reconhece sinais compostos automaticamente</p>
 
           <div class="btn-row">
-            <button id="btn-traduzir" class="btn-act blue" aria-label="Iniciar tradução">
+            <button id="btn-traduzir" class="btn-act blue" aria-label="Iniciar traduÃ§Ã£o">
               &#9654;&nbsp; Traduzir
             </button>
             <button id="btn-limpar" class="btn-act gray" aria-label="Limpar campo">
@@ -317,31 +317,31 @@
           </div>
 
           <div id="fila-chips" class="queue-box"
-               role="list" aria-label="Letras e sinais na fila de tradução" aria-live="polite">
+               role="list" aria-label="Letras e sinais na fila de traduÃ§Ã£o" aria-live="polite">
           </div>
         </div>
 
-        <!-- ABA 2: SINAIS RÁPIDOS EM LIBRAS -->
+        <!-- ABA 2: SINAIS RÃPIDOS EM LIBRAS -->
         <div class="text-tab-pane" data-tab-pane="sinais" role="tabpanel">
-          <p class="panel-label">Sinais Rápidos em Libras</p>
-          <div class="palavras-rapidas" role="group" aria-label="Gestos rápidos em Libras">
+          <p class="panel-label">Sinais RÃ¡pidos em Libras</p>
+          <div class="palavras-rapidas" role="group" aria-label="Gestos rÃ¡pidos em Libras">
             <button class="btn-palavra" data-p="AJUDA"      aria-label="Sinal AJUDA">AJUDA</button>
             <button class="btn-palavra" data-p="SOCORRO"    aria-label="Sinal SOCORRO">SOCORRO</button>
             <button class="btn-palavra" data-p="OBRIGADO"   aria-label="Sinal OBRIGADO">OBRIGADO</button>
-            <button class="btn-palavra" data-p="AGUA"       aria-label="Sinal ÁGUA">ÁGUA</button>
+            <button class="btn-palavra" data-p="AGUA"       aria-label="Sinal ÃGUA">ÃGUA</button>
             <button class="btn-palavra" data-p="COMIDA"     aria-label="Sinal COMIDA">COMIDA</button>
             <button class="btn-palavra" data-p="BANHEIRO"   aria-label="Sinal BANHEIRO">BANHEIRO</button>
             <button class="btn-palavra" data-p="PERIGO"     aria-label="Sinal PERIGO">PERIGO</button>
             <button class="btn-palavra" data-p="SIM"        aria-label="Sinal SIM">SIM</button>
-            <button class="btn-palavra" data-p="NAO"        aria-label="Sinal NÃO">NÃO</button>
+            <button class="btn-palavra" data-p="NAO"        aria-label="Sinal NÃƒO">NÃƒO</button>
             <button class="btn-palavra" data-p="POR FAVOR"  aria-label="Sinal POR FAVOR">POR FAVOR</button>
           </div>
         </div>
 
-        <!-- ABA 3: DATILOLOGIA INTERATIVA (A–Z) -->
+        <!-- ABA 3: DATILOLOGIA INTERATIVA (Aâ€“Z) -->
         <div class="text-tab-pane" data-tab-pane="alfabeto" role="tabpanel">
-          <p class="panel-label">Datilologia Interativa (A–Z)</p>
-          <div id="alfabeto-rapido" class="alfabeto-rapido" role="group" aria-label="Teclado rápido de letras A a Z">
+          <p class="panel-label">Datilologia Interativa (Aâ€“Z)</p>
+          <div id="alfabeto-rapido" class="alfabeto-rapido" role="group" aria-label="Teclado rÃ¡pido de letras A a Z">
             <!-- Gerado via script.js -->
           </div>
         </div>
@@ -356,21 +356,21 @@
 
       </div>
 
-      <!-- PAINEL DIREITO — Simulador Sincronizado 3D -->
+      <!-- PAINEL DIREITO â€” Simulador Sincronizado 3D -->
       <div class="panel panel-right">
 
         <div class="panel-header-row">
-          <p class="panel-label">Simulador Cinético 3D</p>
+          <p class="panel-label">Simulador CinÃ©tico 3D</p>
           <span class="badge-tech">THREE.JS WEBGL</span>
         </div>
 
         <div id="hand3d-container"
              role="img"
-             aria-label="Visualização 3D interativa da mão robótica">
+             aria-label="VisualizaÃ§Ã£o 3D interativa da mÃ£o robÃ³tica">
 
           <div id="hand3d-loading" class="loading-overlay-3d" aria-hidden="true">
             <span class="loading-ring"></span>
-            <span>Inicializando Mão Biônica 3D...</span>
+            <span>Inicializando MÃ£o BiÃ´nica 3D...</span>
           </div>
 
         </div>
@@ -381,29 +381,29 @@
                aria-label="Letra ou sinal atual sendo traduzido"></div>
 
           <p id="feedback-modo" role="status" aria-live="polite">
-            Aguardando entrada ou seleção A–Z...
+            Aguardando entrada ou seleÃ§Ã£o Aâ€“Z...
           </p>
         </div>
 
-        <div class="controles-3d" role="group" aria-label="Controles da visualização 3D">
+        <div class="controles-3d" role="group" aria-label="Controles da visualizaÃ§Ã£o 3D">
           <button id="btn-3d-rotacionar" class="btn-ctrl3d"
-                  title="Ligar/desligar rotação automática"
-                  aria-label="Alternar rotação automática da câmera 3D">
-            &#9654; Rotação
+                  title="Ligar/desligar rotaÃ§Ã£o automÃ¡tica"
+                  aria-label="Alternar rotaÃ§Ã£o automÃ¡tica da cÃ¢mera 3D">
+            &#9654; RotaÃ§Ã£o
           </button>
           <button id="btn-3d-resetar" class="btn-ctrl3d"
-                  title="Resetar posição da câmera 3D"
-                  aria-label="Resetar câmera 3D para posição frontal">
+                  title="Resetar posiÃ§Ã£o da cÃ¢mera 3D"
+                  aria-label="Resetar cÃ¢mera 3D para posiÃ§Ã£o frontal">
             &#8962; Frontal
           </button>
           <button id="btn-3d-neutra" class="btn-ctrl3d"
-                  title="Voltar dedos para posição aberta/neutra"
-                  aria-label="Posição neutra da mão">
+                  title="Voltar dedos para posiÃ§Ã£o aberta/neutra"
+                  aria-label="PosiÃ§Ã£o neutra da mÃ£o">
             &#9995; Pose Neutra
           </button>
         </div>
 
-        <p class="tip">Arraste para orbitar &middot; Scroll para zoom &middot; Trajetórias de J e Z com rastro espacial</p>
+        <p class="tip">Arraste para orbitar &middot; Scroll para zoom &middot; TrajetÃ³rias de J e Z com rastro espacial</p>
 
       </div>
 
@@ -413,15 +413,15 @@
 
 
   <!-- ===========================================================
-       TELA 3 — TRADUÇÃO POR CÂMERA (MediaPipe Hands)
+       TELA 3 â€” TRADUÃ‡ÃƒO POR CÃ‚MERA (MediaPipe Hands)
        =========================================================== -->
-  <section id="screen-camera" class="screen" aria-label="Tradução por câmera">
+  <section id="screen-camera" class="screen" aria-label="TraduÃ§Ã£o por cÃ¢mera">
 
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
       <div class="header-titles">
         <span class="header-eyebrow">MODO 02</span>
-        <h2>Tradução por Câmera</h2>
+        <h2>TraduÃ§Ã£o por CÃ¢mera</h2>
       </div>
       <div class="bt-status" style="margin-left:auto;" role="status" aria-live="polite">
         <span class="bt-dot" aria-hidden="true"></span>
@@ -431,7 +431,7 @@
 
     <div class="camera-body">
 
-      <!-- Coluna Esquerda: Vídeo + Controles da Lente -->
+      <!-- Coluna Esquerda: VÃ­deo + Controles da Lente -->
       <div class="camera-stage">
         <div id="camera-wrap" class="camera-wrap mirrored">
           <video
@@ -439,28 +439,28 @@
             autoplay
             playsinline
             muted
-            aria-label="Feed ao vivo da câmera"
+            aria-label="Feed ao vivo da cÃ¢mera"
           ></video>
           <canvas id="cameraCanvas"
                   aria-hidden="true"
-                  title="Pontos de rastreamento da mão detectada"></canvas>
+                  title="Pontos de rastreamento da mÃ£o detectada"></canvas>
         </div>
 
         <div class="camera-controls-row">
           <button id="btn-toggle-camera" class="btn-cam"
-                  aria-label="Ligar ou desligar a câmera do dispositivo">
-            &#128247;&nbsp; Ligar Câmera
+                  aria-label="Ligar ou desligar a cÃ¢mera do dispositivo">
+            &#128247;&nbsp; Ligar CÃ¢mera
           </button>
           <button id="btn-espelhar-camera" class="btn-ctrl3d ativo"
-                  title="Inverter horizontalmente a imagem da câmera">
-            🪞 Espelhar: ON
+                  title="Inverter horizontalmente a imagem da cÃ¢mera">
+            ðŸªž Espelhar: ON
           </button>
         </div>
 
         <p id="camera-erro" class="camera-error-msg" role="alert" aria-live="assertive"></p>
 
         <p class="tip">
-          Análise biomecânica de ângulos articulares &middot; Filtro cinemático anti-spam &middot; Trajetórias de J e Z
+          AnÃ¡lise biomecÃ¢nica de Ã¢ngulos articulares &middot; Filtro cinemÃ¡tico anti-spam &middot; TrajetÃ³rias de J e Z
         </p>
       </div>
 
@@ -469,19 +469,19 @@
 
         <div class="panel-header-row">
           <p class="panel-label">Letra Detectada</p>
-          <span class="badge-tech">VISÃO COMPUTACIONAL</span>
+          <span class="badge-tech">VISÃƒO COMPUTACIONAL</span>
         </div>
 
         <div id="letra-camera-detectada"
              class="letra-cam-big"
              role="status" aria-live="polite"
-             aria-label="Letra Libras detectada pela câmera">—</div>
+             aria-label="Letra Libras detectada pela cÃ¢mera">â€”</div>
 
-        <p id="lbl-confianca" class="lbl-conf" aria-live="polite">Aguardando câmera...</p>
+        <p id="lbl-confianca" class="lbl-conf" aria-live="polite">Aguardando cÃ¢mera...</p>
 
         <div class="conf-bar"
              role="progressbar" aria-valuemin="0" aria-valuemax="100"
-             title="Confiança da detecção">
+             title="ConfianÃ§a da detecÃ§Ã£o">
           <div id="conf-fill" class="conf-fill"></div>
         </div>
 
@@ -498,10 +498,10 @@
              aria-label="Texto acumulado das letras detectadas"></div>
 
         <div class="cam-word-actions">
-          <button id="btn-cam-espaco" class="btn-act gray" title="Inserir espaço">
-            &#9141; Espaço
+          <button id="btn-cam-espaco" class="btn-act gray" title="Inserir espaÃ§o">
+            &#9141; EspaÃ§o
           </button>
-          <button id="btn-cam-apagar" class="btn-act gray" title="Apagar última letra">
+          <button id="btn-cam-apagar" class="btn-act gray" title="Apagar Ãºltima letra">
             &#9003; Apagar
           </button>
           <button id="btn-cam-falar" class="btn-act blue" title="Falar palavra formada">
@@ -513,7 +513,7 @@
         </div>
 
         <p class="tip">
-          Sustente o sinal estático por ~0.85s para confirmar &middot; Desenhe J (mindinho) ou Z (indicador) no ar
+          Sustente o sinal estÃ¡tico por ~0.85s para confirmar &middot; Desenhe J (mindinho) ou Z (indicador) no ar
         </p>
 
       </div>
@@ -524,9 +524,9 @@
 
 
   <!-- ===========================================================
-       TELA 4 — BLUETOOTH E GUIA DE DATILOLOGIA
+       TELA 4 â€” BLUETOOTH E GUIA DE DATILOLOGIA
        =========================================================== -->
-  <section id="screen-bluetooth" class="screen" aria-label="Conexão Bluetooth com a mão robótica">
+  <section id="screen-bluetooth" class="screen" aria-label="ConexÃ£o Bluetooth com a mÃ£o robÃ³tica">
 
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
@@ -544,87 +544,87 @@
         <svg class="bt-icon-big" viewBox="0 0 24 24"
              fill="none" stroke="currentColor" stroke-width="1.4"
              stroke-linecap="round" stroke-linejoin="round"
-             role="img" aria-label="Ícone Bluetooth">
+             role="img" aria-label="Ãcone Bluetooth">
           <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
         </svg>
 
         <div class="bt-status" style="justify-content:center;"
              role="status" aria-live="polite">
           <span class="bt-dot" aria-hidden="true"></span>
-          <span id="bt-device-name" class="bt-device-name">Aguardando conexão...</span>
+          <span id="bt-device-name" class="bt-device-name">Aguardando conexÃ£o...</span>
         </div>
 
-        <div class="bt-instrucoes" aria-label="Instruções de conexão Bluetooth">
+        <div class="bt-instrucoes" aria-label="InstruÃ§Ãµes de conexÃ£o Bluetooth">
           <p><strong>Procedimento de pareamento:</strong></p>
-          <p>1. Ligue a alimentação do controlador <strong>ESP32 (LibraTronic)</strong></p>
+          <p>1. Ligue a alimentaÃ§Ã£o do controlador <strong>ESP32 (LibraTronic)</strong></p>
           <p>2. Selecione <strong>Conectar</strong> abaixo</p>
           <p>3. Escolha <strong>"LibraTronic"</strong> na janela do navegador</p>
-          <p>4. Aguarde a confirmação de telemetria ativa</p>
+          <p>4. Aguarde a confirmaÃ§Ã£o de telemetria ativa</p>
         </div>
 
         <div class="bt-btn-row">
           <button id="btn-bt-conectar" class="btn-act blue"
-                  aria-label="Iniciar conexão Bluetooth com o ESP32">
+                  aria-label="Iniciar conexÃ£o Bluetooth com o ESP32">
             Conectar Hardware
           </button>
           <button id="btn-bt-desconectar" class="btn-act gray"
-                  aria-label="Encerrar conexão Bluetooth">
+                  aria-label="Encerrar conexÃ£o Bluetooth">
             Desconectar
           </button>
         </div>
 
         <div class="sep" aria-hidden="true"></div>
 
-        <div class="bt-specs" aria-label="Informações técnicas do serviço Bluetooth">
-          <p><span>SERVIÇO BLE</span> <code>0000FFE0-0000-1000-8000-00805F9B34FB</code></p>
-          <p><span>CARACTERÍSTICA</span> <code>0000FFE1-0000-1000-8000-00805F9B34FB</code></p>
+        <div class="bt-specs" aria-label="InformaÃ§Ãµes tÃ©cnicas do serviÃ§o Bluetooth">
+          <p><span>SERVIÃ‡O BLE</span> <code>0000FFE0-0000-1000-8000-00805F9B34FB</code></p>
+          <p><span>CARACTERÃSTICA</span> <code>0000FFE1-0000-1000-8000-00805F9B34FB</code></p>
           <p><span>BAUD RATE</span> <code>115200 bps</code></p>
           <p><span>PROTOCOLO</span> <code>&lt;CMD_LETRA&gt; / &lt;CMD_GESTO&gt;</code></p>
         </div>
 
       </div>
 
-      <!-- Coluna 2: Referência Interativa do Alfabeto Libras -->
-      <div class="bt-card" aria-label="Referência do alfabeto Libras">
+      <!-- Coluna 2: ReferÃªncia Interativa do Alfabeto Libras -->
+      <div class="bt-card" aria-label="ReferÃªncia do alfabeto Libras">
 
-        <p class="panel-label">Índice de Datilologia Libras (A–Z)</p>
-        <p class="tip" style="text-align:left;">Selecione qualquer letra para inspecionar sua configuração articular:</p>
+        <p class="panel-label">Ãndice de Datilologia Libras (Aâ€“Z)</p>
+        <p class="tip" style="text-align:left;">Selecione qualquer letra para inspecionar sua configuraÃ§Ã£o articular:</p>
 
         <div id="ref-alfabeto-bt" class="ref-alfabeto" role="list" aria-label="Letras A a Z do alfabeto Libras">
           <span class="chip sent" role="listitem" title="A - Punho fechado, polegar na lateral">A</span>
-          <span class="chip sent" role="listitem" title="B - Mão aberta, 4 dedos unidos, polegar na palma">B</span>
+          <span class="chip sent" role="listitem" title="B - MÃ£o aberta, 4 dedos unidos, polegar na palma">B</span>
           <span class="chip sent" role="listitem" title="C - Dedos curvados formando arco C">C</span>
           <span class="chip sent" role="listitem" title="D - Indicador estendido, demais tocam o polegar">D</span>
           <span class="chip sent" role="listitem" title="E - Falanges superiores curvadas em garra">E</span>
           <span class="chip sent" role="listitem" title="F - Indicador toca polegar por fora, 3 dedos abertos">F</span>
           <span class="chip sent" role="listitem" title="G - Indicador e polegar paralelos apontando para cima">G</span>
-          <span class="chip sent" role="listitem" title="H - Indicador e médio com giro de pulso">H</span>
+          <span class="chip sent" role="listitem" title="H - Indicador e mÃ©dio com giro de pulso">H</span>
           <span class="chip sent" role="listitem" title="I - Mindinho estendido">I</span>
-          <span class="chip sent" role="listitem" title="J - Mindinho traçando a curva do J">J</span>
-          <span class="chip sent" role="listitem" title="K - Indicador, médio e polegar com impulso p/ cima">K</span>
-          <span class="chip sent" role="listitem" title="L - Indicador e polegar em ângulo reto">L</span>
+          <span class="chip sent" role="listitem" title="J - Mindinho traÃ§ando a curva do J">J</span>
+          <span class="chip sent" role="listitem" title="K - Indicador, mÃ©dio e polegar com impulso p/ cima">K</span>
+          <span class="chip sent" role="listitem" title="L - Indicador e polegar em Ã¢ngulo reto">L</span>
           <span class="chip sent" role="listitem" title="M - 3 dedos unidos apontando para baixo">M</span>
           <span class="chip sent" role="listitem" title="N - 2 dedos unidos apontando para baixo">N</span>
-          <span class="chip sent" role="listitem" title="O - Dedos curvados em círculo com o polegar">O</span>
-          <span class="chip sent" role="listitem" title="P - Configuração de K na horizontal">P</span>
-          <span class="chip sent" role="listitem" title="Q - Configuração de G apontando para baixo">Q</span>
-          <span class="chip sent" role="listitem" title="R - Indicador e médio cruzados">R</span>
-          <span class="chip sent" role="listitem" title="S - Punho fechado com polegar cruzado à frente">S</span>
+          <span class="chip sent" role="listitem" title="O - Dedos curvados em cÃ­rculo com o polegar">O</span>
+          <span class="chip sent" role="listitem" title="P - ConfiguraÃ§Ã£o de K na horizontal">P</span>
+          <span class="chip sent" role="listitem" title="Q - ConfiguraÃ§Ã£o de G apontando para baixo">Q</span>
+          <span class="chip sent" role="listitem" title="R - Indicador e mÃ©dio cruzados">R</span>
+          <span class="chip sent" role="listitem" title="S - Punho fechado com polegar cruzado Ã  frente">S</span>
           <span class="chip sent" role="listitem" title="T - Indicador flexionado por dentro do polegar">T</span>
-          <span class="chip sent" role="listitem" title="U - Indicador e médio estendidos e unidos">U</span>
-          <span class="chip sent" role="listitem" title="V - Indicador e médio estendidos e afastados">V</span>
-          <span class="chip sent" role="listitem" title="W - Três dedos estendidos e separados">W</span>
+          <span class="chip sent" role="listitem" title="U - Indicador e mÃ©dio estendidos e unidos">U</span>
+          <span class="chip sent" role="listitem" title="V - Indicador e mÃ©dio estendidos e afastados">V</span>
+          <span class="chip sent" role="listitem" title="W - TrÃªs dedos estendidos e separados">W</span>
           <span class="chip sent" role="listitem" title="X - Indicador em gancho puxando">X</span>
           <span class="chip sent" role="listitem" title="Y - Polegar e mindinho estendidos">Y</span>
-          <span class="chip sent" role="listitem" title="Z - Indicador traçando um Z no espaço">Z</span>
+          <span class="chip sent" role="listitem" title="Z - Indicador traÃ§ando um Z no espaÃ§o">Z</span>
         </div>
 
         <div class="sep" aria-hidden="true"></div>
 
         <div class="bt-instrucoes">
-          <p><strong>Arquitetura Mecânica &amp; Digital:</strong></p>
-          <p>&bull; <strong>Trajetória Espacial:</strong> Sinais dinâmicos (<em>J, Z, H, K, X</em>) descrevem vetores tridimensionais contínuos no espaço.</p>
-          <p>&bull; <strong>Atuação Biomimética:</strong> Cascata de tendões mecânicos independentes (MCP &rarr; PIP &rarr; DIP) impressos em polímero branco de alta precisão.</p>
+          <p><strong>Arquitetura MecÃ¢nica &amp; Digital:</strong></p>
+          <p>&bull; <strong>TrajetÃ³ria Espacial:</strong> Sinais dinÃ¢micos (<em>J, Z, H, K, X</em>) descrevem vetores tridimensionais contÃ­nuos no espaÃ§o.</p>
+          <p>&bull; <strong>AtuaÃ§Ã£o BiomimÃ©tica:</strong> Cascata de tendÃµes mecÃ¢nicos independentes (MCP &rarr; PIP &rarr; DIP) impressos em polÃ­mero branco de alta precisÃ£o.</p>
         </div>
 
       </div>
@@ -635,7 +635,7 @@
 
 </div>
 
-<!-- MEDIAPIPE — carregado de forma assíncrona -->
+<!-- MEDIAPIPE â€” carregado de forma assÃ­ncrona -->
 <script>
   (() => {
     const carregarScript = (src) => {
@@ -650,37 +650,37 @@
   })();
 </script>
 
-<!-- SCRIPTS DA APLICAÇÃO -->
+<!-- SCRIPTS DA APLICAÃ‡ÃƒO -->
 <script src="hand3d.js"></script>
 <script src="script.js"></script>
 <script src="viewer3d.js"></script>
 
-<!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
+<!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÃ‡Ã•ES DE SCROLL/PARALLAX -->
 <script>
-  // ── Inicialização do Visualizador 3D do Modelo Real (FBX) na Home ──
+  // â”€â”€ InicializaÃ§Ã£o do Visualizador 3D do Modelo Real (FBX) na Home â”€â”€
   let viewer3dModelo = null;
 
   function iniciarViewer3DModelo() {
     if (viewer3dModelo) return;
     if (typeof Viewer3DModelo === 'undefined' || typeof THREE === 'undefined' || typeof THREE.FBXLoader === 'undefined') {
-      // FBXLoader ainda carregando — tenta novamente em 200ms
+      // FBXLoader ainda carregando â€” tenta novamente em 200ms
       setTimeout(iniciarViewer3DModelo, 200);
       return;
     }
     viewer3dModelo = new Viewer3DModelo('home-hand3d-container');
     viewer3dModelo.init();
 
-    // Botão: Rotação Orbital
+    // BotÃ£o: RotaÃ§Ã£o Orbital
     const btnRot = document.getElementById('btn-modelo3d-rotacionar');
     if (btnRot) {
       btnRot.addEventListener('click', () => {
         const ativo = viewer3dModelo.toggleRotacao();
         btnRot.classList.toggle('ativo', ativo);
-        btnRot.textContent = ativo ? '⏸ Rotação Orbital' : '⏸ Rotação Orbital';
+        btnRot.textContent = ativo ? 'â¸ RotaÃ§Ã£o Orbital' : 'â¸ RotaÃ§Ã£o Orbital';
       });
     }
 
-    // Botão: Vista Frontal
+    // BotÃ£o: Vista Frontal
     const btnReset = document.getElementById('btn-modelo3d-resetar');
     if (btnReset) {
       btnReset.addEventListener('click', () => {
@@ -689,7 +689,7 @@
     }
   }
 
-  // Reveal suave ao rolar pelas secções da Home
+  // Reveal suave ao rolar pelas secÃ§Ãµes da Home
   document.addEventListener('DOMContentLoaded', () => {
     // Inicia o visualizador imediatamente
     iniciarViewer3DModelo();
@@ -715,3 +715,4 @@
 
 </body>
 </html>
+

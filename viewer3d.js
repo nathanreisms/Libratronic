@@ -22,8 +22,8 @@ class Viewer3DModelo {
     this.autoRotando = true;
     this.arrastando  = false;
     this.lastPointer = { x: 0, y: 0 };
-    this.orbitaTheta = 0;       // ângulo horizontal
-    this.orbitaPhi   = 0.3;     // ângulo vertical (radianos)
+    this.orbitaTheta = 0.2;     // ligeiramente lateral para revelar profundidade dos dedos
+    this.orbitaPhi   = 1.15;    // vista quase frontal (~66°) — ideal para ver dedos abertos
     this.orbitaRaio  = 350;     // distância da câmera (ajustado ao modelo FBX)
     this._lastW      = 0;
     this._lastH      = 0;
@@ -135,12 +135,14 @@ class Viewer3DModelo {
         const escala = 200 / maxDim;
         fbx.scale.setScalar(escala);
 
-        // Centraliza na origem
-        fbx.position.set(
-          -center.x * escala,
-          -center.y * escala,
-          -center.z * escala
-        );
+        // Rotação para garantir que os dedos fiquem visíveis e abertos para frente
+        // FBX costuma vir com eixo Y para cima; ajuste fino para pose natural aberta
+        fbx.rotation.set(0, 0, 0);
+
+        // Centraliza na origem após escalar
+        const box2   = new THREE.Box3().setFromObject(fbx);
+        const center2 = box2.getCenter(new THREE.Vector3());
+        fbx.position.set(-center2.x, -center2.y, -center2.z);
 
         // Sombras em todos os meshes
         fbx.traverse((child) => {
@@ -327,8 +329,8 @@ class Viewer3DModelo {
 
   resetarCamera() {
     this.autoRotando = false;
-    this.orbitaTheta = 0;
-    this.orbitaPhi   = 0.30;
+    this.orbitaTheta = 0.2;
+    this.orbitaPhi   = 1.15;
     this._atualizarPosicaoCamera();
   }
 
