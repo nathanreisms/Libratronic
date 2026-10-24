@@ -28,6 +28,10 @@
     referrerpolicy="no-referrer">
   </script>
 
+  <!-- THREE.JS FBXLoader (compatível com r128) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/libs/fflate.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js" crossorigin="anonymous"></script>
+
   <!-- POLYFILL — CanvasRenderingContext2D.roundRect -->
   <script>
     if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
@@ -68,7 +72,7 @@
       <nav class="home-anchor-nav" aria-label="Secções da página inicial">
         <a href="#hero-section" class="anchor-link">Início</a>
         <a href="#about-section" class="anchor-link">Sobre o Projeto</a>
-        <a href="#lab3d-section" class="anchor-link">Laboratório 3D</a>
+        <a href="#lab3d-section" class="anchor-link">Modelo 3d do Projeto</a>
       </nav>
 
       <div class="bt-status" role="status" aria-live="polite">
@@ -184,65 +188,49 @@
     </div>
 
     <!-- ─────────────────────────────────────────────────────────
-         SECÇÃO 3: MODELO 3D INTERATIVO (LABORATÓRIO VIRTUAL · NOVA)
+         SECÇÃO 3: MODELO 3D DO PROJETO (VISUALIZADOR FBX REAL)
          ───────────────────────────────────────────────────────── -->
-    <div id="lab3d-section" class="home-section lab3d-section" aria-label="Modelo 3D Interativo">
+    <div id="lab3d-section" class="home-section lab3d-section" aria-label="Modelo 3D do Projeto">
 
       <div class="lab3d-header">
-        <span class="section-index">02 &mdash; LABORATÓRIO VIRTUAL</span>
-        <h2 class="lab3d-title">Modelo 3D Interativo</h2>
+        <span class="section-index">02 &mdash; MODELO 3D DO PROJETO</span>
+        <h2 class="lab3d-title">Modelo 3d do Projeto</h2>
         <p class="lab3d-subtitle">
-          Arraste para orbitar em 360° e inspecione a mecânica articular da mão virtual.
+          Arraste para orbitar em 360° &middot; Scroll para zoom &middot; Modelo real da prótese LibraTronic.
         </p>
       </div>
 
-      <!-- Palco Dedicado do Laboratório 3D -->
+      <!-- Palco do Visualizador 3D Real -->
       <div class="lab3d-stage-wrap">
         <div id="home-hand3d-container"
              class="lab3d-viewport"
              role="img"
-             aria-label="Laboratório virtual 3D interativo da mão robótica">
+             aria-label="Visualizador 3D interativo do modelo real da prótese LibraTronic">
 
           <div id="home-hand3d-loading" class="loading-overlay-3d" aria-hidden="true">
             <span class="loading-ring"></span>
-            <span>Inicializando Laboratório 3D...</span>
+            <span>Carregando Modelo 3D...</span>
           </div>
         </div>
 
-        <!-- HUD Minimalista Flutuante do Laboratório -->
+        <!-- HUD Flutuante -->
         <div class="lab3d-hud-overlay">
-          <span id="home-letra-atual" class="lab3d-pose-badge">POSE NEUTRA</span>
-          <span id="home-feedback-modo" class="lab3d-pose-desc">Arraste na cena para rodar &middot; Scroll para zoom</span>
+          <span class="lab3d-pose-badge">MODELO REAL 3D</span>
+          <span class="lab3d-pose-desc">Arraste na cena para rodar &middot; Scroll para zoom</span>
         </div>
       </div>
 
-      <!-- Controles do Laboratório Virtual -->
+      <!-- Controles do Visualizador -->
       <div class="lab3d-controls-bar">
-        <div class="controles-3d" role="group" aria-label="Controles de câmara do laboratório 3D">
-          <button id="btn-home-3d-rotacionar" class="btn-ctrl3d ativo"
+        <div class="controles-3d" role="group" aria-label="Controles de câmara do modelo 3D">
+          <button id="btn-modelo3d-rotacionar" class="btn-ctrl3d ativo"
                   title="Alternar rotação orbital automática">
             &#9208; Rotação Orbital
           </button>
-          <button id="btn-home-3d-resetar" class="btn-ctrl3d"
+          <button id="btn-modelo3d-resetar" class="btn-ctrl3d"
                   title="Alinhar câmara frontalmente">
             &#8962; Vista Frontal
           </button>
-          <button id="btn-home-3d-neutra" class="btn-ctrl3d"
-                  title="Repor articulações na pose aberta">
-            &#9995; Pose Neutra
-          </button>
-        </div>
-
-        <div class="lab3d-quick-poses" role="group" aria-label="Testar poses cinemáticas no laboratório">
-          <span class="quick-poses-label">Inspecionar Pose:</span>
-          <button type="button" class="btn-pose-demo" data-home-letra="A">A</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="B">B</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="C">C</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="L">L</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="V">V</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="Y">Y</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="J" title="Traçado espacial J">J &middot; Rastro</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="Z" title="Traçado espacial Z">Z &middot; Rastro</button>
         </div>
       </div>
 
@@ -665,22 +653,47 @@
 <!-- SCRIPTS DA APLICAÇÃO -->
 <script src="hand3d.js"></script>
 <script src="script.js"></script>
+<script src="viewer3d.js"></script>
 
 <!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
 <script>
-  function removerLoading3D(id = 'hand3d-loading') {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.transition = 'opacity 0.35s';
-    el.style.opacity = '0';
-    setTimeout(() => {
-      if (el && el.parentNode) el.parentNode.removeChild(el);
-    }, 400);
+  // ── Inicialização do Visualizador 3D do Modelo Real (FBX) na Home ──
+  let viewer3dModelo = null;
+
+  function iniciarViewer3DModelo() {
+    if (viewer3dModelo) return;
+    if (typeof Viewer3DModelo === 'undefined' || typeof THREE === 'undefined' || typeof THREE.FBXLoader === 'undefined') {
+      // FBXLoader ainda carregando — tenta novamente em 200ms
+      setTimeout(iniciarViewer3DModelo, 200);
+      return;
+    }
+    viewer3dModelo = new Viewer3DModelo('home-hand3d-container');
+    viewer3dModelo.init();
+
+    // Botão: Rotação Orbital
+    const btnRot = document.getElementById('btn-modelo3d-rotacionar');
+    if (btnRot) {
+      btnRot.addEventListener('click', () => {
+        const ativo = viewer3dModelo.toggleRotacao();
+        btnRot.classList.toggle('ativo', ativo);
+        btnRot.textContent = ativo ? '⏸ Rotação Orbital' : '⏸ Rotação Orbital';
+      });
+    }
+
+    // Botão: Vista Frontal
+    const btnReset = document.getElementById('btn-modelo3d-resetar');
+    if (btnReset) {
+      btnReset.addEventListener('click', () => {
+        viewer3dModelo.resetarCamera();
+      });
+    }
   }
-  window.removerLoading3D = removerLoading3D;
 
   // Reveal suave ao rolar pelas secções da Home
   document.addEventListener('DOMContentLoaded', () => {
+    // Inicia o visualizador imediatamente
+    iniciarViewer3DModelo();
+
     const revealSections = document.querySelectorAll('.about-section, .lab3d-section');
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver(
