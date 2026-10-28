@@ -1,25 +1,24 @@
 <!DOCTYPE html>
-<!--
-  ============================================================
-  LibraTronic v10.0 — Dark UI Clean & Futurista (Apple / SpaceX Inspired)
-  Unificado: Tradução por Texto + Teclado Datilógrafo + Bluetooth ESP32 (6 Servos) + Simulador 3D
-  Integrado com: style.css · bluetooth.js · hand3d.js · script.js · database.json
-  ============================================================
--->
+<!-- LibraTronic v6 · tradução de Libras com mão robótica impressa em 3D -->
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>LibraTronic — Tradução de Libras através de Robótica e Visão Computacional</title>
 
-  <meta name="theme-color" content="#050505" />
+  <meta name="theme-color" content="#111111" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="LibraTronic" />
   <meta name="description" content="Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética." />
 
+  <!-- FONTES -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
   <!-- CSS PRINCIPAL -->
-  <link rel="stylesheet" href="style.css?v=10.0" />
+  <link rel="stylesheet" href="style.css" />
 
   <!-- THREE.JS r128 -->
   <script
@@ -62,19 +61,19 @@
     <header class="home-topbar">
       <a href="#hero-section" class="brand-mark" aria-label="LibraTronic Início">
         <span class="brand-dot" aria-hidden="true"></span>
-        LIBRATRONIC
+        LibraTronic
       </a>
 
       <nav class="home-anchor-nav" aria-label="Secções da página inicial">
         <a href="#hero-section" class="anchor-link">Início</a>
-        <a href="#about-section" class="anchor-link">Sobre o Projeto</a>
+        <a href="#about-section" class="anchor-link">Sobre o projeto</a>
         <a href="#lab3d-section" class="anchor-link">Laboratório 3D</a>
       </nav>
 
-      <button type="button" id="btn-home-top-bt" class="bt-status bt-status-interactive" title="Clique para conectar ou desconectar o ESP32 via Bluetooth" aria-live="polite">
+      <div class="bt-status" role="status" aria-live="polite">
         <span class="bt-dot" aria-hidden="true"></span>
-        <span class="bt-status-text">Conectar ESP32</span>
-      </button>
+        <span class="bt-status-text">Bluetooth desconectado</span>
+      </div>
     </header>
 
     <!-- ─────────────────────────────────────────────────────────
@@ -85,21 +84,21 @@
       <div class="hero-grid">
         <!-- Coluna Editorial e Navegação -->
         <div class="hero-content">
-          <span class="hero-eyebrow">ROBÓTICA BIOMIMÉTICA &middot; IA EM TEMPO REAL</span>
           <h1 class="app-title">LibraTronic</h1>
           <p class="app-subtitle">
-            Tradução de Libras através de Robótica e Visão Computacional
+            Escreva uma palavra e a mão soletra em Libras.
           </p>
 
           <nav class="home-buttons" aria-label="Menu principal">
-            <button id="btn-ir-texto" class="btn-ghost-pill primary-pill" aria-label="Abrir Tradução por Texto, Teclado Datilógrafo, Bluetooth e Mão 3D">
+            <button id="btn-ir-texto" class="btn-ghost-pill primary-pill" aria-label="Abrir Tradução por Texto">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="1.6"
                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="4" width="20" height="16" rx="2.5"/>
-                <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/>
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
               </svg>
-              <span>Tradução por Texto &middot; Teclado &amp; 3D</span>
+              <span>Escrever e traduzir</span>
             </button>
 
             <button id="btn-ir-camera" class="btn-ghost-pill" aria-label="Abrir Tradução por Câmera">
@@ -109,7 +108,16 @@
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                 <circle cx="12" cy="13" r="4"/>
               </svg>
-              <span>Tradução por Câmera</span>
+              <span>Traduzir pela câmera</span>
+            </button>
+
+            <button id="btn-ir-bluetooth" class="btn-ghost-pill" aria-label="Conectar via Bluetooth">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+              </svg>
+              <span>Conectar a mão</span>
             </button>
           </nav>
         </div>
@@ -128,61 +136,61 @@
         </div>
       </div>
 
-      <!-- Indicador Minimalista de Scroll -->
-      <a href="#about-section" class="scroll-cue" aria-label="Rolar para a secção Sobre o Projeto">
-        <span class="scroll-cue-label">Explorar</span>
-        <span class="scroll-cue-line" aria-hidden="true"></span>
-      </a>
 
     </div>
 
     <!-- ─────────────────────────────────────────────────────────
          SECÇÃO 2: SOBRE O PROJETO (ECRÃ INTEIRO)
          ───────────────────────────────────────────────────────── -->
-    <div id="about-section" class="home-section about-section" aria-label="Sobre o Projeto">
+    <div id="about-section" class="home-section about-section" aria-label="Sobre o projeto">
 
       <div class="about-inner">
-        <span class="section-index">01 &mdash; PROPÓSITO</span>
+        <div class="about-text">
+          <p class="about-statement">
+            Uma mão impressa em 3D que traduz o alfabeto da Libras em movimento.
+          </p>
 
-        <p class="about-statement">
-          Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética.
-        </p>
+          <div class="about-metrics" aria-label="Especificações técnicas">
+            <div class="metric-item">
+              <span class="metric-value">21 pontos</span>
+              <span class="metric-label">da mão rastreados pela câmera com MediaPipe.</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-value">6 servos</span>
+              <span class="metric-label">cinco movem os dedos e um gira o pulso.</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-value">ESP32</span>
+              <span class="metric-label">recebe a letra por Bluetooth e comanda os servos.</span>
+            </div>
+          </div>
 
-        <div class="about-metrics" aria-label="Especificações de engenharia">
-          <div class="metric-item">
-            <span class="metric-value">21 Pontos</span>
-            <span class="metric-label">Rastreamento Óptico MediaPipe</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-value">15 Juntas</span>
-            <span class="metric-label">Cinemática Articulada 3D</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-value">6 Servos BLE</span>
-            <span class="metric-label">Acionamento Físico ESP32 (90°–180°)</span>
+          <div class="about-next">
+            <a href="#lab3d-section" class="btn-ghost-pill subtle-pill">
+              <span>Ver o modelo 3D</span>
+            </a>
           </div>
         </div>
 
-        <div class="about-next">
-          <a href="#lab3d-section" class="btn-ghost-pill subtle-pill">
-            <span>Inspecionar Modelo 3D</span>
-            <span aria-hidden="true">&darr;</span>
-          </a>
-        </div>
+        <figure class="about-figure">
+          <img src="hand-real-full.jpg"
+               alt="Prótese robótica branca com antebraço impresso em 3D sobre uma mesa de laboratório, com a mão aberta"
+               loading="lazy" decoding="async" />
+          <figcaption>A prótese completa, montada na sala de aula.</figcaption>
+        </figure>
       </div>
 
     </div>
 
     <!-- ─────────────────────────────────────────────────────────
-         SECÇÃO 3: MODELO 3D INTERATIVO (LABORATÓRIO VIRTUAL)
+         SECÇÃO 3: MODELO 3D INTERATIVO (LABORATÓRIO VIRTUAL · NOVA)
          ───────────────────────────────────────────────────────── -->
     <div id="lab3d-section" class="home-section lab3d-section" aria-label="Modelo 3D Interativo">
 
       <div class="lab3d-header">
-        <span class="section-index">02 &mdash; LABORATÓRIO VIRTUAL</span>
-        <h2 class="lab3d-title">Modelo 3D Interativo</h2>
+        <h2 class="lab3d-title">Modelo 3D da mão</h2>
         <p class="lab3d-subtitle">
-          Arraste para orbitar em 360° e inspecione a mecânica articular da mão virtual.
+          Arraste para girar a mão, use a roda do mouse para aproximar e escolha uma letra para ver a pose.
         </p>
       </div>
 
@@ -195,14 +203,14 @@
 
           <div id="home-hand3d-loading" class="loading-overlay-3d" aria-hidden="true">
             <span class="loading-ring"></span>
-            <span>Inicializando Laboratório 3D...</span>
+            <span>Carregando o modelo 3D...</span>
           </div>
         </div>
 
         <!-- HUD Minimalista Flutuante do Laboratório -->
         <div class="lab3d-hud-overlay">
-          <span id="home-letra-atual" class="lab3d-pose-badge">POSE NEUTRA</span>
-          <span id="home-feedback-modo" class="lab3d-pose-desc">Arraste na cena para rodar &middot; Scroll para zoom</span>
+          <span id="home-letra-atual" class="lab3d-pose-badge">Pose neutra</span>
+          <span id="home-feedback-modo" class="lab3d-pose-desc">Arraste para girar. Role para aproximar.</span>
         </div>
       </div>
 
@@ -211,90 +219,90 @@
         <div class="controles-3d" role="group" aria-label="Controles de câmara do laboratório 3D">
           <button id="btn-home-3d-rotacionar" class="btn-ctrl3d ativo"
                   title="Alternar rotação orbital automática">
-            &#9208; Rotação Orbital
+            Rotação automática
           </button>
           <button id="btn-home-3d-resetar" class="btn-ctrl3d"
                   title="Alinhar câmara frontalmente">
-            &#8962; Vista Frontal
+            Vista frontal
           </button>
           <button id="btn-home-3d-neutra" class="btn-ctrl3d"
                   title="Repor articulações na pose aberta">
-            &#9995; Pose Neutra
+            Mão aberta
           </button>
         </div>
 
         <div class="lab3d-quick-poses" role="group" aria-label="Testar poses cinemáticas no laboratório">
-          <span class="quick-poses-label">Inspecionar Pose:</span>
+          <span class="quick-poses-label">Ver a letra:</span>
           <button type="button" class="btn-pose-demo" data-home-letra="A">A</button>
           <button type="button" class="btn-pose-demo" data-home-letra="B">B</button>
           <button type="button" class="btn-pose-demo" data-home-letra="C">C</button>
           <button type="button" class="btn-pose-demo" data-home-letra="L">L</button>
           <button type="button" class="btn-pose-demo" data-home-letra="V">V</button>
           <button type="button" class="btn-pose-demo" data-home-letra="Y">Y</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="J" title="Traçado espacial J">J &middot; Rastro</button>
-          <button type="button" class="btn-pose-demo" data-home-letra="Z" title="Traçado espacial Z">Z &middot; Rastro</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="J" title="Traçado espacial J">J</button>
+          <button type="button" class="btn-pose-demo" data-home-letra="Z" title="Traçado espacial Z">Z</button>
         </div>
       </div>
 
+    </div>
+
+    <!-- ─────────────────────────────────────────────────────────
+         BLOCO BRANCO FINAL: CRÉDITOS
+         ───────────────────────────────────────────────────────── -->
+    <div id="credits-section" class="credits-section">
+      <div class="info-tile">
+        <h2>De onde vem a mão</h2>
+        <div>
+          <p>Feita por estudantes da Etec de Ilha Solteira, a mão é impressa em 3D e baseada no InMoov, um projeto de código aberto criado por Gaël Langevin.</p>
+          <p>O InMoov é distribuído sob licença CC BY-NC, que permite uso não comercial com crédito ao autor.</p>
+        </div>
+      </div>
     </div>
 
   </section>
 
 
   <!-- ===========================================================
-       TELA 2 — TRADUÇÃO POR TEXTO UNIFICADA (TECLADO DATILÓGRAFO + BLUETOOTH ESP32 + 3D)
+       TELA 2 — TRADUÇÃO POR TEXTO E SIMULADOR 3D
        =========================================================== -->
-  <section id="screen-text" class="screen" aria-label="Tradução por texto, Teclado Datilógrafo, Bluetooth e Simulador 3D">
+  <section id="screen-text" class="screen" aria-label="Tradução por texto">
 
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
       <div class="header-titles">
-        <span class="header-eyebrow">ESTÚDIO UNIFICADO &middot; 3D + MÃO FÍSICA ESP32</span>
-        <h2>Tradução por Texto &amp; Teclado Datilógrafo</h2>
+        <h2>Escrever e traduzir</h2>
       </div>
-
-      <!-- Barra de Ação Rápida Bluetooth no Topo da Tradução por Texto -->
-      <div class="header-bt-actions">
-        <button id="btn-teclado-conectar-bt" class="btn-bt-header" aria-label="Conectar ou desconectar Bluetooth ESP32">
-          <span class="bt-dot" aria-hidden="true"></span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
-          </svg>
-          <span id="teclado-bt-status-label" class="bt-status-text">Conectar ESP32</span>
-        </button>
-        <button id="btn-teclado-repouso" class="btn-ghost-pill sm btn-repouso-header" title="Colocar todos os dedos em 90° (Mão aberta / Neutro)">
-          ✋ Repouso (90°)
-        </button>
+      <div class="bt-status" style="margin-left:auto;" role="status" aria-live="polite">
+        <span class="bt-dot" aria-hidden="true"></span>
+        <span class="bt-status-text">Desconectado</span>
       </div>
     </header>
 
     <div class="text-body">
 
-      <!-- PAINEL ESQUERDO — Teclado Datilógrafo, Texto, Sinais, Bluetooth/Calibração e Log -->
+      <!-- PAINEL ESQUERDO — Organizado em Abas Compactas -->
       <div class="panel panel-left">
 
-        <!-- Barra de Abas Unificada (4 Abas) -->
-        <div class="text-tabs-nav" role="tablist" aria-label="Modos de controle e configuração">
+        <!-- Barra de Abas para alternar 1 módulo por vez -->
+        <div class="text-tabs-nav" role="tablist" aria-label="Modos de entrada em Libras">
           <button type="button" class="text-tab-btn active" role="tab" aria-selected="true" data-text-tab="texto">
-            &#9000; Texto &amp; Teclado
+            Texto
           </button>
           <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="sinais">
-            &#9889; Sinais
+            Sinais
           </button>
-          <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="calibracao">
-            &#128295; Bluetooth &amp; Servos
+          <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="alfabeto">
+            A–Z
           </button>
           <button type="button" class="text-tab-btn" role="tab" aria-selected="false" data-text-tab="telemetria">
-            &#128225; Log
+            Registro
           </button>
         </div>
 
-        <!-- ─────────────────────────────────────────────────────────
-             ABA 1: ENTRADA DE TEXTO + TECLADO DATILÓGRAFO AO VIVO
-             ───────────────────────────────────────────────────────── -->
+        <!-- ABA 1: ENTRADA DE TEXTO + FILA COMPACTA -->
         <div class="text-tab-pane active" data-tab-pane="texto" role="tabpanel">
           <div class="panel-header-row">
-            <p class="panel-label">Entrada &amp; Datilologia Sincronizada</p>
+            <p class="panel-label">Texto para traduzir</p>
             <div class="audio-speed-controls">
               <button id="btn-toggle-voz" type="button" class="btn-mini muted" aria-pressed="false" title="Ativar/Desativar narração por voz">
                 🔇 Voz: OFF
@@ -310,7 +318,7 @@
           <textarea
             id="input-texto"
             class="text-input"
-            placeholder="Digite no seu teclado ou clique nas teclas abaixo: a mão 3D e a mão física ESP32 respondem ao mesmo tempo!"
+            placeholder="Digite uma palavra ou frase (ex: OLA POR FAVOR ME AJUDA)..."
             rows="2"
             aria-label="Texto a traduzir em Libras"
             spellcheck="false"
@@ -319,288 +327,50 @@
             autocapitalize="characters"
           ></textarea>
 
-          <div class="btn-row">
-            <button id="btn-traduzir" class="btn-act blue" aria-label="Soletrar e traduzir frase completa na mão 3D e no ESP32">
-              &#9654;&nbsp; Soletrar / Traduzir Frase
-            </button>
-            <button id="btn-limpar" class="btn-act gray" aria-label="Limpar campo e voltar para repouso">
-              &#10005;&nbsp; Limpar
-            </button>
-          </div>
+          <p class="tip">Digite letras de A a Z e aperte <kbd>Enter</kbd>. Palavras como AJUDA e OBRIGADO viram um sinal só.</p>
 
-          <!-- Controle Manual de Velocidade da Mão Física (ESP32) -->
-          <div class="velocidade-mao-card" aria-label="Regulagem de velocidade da mão física">
-            <div class="vel-mao-top">
-              <span class="vel-mao-title">🦾 Velocidade da Mão Física (ESP32)</span>
-              <span id="lbl-velocidade-mao" class="vel-mao-badge">55% &middot; Suave</span>
-            </div>
-            <div class="vel-mao-controls">
-              <input
-                type="range"
-                id="slider-velocidade-mao"
-                class="servo-slider vel-slider"
-                min="15"
-                max="100"
-                step="5"
-                value="55"
-                aria-label="Velocidade da mão física de 15% a 100%"
-              />
-              <div class="vel-presets" role="group" aria-label="Atalhos de velocidade da mão física">
-                <button type="button" class="btn-vel-preset" data-vel="30" title="Movimento bem lento e cuidadoso">30% Lenta</button>
-                <button type="button" class="btn-vel-preset active" data-vel="55" title="Velocidade suave recomendada">55% Suave</button>
-                <button type="button" class="btn-vel-preset" data-vel="75" title="Velocidade moderada">75% Normal</button>
-                <button type="button" class="btn-vel-preset" data-vel="100" title="Velocidade máxima dos servos">100% Máx</button>
-              </div>
-            </div>
+          <div class="btn-row">
+            <button id="btn-traduzir" class="btn-act blue" aria-label="Iniciar tradução">
+              Traduzir
+            </button>
+            <button id="btn-limpar" class="btn-act gray" aria-label="Limpar campo">
+              Limpar
+            </button>
           </div>
 
           <div id="fila-chips" class="queue-box"
                role="list" aria-label="Letras e sinais na fila de tradução" aria-live="polite">
           </div>
-
-          <!-- Teclado Datilógrafo QWERTY Integrado -->
-          <div class="teclado-datilografo-inline">
-            <div class="teclado-inline-header">
-              <span class="teclado-inline-title">TECLADO DATILÓGRAFO (A–Z)</span>
-              <span class="teclado-inline-badge">Tempo Real: 3D + ESP32</span>
-            </div>
-
-            <div class="teclado-grid" id="teclado-botoes-grid" role="region" aria-label="Teclado Datilógrafo de Libras">
-              <!-- Linha 1 (QWERTY) -->
-              <div class="teclado-row">
-                <button type="button" class="key-btn" data-letra="Q"><span class="key-letter">Q</span><span class="key-sub">G baixo</span></button>
-                <button type="button" class="key-btn" data-letra="W"><span class="key-letter">W</span><span class="key-sub">3 retos</span></button>
-                <button type="button" class="key-btn" data-letra="E"><span class="key-letter">E</span><span class="key-sub">Garra</span></button>
-                <button type="button" class="key-btn" data-letra="R"><span class="key-letter">R</span><span class="key-sub">Cruzado</span></button>
-                <button type="button" class="key-btn" data-letra="T"><span class="key-letter">T</span><span class="key-sub">Polegar in</span></button>
-                <button type="button" class="key-btn" data-letra="Y"><span class="key-letter">Y</span><span class="key-sub">Shaka</span></button>
-                <button type="button" class="key-btn" data-letra="U"><span class="key-letter">U</span><span class="key-sub">Unidos</span></button>
-                <button type="button" class="key-btn" data-letra="I"><span class="key-letter">I</span><span class="key-sub">Mindinho</span></button>
-                <button type="button" class="key-btn" data-letra="O"><span class="key-letter">O</span><span class="key-sub">Círculo</span></button>
-                <button type="button" class="key-btn" data-letra="P"><span class="key-letter">P</span><span class="key-sub">K baixo</span></button>
-              </div>
-
-              <!-- Linha 2 -->
-              <div class="teclado-row">
-                <button type="button" class="key-btn" data-letra="A"><span class="key-letter">A</span><span class="key-sub">Punho</span></button>
-                <button type="button" class="key-btn" data-letra="S"><span class="key-letter">S</span><span class="key-sub">Polegar cruz</span></button>
-                <button type="button" class="key-btn" data-letra="D"><span class="key-letter">D</span><span class="key-sub">Indicador</span></button>
-                <button type="button" class="key-btn" data-letra="F"><span class="key-letter">F</span><span class="key-sub">Polegar out</span></button>
-                <button type="button" class="key-btn" data-letra="G"><span class="key-letter">G</span><span class="key-sub">Aponta up</span></button>
-                <button type="button" class="key-btn" data-letra="H"><span class="key-letter">H</span><span class="key-sub">Giro pulso</span></button>
-                <button type="button" class="key-btn" data-letra="J"><span class="key-letter">J</span><span class="key-sub">Curva J</span></button>
-                <button type="button" class="key-btn" data-letra="K"><span class="key-letter">K</span><span class="key-sub">V impulso</span></button>
-                <button type="button" class="key-btn" data-letra="L"><span class="key-letter">L</span><span class="key-sub">Ângulo L</span></button>
-              </div>
-
-              <!-- Linha 3 -->
-              <div class="teclado-row">
-                <button type="button" class="key-btn" data-letra="Z"><span class="key-letter">Z</span><span class="key-sub">Traço Z</span></button>
-                <button type="button" class="key-btn" data-letra="X"><span class="key-letter">X</span><span class="key-sub">Gancho</span></button>
-                <button type="button" class="key-btn" data-letra="C"><span class="key-letter">C</span><span class="key-sub">Arco C</span></button>
-                <button type="button" class="key-btn" data-letra="V"><span class="key-letter">V</span><span class="key-sub">V aberto</span></button>
-                <button type="button" class="key-btn" data-letra="B"><span class="key-letter">B</span><span class="key-sub">Mão 4</span></button>
-                <button type="button" class="key-btn" data-letra="N"><span class="key-letter">N</span><span class="key-sub">2 baixo</span></button>
-                <button type="button" class="key-btn" data-letra="M"><span class="key-letter">M</span><span class="key-sub">3 baixo</span></button>
-                <button type="button" class="key-btn key-action" id="btn-teclado-backspace" title="Apagar última letra"><span class="key-letter">⌫</span><span class="key-sub">Apagar</span></button>
-              </div>
-
-              <!-- Linha 4: Barra de Espaço e Funções -->
-              <div class="teclado-row space-row">
-                <button type="button" class="key-btn key-action" id="btn-teclado-modo-neutro" title="Voltar dedos para 90°">
-                  <span>✋ Repouso (90°)</span>
-                </button>
-                <button type="button" class="key-btn key-space" id="btn-teclado-space" title="Inserir espaço e abrir a mão">
-                  <span class="key-space-label">ESPAÇO</span>
-                </button>
-                <button type="button" class="key-btn key-action" id="btn-teclado-status-bt-key" title="Conectar ou desconectar Bluetooth">
-                  <span class="bt-dot" aria-hidden="true"></span>
-                  <span class="key-bt-text">ESP32 BLE</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Resumo Compacto da Letra e Pacote BLE -->
-          <div class="letra-ble-mini-bar">
-            <div class="letra-ble-mini-left">
-              <span id="teclado-letra-ativa" class="letra-mini-char">A</span>
-              <div class="letra-ble-mini-texts">
-                <strong id="teclado-letra-nome">Letra A</strong>
-                <span id="teclado-letra-desc">Punho fechado com o polegar encostado paralelamente na lateral do indicador</span>
-              </div>
-            </div>
-            <code id="teclado-comando-codigo" class="comando-mini-code">&lt;L:A:90,180,180,180,180,150&gt;</code>
-          </div>
         </div>
 
-        <!-- ─────────────────────────────────────────────────────────
-             ABA 2: SINAIS RÁPIDOS EM LIBRAS
-             ───────────────────────────────────────────────────────── -->
+        <!-- ABA 2: SINAIS RÁPIDOS EM LIBRAS -->
         <div class="text-tab-pane" data-tab-pane="sinais" role="tabpanel">
-          <p class="panel-label">Sinais Compostos &amp; Expressões em Libras</p>
-          <p class="tip" style="text-align:left;">Clique em qualquer sinal para executá-lo simultaneamente no Simulador 3D e na mão física ESP32:</p>
+          <p class="panel-label">Sinais prontos</p>
           <div class="palavras-rapidas" role="group" aria-label="Gestos rápidos em Libras">
-            <button type="button" class="btn-palavra" data-p="AJUDA"      aria-label="Sinal AJUDA">AJUDA</button>
-            <button type="button" class="btn-palavra" data-p="SOCORRO"    aria-label="Sinal SOCORRO">SOCORRO</button>
-            <button type="button" class="btn-palavra" data-p="OBRIGADO"   aria-label="Sinal OBRIGADO">OBRIGADO</button>
-            <button type="button" class="btn-palavra" data-p="AGUA"       aria-label="Sinal ÁGUA">ÁGUA</button>
-            <button type="button" class="btn-palavra" data-p="COMIDA"     aria-label="Sinal COMIDA">COMIDA</button>
-            <button type="button" class="btn-palavra" data-p="BANHEIRO"   aria-label="Sinal BANHEIRO">BANHEIRO</button>
-            <button type="button" class="btn-palavra" data-p="PERIGO"     aria-label="Sinal PERIGO">PERIGO</button>
-            <button type="button" class="btn-palavra" data-p="SIM"        aria-label="Sinal SIM">SIM</button>
-            <button type="button" class="btn-palavra" data-p="NAO"        aria-label="Sinal NÃO">NÃO</button>
-            <button type="button" class="btn-palavra" data-p="POR FAVOR"  aria-label="Sinal POR FAVOR">POR FAVOR</button>
+            <button class="btn-palavra" data-p="AJUDA"      aria-label="Sinal AJUDA">AJUDA</button>
+            <button class="btn-palavra" data-p="SOCORRO"    aria-label="Sinal SOCORRO">SOCORRO</button>
+            <button class="btn-palavra" data-p="OBRIGADO"   aria-label="Sinal OBRIGADO">OBRIGADO</button>
+            <button class="btn-palavra" data-p="AGUA"       aria-label="Sinal ÁGUA">ÁGUA</button>
+            <button class="btn-palavra" data-p="COMIDA"     aria-label="Sinal COMIDA">COMIDA</button>
+            <button class="btn-palavra" data-p="BANHEIRO"   aria-label="Sinal BANHEIRO">BANHEIRO</button>
+            <button class="btn-palavra" data-p="PERIGO"     aria-label="Sinal PERIGO">PERIGO</button>
+            <button class="btn-palavra" data-p="SIM"        aria-label="Sinal SIM">SIM</button>
+            <button class="btn-palavra" data-p="NAO"        aria-label="Sinal NÃO">NÃO</button>
+            <button class="btn-palavra" data-p="POR FAVOR"  aria-label="Sinal POR FAVOR">POR FAVOR</button>
           </div>
         </div>
 
-        <!-- ─────────────────────────────────────────────────────────
-             ABA 3: BLUETOOTH ESP32 & CALIBRAÇÃO DOS 6 SERVOMOTORES
-             ───────────────────────────────────────────────────────── -->
-        <div class="text-tab-pane" data-tab-pane="calibracao" role="tabpanel">
-          <!-- Bloco de Conexão Bluetooth Direta -->
-          <div class="bt-inline-connect-card">
-            <div class="bt-inline-info">
-              <div class="bt-status" role="status" aria-live="polite">
-                <span class="bt-dot" aria-hidden="true"></span>
-                <span id="bt-device-name" class="bt-device-name">ESP32 desconectado</span>
-              </div>
-              <p class="bt-inline-hint">Ligue o ESP32 e clique em Conectar para parear via Web Bluetooth BLE.</p>
-            </div>
-            <div class="bt-inline-btns">
-              <button type="button" id="btn-bt-conectar" class="btn-act blue sm">Conectar ESP32</button>
-              <button type="button" id="btn-bt-desconectar" class="btn-act gray sm">Desconectar</button>
-            </div>
-          </div>
-
-          <!-- Controle e Calibração ao Vivo dos 6 Servos -->
-          <div class="servos-card-inline">
-            <div class="servos-card-header">
-              <span class="panel-label">Calibração ao Vivo dos 6 Servos</span>
-              <span class="safe-badge">90° (RETO) &rarr; 180° (CURVADO)</span>
-            </div>
-
-            <!-- Controle de Velocidade Sincronizado também na Aba de Servos -->
-            <div class="velocidade-mao-card compact" aria-label="Velocidade da mão física na calibração">
-              <div class="vel-mao-top">
-                <span class="vel-mao-title">🦾 Velocidade dos Servos Físicos</span>
-                <span id="lbl-velocidade-mao-calib" class="vel-mao-badge">55% &middot; Suave</span>
-              </div>
-              <input
-                type="range"
-                id="slider-velocidade-mao-calib"
-                class="servo-slider vel-slider"
-                min="15"
-                max="100"
-                step="5"
-                value="55"
-                aria-label="Velocidade dos servos físicos de 15% a 100%"
-              />
-            </div>
-
-            <div class="servos-gauges-grid">
-              <!-- Servo 1: Polegar -->
-              <div class="servo-gauge-item" id="gauge-polegar">
-                <div class="gauge-labels">
-                  <span class="servo-name">1. Polegar (GPIO 12)</span>
-                  <span class="servo-val" id="val-servo-polegar">90°</span>
-                </div>
-                <input type="range" class="servo-slider" id="slider-servo-polegar" data-servo="polegar" min="90" max="180" value="90" />
-                <div class="gauge-bar-track">
-                  <div class="gauge-bar-fill" id="fill-servo-polegar" style="width: 0%;"></div>
-                </div>
-                <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
-              </div>
-
-              <!-- Servo 2: Indicador -->
-              <div class="servo-gauge-item" id="gauge-indicador">
-                <div class="gauge-labels">
-                  <span class="servo-name">2. Indicador (GPIO 13)</span>
-                  <span class="servo-val" id="val-servo-indicador">180°</span>
-                </div>
-                <input type="range" class="servo-slider" id="slider-servo-indicador" data-servo="indicador" min="90" max="180" value="180" />
-                <div class="gauge-bar-track">
-                  <div class="gauge-bar-fill" id="fill-servo-indicador" style="width: 100%;"></div>
-                </div>
-                <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
-              </div>
-
-              <!-- Servo 3: Médio -->
-              <div class="servo-gauge-item" id="gauge-medio">
-                <div class="gauge-labels">
-                  <span class="servo-name">3. Médio <select id="select-pino-medio" class="select-pino-inline" title="Trocar pino GPIO do Dedo Médio"><option value="14">GPIO 14 (+Esp)</option><option value="33">GPIO 33</option><option value="32">GPIO 32</option><option value="15">GPIO 15</option><option value="4">GPIO 4</option><option value="16">GPIO 16</option><option value="17">GPIO 17</option><option value="18">GPIO 18</option><option value="19">GPIO 19</option><option value="21">GPIO 21</option><option value="22">GPIO 22</option><option value="23">GPIO 23</option><option value="5">GPIO 5</option></select></span>
-                  <span class="servo-val" id="val-servo-medio">180°</span>
-                </div>
-                <input type="range" class="servo-slider" id="slider-servo-medio" data-servo="medio" min="90" max="180" value="180" />
-                <div class="gauge-bar-track">
-                  <div class="gauge-bar-fill" id="fill-servo-medio" style="width: 100%;"></div>
-                </div>
-                <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
-              </div>
-
-              <!-- Servo 4: Anelar -->
-              <div class="servo-gauge-item" id="gauge-anelar">
-                <div class="gauge-labels">
-                  <span class="servo-name">4. Anelar (GPIO 27)</span>
-                  <span class="servo-val" id="val-servo-anelar">180°</span>
-                </div>
-                <input type="range" class="servo-slider" id="slider-servo-anelar" data-servo="anelar" min="90" max="180" value="180" />
-                <div class="gauge-bar-track">
-                  <div class="gauge-bar-fill" id="fill-servo-anelar" style="width: 100%;"></div>
-                </div>
-                <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
-              </div>
-
-              <!-- Servo 5: Mindinho -->
-              <div class="servo-gauge-item" id="gauge-mindinho">
-                <div class="gauge-labels">
-                  <span class="servo-name">5. Mindinho (GPIO 26)</span>
-                  <span class="servo-val" id="val-servo-mindinho">180°</span>
-                </div>
-                <input type="range" class="servo-slider" id="slider-servo-mindinho" data-servo="mindinho" min="90" max="180" value="180" />
-                <div class="gauge-bar-track">
-                  <div class="gauge-bar-fill" id="fill-servo-mindinho" style="width: 100%;"></div>
-                </div>
-                <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
-              </div>
-
-              <!-- Servo 6: Pulso -->
-              <div class="servo-gauge-item" id="gauge-pulso">
-                <div class="gauge-labels">
-                  <span class="servo-name">6. Pulso (GPIO 25)</span>
-                  <span class="servo-val" id="val-servo-pulso">150°</span>
-                </div>
-                <input type="range" class="servo-slider" id="slider-servo-pulso" data-servo="pulso" min="90" max="180" value="150" />
-                <div class="gauge-bar-track">
-                  <div class="gauge-bar-fill" id="fill-servo-pulso" style="width: 67%;"></div>
-                </div>
-                <div class="gauge-ticks"><span>90° (Esq)</span><span>150° (Centro)</span><span>180° (Dir)</span></div>
-              </div>
-            </div>
-
-            <!-- Botões de Calibração Instantânea -->
-            <div class="calibracao-actions-row">
-              <button type="button" id="btn-inverter-pol-ind" class="btn-calib" title="Inverte Polegar e Indicador via software">
-                ⇄ Inverter Pol ↔ Ind
-              </button>
-              <button type="button" id="btn-salvar-pose-letra" class="btn-calib primary" title="Salva os 6 ângulos atuais dos sliders para a letra selecionada">
-                💾 Salvar Graus da Letra
-              </button>
-              <button type="button" id="btn-fixar-pulso-neutro" class="btn-calib" title="Define o valor atual do Slider 6 (Pulso) como neutro">
-                🎯 Fixar Pulso Neutro
-              </button>
-              <button type="button" id="btn-resetar-calibracao" class="btn-calib danger" title="Restaurar ângulos originais de fábrica">
-                ↺ Padrão
-              </button>
-            </div>
+        <!-- ABA 3: DATILOLOGIA INTERATIVA (A–Z) -->
+        <div class="text-tab-pane" data-tab-pane="alfabeto" role="tabpanel">
+          <p class="panel-label">Alfabeto manual (A–Z)</p>
+          <div id="alfabeto-rapido" class="alfabeto-rapido" role="group" aria-label="Teclado rápido de letras A a Z">
+            <!-- Gerado via script.js -->
           </div>
         </div>
 
-        <!-- ─────────────────────────────────────────────────────────
-             ABA 4: TELEMETRIA DO SISTEMA
-             ───────────────────────────────────────────────────────── -->
+        <!-- ABA 4: TELEMETRIA DO SISTEMA -->
         <div class="text-tab-pane" data-tab-pane="telemetria" role="tabpanel">
-          <p class="panel-label">Telemetria do Sistema &amp; Pacotes BLE</p>
+          <p class="panel-label">Registro do sistema</p>
           <div id="log-box" class="log-box"
                role="log" aria-live="polite" aria-label="Log de status do sistema">
           </div>
@@ -612,8 +382,8 @@
       <div class="panel panel-right">
 
         <div class="panel-header-row">
-          <p class="panel-label">Simulador Cinético 3D Sincronizado</p>
-          <span class="badge-tech">3D + ESP32 AO VIVO</span>
+          <p class="panel-label">Mão 3D</p>
+          <span class="badge-tech">Three.js</span>
         </div>
 
         <div id="hand3d-container"
@@ -622,7 +392,7 @@
 
           <div id="hand3d-loading" class="loading-overlay-3d" aria-hidden="true">
             <span class="loading-ring"></span>
-            <span>Inicializando Mão Biônica 3D...</span>
+            <span>Carregando a mão 3D...</span>
           </div>
 
         </div>
@@ -633,7 +403,7 @@
                aria-label="Letra ou sinal atual sendo traduzido"></div>
 
           <p id="feedback-modo" role="status" aria-live="polite">
-            Digite ou clique no Teclado Datilógrafo para movimentar a mão 3D e o ESP32...
+            Digite um texto ou escolha uma letra.
           </p>
         </div>
 
@@ -641,21 +411,21 @@
           <button id="btn-3d-rotacionar" class="btn-ctrl3d"
                   title="Ligar/desligar rotação automática"
                   aria-label="Alternar rotação automática da câmera 3D">
-            &#9654; Rotação
+            Rotação
           </button>
           <button id="btn-3d-resetar" class="btn-ctrl3d"
                   title="Resetar posição da câmera 3D"
                   aria-label="Resetar câmera 3D para posição frontal">
-            &#8962; Frontal
+            Frontal
           </button>
           <button id="btn-3d-neutra" class="btn-ctrl3d"
-                  title="Voltar dedos para posição aberta/neutra (3D e ESP32)"
+                  title="Voltar dedos para posição aberta/neutra"
                   aria-label="Posição neutra da mão">
-            &#9995; Pose Neutra (90°)
+            Mão aberta
           </button>
         </div>
 
-        <p class="tip">Arraste para orbitar &middot; Scroll para zoom &middot; Sincronizado em tempo real com os 6 servos</p>
+        <p class="tip">Arraste para girar. Role para aproximar. J e Z mostram o traço no ar.</p>
 
       </div>
 
@@ -672,13 +442,12 @@
     <header class="screen-header">
       <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
       <div class="header-titles">
-        <span class="header-eyebrow">MODO 02</span>
-        <h2>Tradução por Câmera</h2>
+        <h2>Traduzir pela câmera</h2>
       </div>
-      <button type="button" id="btn-cam-top-bt" class="bt-status bt-status-interactive" style="margin-left:auto;" title="Conectar ou desconectar Bluetooth ESP32" aria-live="polite">
+      <div class="bt-status" style="margin-left:auto;" role="status" aria-live="polite">
         <span class="bt-dot" aria-hidden="true"></span>
-        <span class="bt-status-text">Conectar ESP32</span>
-      </button>
+        <span class="bt-status-text">Desconectado</span>
+      </div>
     </header>
 
     <div class="camera-body">
@@ -701,7 +470,7 @@
         <div class="camera-controls-row">
           <button id="btn-toggle-camera" class="btn-cam"
                   aria-label="Ligar ou desligar a câmera do dispositivo">
-            &#128247;&nbsp; Ligar Câmera
+            Ligar câmera
           </button>
           <button id="btn-espelhar-camera" class="btn-ctrl3d ativo"
                   title="Inverter horizontalmente a imagem da câmera">
@@ -712,7 +481,7 @@
         <p id="camera-erro" class="camera-error-msg" role="alert" aria-live="assertive"></p>
 
         <p class="tip">
-          Análise biomecânica de ângulos articulares &middot; Filtro cinemático anti-spam &middot; Trajetórias de J e Z
+          A câmera mede os ângulos dos dedos para reconhecer cada letra.
         </p>
       </div>
 
@@ -720,8 +489,8 @@
       <div class="camera-result">
 
         <div class="panel-header-row">
-          <p class="panel-label">Letra Detectada</p>
-          <span class="badge-tech">VISÃO COMPUTACIONAL</span>
+          <p class="panel-label">Letra detectada</p>
+          <span class="badge-tech">MediaPipe</span>
         </div>
 
         <div id="letra-camera-detectada"
@@ -729,7 +498,7 @@
              role="status" aria-live="polite"
              aria-label="Letra Libras detectada pela câmera">—</div>
 
-        <p id="lbl-confianca" class="lbl-conf" aria-live="polite">Aguardando câmera...</p>
+        <p id="lbl-confianca" class="lbl-conf" aria-live="polite">Ligue a câmera para começar.</p>
 
         <div class="conf-bar"
              role="progressbar" aria-valuemin="0" aria-valuemax="100"
@@ -742,7 +511,7 @@
         </div>
 
         <div class="sep" aria-hidden="true"></div>
-        <p class="panel-label">Palavra / Frase Formada</p>
+        <p class="panel-label">Texto formado</p>
 
         <div id="texto-detectado"
              class="detected-text"
@@ -751,22 +520,132 @@
 
         <div class="cam-word-actions">
           <button id="btn-cam-espaco" class="btn-act gray" title="Inserir espaço">
-            &#9141; Espaço
+            Espaço
           </button>
           <button id="btn-cam-apagar" class="btn-act gray" title="Apagar última letra">
-            &#9003; Apagar
+            Apagar
           </button>
           <button id="btn-cam-falar" class="btn-act blue" title="Falar palavra formada">
-            &#128266; Falar
+            Falar
           </button>
           <button id="btn-limpar-cam" class="btn-act gray" title="Limpar tudo">
-            &#10005; Limpar
+            Limpar
           </button>
         </div>
 
         <p class="tip">
-          Sustente o sinal estático por ~0.85s para confirmar &middot; Desenhe J (mindinho) ou Z (indicador) no ar
+          Segure o sinal por cerca de 1 segundo para confirmar. Para J, desenhe no ar com o mindinho; para Z, com o indicador.
         </p>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ===========================================================
+       TELA 4 — BLUETOOTH E GUIA DE DATILOLOGIA
+       =========================================================== -->
+  <section id="screen-bluetooth" class="screen" aria-label="Conexão Bluetooth com a mão robótica">
+
+    <header class="screen-header">
+      <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
+      <div class="header-titles">
+        <h2>Conectar a mão</h2>
+      </div>
+    </header>
+
+    <div class="bt-container">
+
+      <!-- Coluna 1: Pareamento ESP32 -->
+      <div class="bt-card">
+
+        <svg class="bt-icon-big" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.4"
+             stroke-linecap="round" stroke-linejoin="round"
+             role="img" aria-label="Ícone Bluetooth">
+          <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
+        </svg>
+
+        <div class="bt-status" style="justify-content:center;"
+             role="status" aria-live="polite">
+          <span class="bt-dot" aria-hidden="true"></span>
+          <span id="bt-device-name" class="bt-device-name">Sem conexão</span>
+        </div>
+
+        <div class="bt-instrucoes" aria-label="Instruções de conexão Bluetooth">
+          <p><strong>Como parear:</strong></p>
+          <p>1. Ligue a alimentação do controlador <strong>ESP32 (LibraTronic)</strong></p>
+          <p>2. Selecione <strong>Conectar</strong> abaixo</p>
+          <p>3. Escolha <strong>"LibraTronic"</strong> na janela do navegador</p>
+          <p>4. Aguarde a confirmação de telemetria ativa</p>
+        </div>
+
+        <div class="bt-btn-row">
+          <button id="btn-bt-conectar" class="btn-act blue"
+                  aria-label="Iniciar conexão Bluetooth com o ESP32">
+            Conectar
+          </button>
+          <button id="btn-bt-desconectar" class="btn-act gray"
+                  aria-label="Encerrar conexão Bluetooth">
+            Desconectar
+          </button>
+        </div>
+
+        <div class="sep" aria-hidden="true"></div>
+
+        <div class="bt-specs" aria-label="Informações técnicas do serviço Bluetooth">
+          <p><span>Serviço BLE</span> <code>0000FFE0-0000-1000-8000-00805F9B34FB</code></p>
+          <p><span>Característica</span> <code>0000FFE1-0000-1000-8000-00805F9B34FB</code></p>
+          <p><span>Taxa de transmissão</span> <code>115200 bps</code></p>
+          <p><span>Formato dos comandos</span> <code>&lt;CMD_LETRA&gt; / &lt;CMD_GESTO&gt;</code></p>
+        </div>
+
+      </div>
+
+      <!-- Coluna 2: Referência Interativa do Alfabeto Libras -->
+      <div class="bt-card" aria-label="Referência do alfabeto Libras">
+
+        <p class="panel-label">Alfabeto da Libras (A–Z)</p>
+        <p class="tip" >Passe o mouse sobre uma letra para ver como a mão se posiciona.</p>
+
+        <div id="ref-alfabeto-bt" class="ref-alfabeto" role="list" aria-label="Letras A a Z do alfabeto Libras">
+          <span class="chip sent" role="listitem" title="A - Punho fechado, polegar na lateral">A</span>
+          <span class="chip sent" role="listitem" title="B - Mão aberta, 4 dedos unidos, polegar na palma">B</span>
+          <span class="chip sent" role="listitem" title="C - Dedos curvados formando arco C">C</span>
+          <span class="chip sent" role="listitem" title="D - Indicador estendido, demais tocam o polegar">D</span>
+          <span class="chip sent" role="listitem" title="E - Falanges superiores curvadas em garra">E</span>
+          <span class="chip sent" role="listitem" title="F - Indicador toca polegar por fora, 3 dedos abertos">F</span>
+          <span class="chip sent" role="listitem" title="G - Indicador e polegar paralelos apontando para cima">G</span>
+          <span class="chip sent" role="listitem" title="H - Indicador e médio com giro de pulso">H</span>
+          <span class="chip sent" role="listitem" title="I - Mindinho estendido">I</span>
+          <span class="chip sent" role="listitem" title="J - Mindinho traçando a curva do J">J</span>
+          <span class="chip sent" role="listitem" title="K - Indicador, médio e polegar com impulso p/ cima">K</span>
+          <span class="chip sent" role="listitem" title="L - Indicador e polegar em ângulo reto">L</span>
+          <span class="chip sent" role="listitem" title="M - 3 dedos unidos apontando para baixo">M</span>
+          <span class="chip sent" role="listitem" title="N - 2 dedos unidos apontando para baixo">N</span>
+          <span class="chip sent" role="listitem" title="O - Dedos curvados em círculo com o polegar">O</span>
+          <span class="chip sent" role="listitem" title="P - Configuração de K na horizontal">P</span>
+          <span class="chip sent" role="listitem" title="Q - Configuração de G apontando para baixo">Q</span>
+          <span class="chip sent" role="listitem" title="R - Indicador e médio cruzados">R</span>
+          <span class="chip sent" role="listitem" title="S - Punho fechado com polegar cruzado à frente">S</span>
+          <span class="chip sent" role="listitem" title="T - Indicador flexionado por dentro do polegar">T</span>
+          <span class="chip sent" role="listitem" title="U - Indicador e médio estendidos e unidos">U</span>
+          <span class="chip sent" role="listitem" title="V - Indicador e médio estendidos e afastados">V</span>
+          <span class="chip sent" role="listitem" title="W - Três dedos estendidos e separados">W</span>
+          <span class="chip sent" role="listitem" title="X - Indicador em gancho puxando">X</span>
+          <span class="chip sent" role="listitem" title="Y - Polegar e mindinho estendidos">Y</span>
+          <span class="chip sent" role="listitem" title="Z - Indicador traçando um Z no espaço">Z</span>
+        </div>
+
+        <div class="sep" aria-hidden="true"></div>
+
+        <div class="bt-instrucoes">
+          <p><strong>Como a mão se move:</strong></p>
+          <p>&bull; <strong>Sinais com movimento:</strong> J e Z são desenhados no ar; H, K e X pedem também um giro do pulso.</p>
+          <p>&bull; <strong>Servos e tendões:</strong> cada dedo é puxado por um servo, e um sexto servo gira o pulso.</p>
+        </div>
 
       </div>
 
@@ -792,9 +671,8 @@
 </script>
 
 <!-- SCRIPTS DA APLICAÇÃO -->
-<script src="bluetooth.js?v=10.1"></script>
 <script src="hand3d.js"></script>
-<script src="script.js?v=10.1"></script>
+<script src="script.js"></script>
 
 <!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
 <script>
@@ -809,25 +687,6 @@
   }
   window.removerLoading3D = removerLoading3D;
 
-  // Reveal suave ao rolar pelas secções da Home
-  document.addEventListener('DOMContentLoaded', () => {
-    const revealSections = document.querySelectorAll('.about-section, .lab3d-section');
-    if ('IntersectionObserver' in window) {
-      const io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('in-view');
-            }
-          });
-        },
-        { threshold: 0.18 }
-      );
-      revealSections.forEach((sec) => io.observe(sec));
-    } else {
-      revealSections.forEach((sec) => sec.classList.add('in-view'));
-    }
-  });
 </script>
 
 </body>
