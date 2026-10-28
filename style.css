@@ -3038,3 +3038,15 @@ kbd {
   color: #e5989b;
   border-color: rgba(217, 123, 132, 0.3);
 }
+
+.select-pino-inline {
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--accent-bright);
+  border: 1px solid rgba(148, 184, 200, 0.35);
+  border-radius: 5px;
+  font-size: 0.70rem;
+  font-family: var(--font-mono);
+  padding: 1px 4px;
+  margin-left: 4px;
+  cursor: pointer;
+}

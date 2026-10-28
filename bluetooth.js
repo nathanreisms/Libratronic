@@ -118,6 +118,7 @@
       this.timerReconexao = null;
 
       this.filaComandos = [];
+      this.inverterPolInd = false;
       this.escrevendoGatt = false;
 
       this.ouvintes = {
@@ -389,7 +390,9 @@
       const mi = sanitizarAngulo(config.servos.mindinho);
       const pu = sanitizarAngulo(config.servos.pulso);
 
-      const comando = `<L:${letraLimpa}:${p},${i},${m},${a},${mi},${pu}>`;
+      const pEnv = this.inverterPolInd ? i : p;
+      const iEnv = this.inverterPolInd ? p : i;
+      const comando = `<L:${letraLimpa}:${pEnv},${iEnv},${m},${a},${mi},${pu}>`;
       this._enfileirarComando(comando, {
         tipo: 'letra',
         letra: letraLimpa,
@@ -416,13 +419,20 @@
       const mi = sanitizarAngulo(mindinho);
       const pu = sanitizarAngulo(pulso);
 
-      const comando = `<ANG:${p},${i},${m},${a},${mi},${pu}>`;
+      const pEnv = this.inverterPolInd ? i : p;
+      const iEnv = this.inverterPolInd ? p : i;
+      const comando = `<ANG:${pEnv},${iEnv},${m},${a},${mi},${pu}>`;
       this._enfileirarComando(comando, {
         tipo: 'angulos',
         angulos: { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu }
       });
 
       return { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu, comando };
+    }
+
+    alterarPinoServo(canal, novoGpio) {
+      const comando = `<PIN:${canal}:${novoGpio}>`;
+      this._enfileirarComando(comando, { tipo: 'pino', canal, gpio: novoGpio });
     }
 
     testarServo(canal, angulo) {

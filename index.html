@@ -19,7 +19,7 @@
   <meta name="description" content="Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética." />
 
   <!-- CSS PRINCIPAL -->
-  <link rel="stylesheet" href="style.css?v=7.0" />
+  <link rel="stylesheet" href="style.css?v=8.0" />
 
   <!-- THREE.JS r128 -->
   <script
@@ -712,7 +712,7 @@
             <!-- Servo 1: Polegar -->
             <div class="servo-gauge-item" id="gauge-polegar">
               <div class="gauge-labels">
-                <span class="servo-name">1. Polegar (GPIO 13)</span>
+                <span class="servo-name">1. Polegar (GPIO 12)</span>
                 <span class="servo-val" id="val-servo-polegar">90°</span>
               </div>
               <input type="range" class="servo-slider" id="slider-servo-polegar" data-servo="polegar" min="90" max="180" value="90" />
@@ -725,7 +725,7 @@
             <!-- Servo 2: Indicador -->
             <div class="servo-gauge-item" id="gauge-indicador">
               <div class="gauge-labels">
-                <span class="servo-name">2. Indicador (GPIO 12)</span>
+                <span class="servo-name">2. Indicador (GPIO 13)</span>
                 <span class="servo-val" id="val-servo-indicador">180°</span>
               </div>
               <input type="range" class="servo-slider" id="slider-servo-indicador" data-servo="indicador" min="90" max="180" value="180" />
@@ -738,7 +738,7 @@
             <!-- Servo 3: Médio -->
             <div class="servo-gauge-item" id="gauge-medio">
               <div class="gauge-labels">
-                <span class="servo-name">3. Médio (GPIO 14)</span>
+                <span class="servo-name">3. Médio <select id="select-pino-medio" class="select-pino-inline" title="Trocar pino GPIO do Dedo Médio"><option value="14">GPIO 14 (+Espelhos)</option><option value="33">GPIO 33</option><option value="32">GPIO 32</option><option value="15">GPIO 15</option><option value="4">GPIO 4</option><option value="16">GPIO 16</option><option value="17">GPIO 17</option><option value="18">GPIO 18</option><option value="19">GPIO 19</option><option value="21">GPIO 21</option><option value="22">GPIO 22</option><option value="23">GPIO 23</option><option value="5">GPIO 5</option></select></span>
                 <span class="servo-val" id="val-servo-medio">180°</span>
               </div>
               <input type="range" class="servo-slider" id="slider-servo-medio" data-servo="medio" min="90" max="180" value="180" />
@@ -790,6 +790,9 @@
 
           <!-- Botões de Calibração Instantânea -->
           <div class="calibracao-actions-row">
+            <button id="btn-inverter-pol-ind" class="btn-calib" title="Inverte Polegar e Indicador via software caso você ainda não tenha regravado o ESP32">
+              ⇄ Inverter Polegar ↔ Indicador
+            </button>
             <button id="btn-salvar-pose-letra" class="btn-calib primary" title="Salva os 6 ângulos atuais dos sliders para a letra selecionada">
               💾 Salvar Graus desta Letra
             </button>
@@ -914,9 +917,9 @@
 </script>
 
 <!-- SCRIPTS DA APLICAÇÃO -->
-<script src="bluetooth.js?v=7.0"></script>
+<script src="bluetooth.js?v=8.0"></script>
 <script src="hand3d.js"></script>
-<script src="script.js?v=7.0"></script>
+<script src="script.js?v=8.0"></script>
 
 <!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
 <script>

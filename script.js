@@ -2673,6 +2673,31 @@ class TecladoDatilografoController {
       }
     });
 
+    // Botão Inverter Polegar <-> Indicador via Software
+    document.getElementById('btn-inverter-pol-ind')?.addEventListener('click', (e) => {
+      if (window.libratronicBT) {
+        window.libratronicBT.inverterPolInd = !window.libratronicBT.inverterPolInd;
+        const ativo = window.libratronicBT.inverterPolInd;
+        e.currentTarget.style.borderColor = ativo ? '#7ec8a0' : '';
+        e.currentTarget.style.color = ativo ? '#7ec8a0' : '';
+        mostrarNotificacaoUI(
+          ativo ? '⇄ Inversão Polegar ↔ Indicador ATIVADA via site!' : '⇄ Ordem padrão Polegar (12) / Indicador (13) restaurada.',
+          'info'
+        );
+        this._enviarSlidersAtuaisDebounced();
+      }
+    });
+
+    // Seletor de Pino GPIO do Dedo Médio
+    document.getElementById('select-pino-medio')?.addEventListener('change', (e) => {
+      const novoPino = Number(e.target.value);
+      if (window.libratronicBT && novoPino) {
+        window.libratronicBT.alterarPinoServo(3, novoPino);
+        mostrarNotificacaoUI(`Pino do Dedo Médio alterado para GPIO ${novoPino}. Movendo para testar...`, 'info');
+        setTimeout(() => this._enviarSlidersAtuaisDebounced(), 120);
+      }
+    });
+
     // Botão Restaurar Padrão
     document.getElementById('btn-resetar-calibracao')?.addEventListener('click', () => {
       if (window.libratronicBT) {
