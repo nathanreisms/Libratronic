@@ -1900,8 +1900,10 @@ async function traduzirSequenciaTokens(texto) {
         if (libraHand3D && libraHand3D.pronto) {
           libraHand3D.animarPalavra(dadosP);
         }
-        if (btManager.conectado && dadosP.comando) {
+        if (dadosP.comando) {
           btManager.enviar(dadosP.comando);
+        }
+        if (btManager.conectado && dadosP.comando) {
           log(`↗ ${item.valor} → ${dadosP.comando}`, 'success');
         } else {
           log(`🤲 Sinal: ${item.valor}`, 'info');
@@ -1920,8 +1922,8 @@ async function traduzirSequenciaTokens(texto) {
         libraHand3D.animarLetra(dados.rotacoes3d, dados.movimento, dados.pontaRastro);
       }
 
+      btManager.enviar(cmd || letra);
       if (btManager.conectado && cmd) {
-        btManager.enviar(cmd);
         log(`↗ ${letra} → ${cmd}`, 'success');
       } else {
         log(`◌ ${letra}${cmd ? ` → ${cmd}` : ''}`, 'info');
@@ -2291,7 +2293,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const inputTexto = document.getElementById('input-texto');
-  let valorAnteriorInput = '';
   if (inputTexto) {
     inputTexto.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -2300,7 +2301,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Sincronização em tempo real ao digitar no campo: anima a mão 3D e move a mão física ESP32 imediatamente!
+    // Apenas higieniza o texto digitado; a mão 3D e a mão física ESP32 só executam ao clicar em Traduzir
     inputTexto.addEventListener('input', function () {
       const pos = this.selectionStart;
       const limpo = this.value
@@ -2312,30 +2313,6 @@ document.addEventListener('DOMContentLoaded', () => {
           this.setSelectionRange(pos, pos);
         } catch (_) {}
       }
-
-      if (this.value.length > valorAnteriorInput.length) {
-        const ultimoChar = removerAcentosAscii(this.value.slice(-1)).toUpperCase();
-        if (/^[A-Z]$/.test(ultimoChar)) {
-          if (AppState.traduzindo) pararTraducaoAtiva();
-          if (window.tecladoDatilografo) {
-            const btnKey = document.querySelector(`#teclado-botoes-grid .key-btn[data-letra="${ultimoChar}"]`);
-            if (btnKey) window.tecladoDatilografo._animarBotao(btnKey);
-            window.tecladoDatilografo._tocarCliqueSom();
-            window.tecladoDatilografo.selecionarLetra(ultimoChar, true);
-          } else {
-            visualizarLetraUnica3D(ultimoChar);
-          }
-        } else if (ultimoChar === ' ') {
-          if (window.tecladoDatilografo) {
-            window.tecladoDatilografo.aplicarRepouso(true);
-          }
-        }
-      } else if (this.value.length === 0) {
-        if (window.tecladoDatilografo) {
-          window.tecladoDatilografo.aplicarRepouso(true);
-        }
-      }
-      valorAnteriorInput = this.value;
     });
   }
 
@@ -2361,7 +2338,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const palavra = btn.getAttribute('data-p');
       if (inputTexto) {
         inputTexto.value = palavra;
-        valorAnteriorInput = palavra;
       }
       if (AppState.traduzindo) pararTraducaoAtiva();
       iniciarTraducao();
@@ -2703,36 +2679,22 @@ class TecladoDatilografoController {
         this._tocarCliqueSom();
         this._animarBotao(btn);
         this.selecionarLetra(letra, true);
-
-        const input = document.getElementById('input-texto');
-        if (input) input.value += letra;
       });
     });
 
     document.getElementById('btn-teclado-space')?.addEventListener('click', (e) => {
-      if (AppState.traduzindo) pararTraducaoAtiva();
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
-      this.aplicarRepouso(true);
       const input = document.getElementById('input-texto');
       if (input) input.value += ' ';
     });
 
     document.getElementById('btn-teclado-backspace')?.addEventListener('click', (e) => {
-      if (AppState.traduzindo) pararTraducaoAtiva();
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
       const input = document.getElementById('input-texto');
       if (input && input.value.length > 0) {
         input.value = input.value.slice(0, -1);
-        const ultimo = removerAcentosAscii(input.value.slice(-1)).toUpperCase();
-        if (/^[A-Z]$/.test(ultimo)) {
-          this.selecionarLetra(ultimo, true);
-        } else {
-          this.aplicarRepouso(true);
-        }
-      } else {
-        this.aplicarRepouso(true);
       }
     });
 
@@ -2755,48 +2717,36 @@ class TecladoDatilografoController {
   }
 
   _registrarTecladoFisico() {
+    // Teclado físico apenas preenche o campo de texto sem movimentar a mão antes de clicar em Traduzir
     window.addEventListener('keydown', (e) => {
       if (AppState.telaAtual !== 'text') return;
       const tag = e.target?.tagName;
       if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
       if (e.ctrlKey || e.altKey || e.metaKey) return;
 
+      const input = document.getElementById('input-texto');
       const key = e.key.toUpperCase();
       if (/^[A-Z]$/.test(key)) {
         e.preventDefault();
-        if (AppState.traduzindo) pararTraducaoAtiva();
-        const btn = document.querySelector(`#teclado-botoes-grid .key-btn[data-letra="${key}"]`);
-        if (btn) this._animarBotao(btn);
-        this._tocarCliqueSom();
-        this.selecionarLetra(key, true);
-
-        const input = document.getElementById('input-texto');
-        if (input) input.value += key;
+        if (input) {
+          input.value += key;
+          input.focus();
+        }
       } else if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
-        if (AppState.traduzindo) pararTraducaoAtiva();
-        const btn = document.getElementById('btn-teclado-space');
-        if (btn) this._animarBotao(btn);
-        this._tocarCliqueSom();
-        this.aplicarRepouso(true);
-        const input = document.getElementById('input-texto');
-        if (input) input.value += ' ';
+        if (input) {
+          input.value += ' ';
+          input.focus();
+        }
       } else if (e.key === 'Backspace') {
         e.preventDefault();
-        if (AppState.traduzindo) pararTraducaoAtiva();
-        const btn = document.getElementById('btn-teclado-backspace');
-        if (btn) this._animarBotao(btn);
-        this._tocarCliqueSom();
-        const input = document.getElementById('input-texto');
         if (input && input.value.length > 0) {
           input.value = input.value.slice(0, -1);
-          const ultimo = removerAcentosAscii(input.value.slice(-1)).toUpperCase();
-          if (/^[A-Z]$/.test(ultimo)) {
-            this.selecionarLetra(ultimo, true);
-          } else {
-            this.aplicarRepouso(true);
-          }
+          input.focus();
         }
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        iniciarTraducao();
       }
     });
   }
