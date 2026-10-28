@@ -694,6 +694,43 @@
 <script src="hand3d.js"></script>
 <script src="script.js"></script>
 
+<!-- TRAVA DA TRADUÇÃO: a mão 3D só anima depois de uma ação explícita (Traduzir ou clique em letra/sinal). -->
+<script>
+  (() => {
+    const gate = { armado: false };
+    window.LibraGate = gate;
+
+    // Ações explícitas que liberam a animação (fase de captura: roda antes do script.js)
+    const ARMAR = '#btn-traduzir, .btn-palavra, .btn-letra-az, .chip.clickable, .btn-pose-demo';
+    document.addEventListener('click', (e) => {
+      if (e.target.closest && e.target.closest(ARMAR)) gate.armado = true;
+      if (e.target.closest && e.target.closest('#btn-limpar')) gate.armado = false;
+    }, true);
+
+    // Enter no campo de texto equivale a clicar em Traduzir (atalho já descrito na tela)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && e.target && e.target.id === 'input-texto') gate.armado = true;
+    }, true);
+
+    // Editar o texto trava de novo até o próximo clique em Traduzir
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'input-texto') gate.armado = false;
+    }, true);
+
+    // Bloqueia animações disparadas sem ação do usuário
+    const proto = window.LibraHand3D && window.LibraHand3D.prototype;
+    if (!proto) return;
+    ['animarLetra', 'animarPalavra'].forEach((nome) => {
+      const original = proto[nome];
+      if (typeof original !== 'function') return;
+      proto[nome] = function (...args) {
+        if (!gate.armado) return undefined;
+        return original.apply(this, args);
+      };
+    });
+  })();
+</script>
+
 <!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
 <script>
   function removerLoading3D(id = 'hand3d-loading') {
