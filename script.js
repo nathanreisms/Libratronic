@@ -349,239 +349,112 @@ const SpeechService = {
 };
 
 // ============================================================
-// 4. GERENCIADOR BLUETOOTH BLE (Auto-Reconexão + Fila GATT)
+// ============================================================
+// 4. GERENCIADOR BLUETOOTH BLE UNIFICADO (Delega p/ window.libratronicBT c/ 18-byte chunking + anti-colisão)
 // ============================================================
 class BluetoothManager {
   constructor() {
-    this.device = null;
-    this.characteristic = null;
     this.conectado = false;
     this.conectando = false;
-    this.desconexaoManual = false;
-    this.tentativasReconexao = 0;
-    this.timerReconexao = null;
-    this.filaComandos = [];
-    this.escrevendoGatt = false;
-
-    this._onDisconnectedBound = this._onDisconnected.bind(this);
   }
 
   async conectar() {
-    if (!navigator.bluetooth) {
-      mostrarNotificacaoUI('Web Bluetooth não suportado neste navegador. Use Chrome ou Edge.', 'error');
-      log('✗ Web Bluetooth indisponível neste navegador', 'error');
-      return;
+    if (window.libratronicBT) {
+      return await window.libratronicBT.conectar();
     }
-    if (this.conectando) return;
-
-    this._limparTimerReconexao();
-    this.desconexaoManual = false;
-    this.conectando = true;
-    this.atualizarUI('connecting', 'Conectando...');
-    log('🔍 Procurando hardware ESP32 LibraTronic...', 'info');
-
-    try {
-      if (this.device) {
-        this.device.removeEventListener('gattserverdisconnected', this._onDisconnectedBound);
-      }
-
-      const opcoes = {
-        filters: [
-          { name: 'LibraTronic' },
-          { namePrefix: 'LibraTronic' },
-          { namePrefix: 'Libra' },
-          { services: [BT_CONFIG.UUID_SERVICO] }
-        ],
-        optionalServices: [BT_CONFIG.UUID_SERVICO]
-      };
-
-      try {
-        this.device = await navigator.bluetooth.requestDevice(opcoes);
-      } catch (filtroErr) {
-        const msgErr = String(filtroErr?.message || '');
-        if (!msgErr.toLowerCase().includes('cancelled') && !msgErr.toLowerCase().includes('canceled')) {
-          log('ℹ Tentando busca aberta (listar todos os dispositivos BLE)...', 'info');
-          this.device = await navigator.bluetooth.requestDevice({
-            acceptAllDevices: true,
-            optionalServices: [BT_CONFIG.UUID_SERVICO]
-          });
-        } else {
-          throw filtroErr;
-        }
-      }
-
-      this.device.addEventListener('gattserverdisconnected', this._onDisconnectedBound);
-
-      log(`✓ Dispositivo localizado: ${this.device.name || 'ESP32'}`, 'success');
-      await this._estabelecerSessaoGatt();
-    } catch (err) {
-      this.conectando = false;
-      this.atualizarUI('disconnected', 'Desconectado');
-      const msg = err?.message || String(err);
-      if (msg.toLowerCase().includes('cancelled') || msg.toLowerCase().includes('canceled')) {
-        log('ℹ Busca Bluetooth cancelada pelo usuário', 'info');
-      } else {
-        log(`✗ Erro BT: ${msg}`, 'error');
-      }
-    }
-  }
-
-  async _estabelecerSessaoGatt() {
-    if (!this.device?.gatt) throw new Error('Dispositivo GATT inválido');
-
-    const servidor = await this.device.gatt.connect();
-    const servico = await servidor.getPrimaryService(BT_CONFIG.UUID_SERVICO);
-    this.characteristic = await servico.getCharacteristic(BT_CONFIG.UUID_CARAC);
-
-    this.conectado = true;
-    this.conectando = false;
-    this.tentativasReconexao = 0;
-    this.filaComandos = [];
-    this.escrevendoGatt = false;
-
-    const nome = this.device.name || 'LibraTronic';
-    this.atualizarUI('connected', nome);
-    log(`✓ Bluetooth BLE conectado (${nome})`, 'success');
-  }
-
-  _onDisconnected() {
-    this.conectado = false;
-    this.conectando = false;
-    this.characteristic = null;
-    this.filaComandos = [];
-    this.escrevendoGatt = false;
-
-    if (this.desconexaoManual) {
-      this.atualizarUI('disconnected', 'Desconectado');
-      return;
-    }
-
-    log('⚠ Queda de sinal Bluetooth detectada', 'error');
-    this._tentarReconectarAutomaticamente();
-  }
-
-  _tentarReconectarAutomaticamente() {
-    if (this.desconexaoManual || !this.device) {
-      this.atualizarUI('disconnected', 'Desconectado');
-      return;
-    }
-
-    if (this.tentativasReconexao >= BT_CONFIG.MAX_RETRIES) {
-      this.tentativasReconexao = 0;
-      this.atualizarUI('disconnected', 'Desconectado');
-      log('✗ Reconexão automática falhou após 3 tentativas', 'error');
-      return;
-    }
-
-    this.tentativasReconexao++;
-    const delay = BT_CONFIG.BASE_DELAY_MS * Math.pow(1.6, this.tentativasReconexao - 1);
-    this.atualizarUI(
-      'connecting',
-      `Reconectando (${this.tentativasReconexao}/${BT_CONFIG.MAX_RETRIES})...`
-    );
-    log(`↻ Tentando reconectar ao ESP32 (${this.tentativasReconexao}/${BT_CONFIG.MAX_RETRIES})...`, 'info');
-
-    this._limparTimerReconexao();
-    this.timerReconexao = setTimeout(async () => {
-      if (this.desconexaoManual || !this.device) return;
-      try {
-        this.conectando = true;
-        await this._estabelecerSessaoGatt();
-        log('✓ Reconexão automática Bluetooth concluída!', 'success');
-      } catch (_) {
-        this.conectando = false;
-        this._tentarReconectarAutomaticamente();
-      }
-    }, delay);
+    mostrarNotificacaoUI('Módulo Bluetooth não encontrado.', 'error');
+    return false;
   }
 
   desconectar() {
-    this.desconexaoManual = true;
-    this._limparTimerReconexao();
-
-    if (this.device) {
-      this.device.removeEventListener('gattserverdisconnected', this._onDisconnectedBound);
-      if (this.device.gatt?.connected) {
-        try {
-          this.device.gatt.disconnect();
-        } catch (_) {}
-      }
+    if (window.libratronicBT) {
+      window.libratronicBT.desconectar();
     }
-
     this.conectado = false;
     this.conectando = false;
-    this.characteristic = null;
-    this.filaComandos = [];
-    this.escrevendoGatt = false;
-    this.atualizarUI('disconnected', 'Desconectado');
-    log('✓ Bluetooth desconectado com segurança', 'info');
+    this.atualizarUI('disconnected', 'Conectar ESP32');
   }
 
   enviar(comando) {
-    if (!this.conectado || !this.characteristic || !comando) return;
-    // Evita acumular comandos repetidos na fila
-    if (this.filaComandos[this.filaComandos.length - 1] !== comando) {
-      this.filaComandos.push(comando);
-    }
-    this._processarFila();
-  }
+    if (!comando || !window.libratronicBT) return;
+    const cmdStr = String(comando).trim().toUpperCase();
 
-  async _processarFila() {
-    if (this.escrevendoGatt || !this.conectado || !this.characteristic) return;
-    const proximo = this.filaComandos.shift();
-    if (!proximo) return;
-
-    this.escrevendoGatt = true;
-    const payload = new TextEncoder().encode(`<${proximo}>`);
-
-    try {
-      const writePromise = this.characteristic.writeValueWithoutResponse
-        ? this.characteristic.writeValueWithoutResponse(payload)
-        : this.characteristic.writeValue(payload);
-
-      await Promise.race([
-        writePromise,
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout de escrita GATT')), BT_CONFIG.WRITE_TIMEOUT_MS)
-        )
-      ]);
-    } catch (err) {
-      log(`✗ Falha no envio BT (${proximo}): ${err?.message || err}`, 'error');
-      this._onDisconnected();
+    if (cmdStr === 'CMD_REPOUSO' || cmdStr === 'CMD_ESPACO' || cmdStr === 'REST' || cmdStr === 'RESET') {
+      if (window.tecladoDatilografo) {
+        window.tecladoDatilografo.aplicarRepouso(true);
+      } else {
+        window.libratronicBT.enviarRepouso();
+      }
       return;
-    } finally {
-      this.escrevendoGatt = false;
     }
 
-    if (this.filaComandos.length > 0) {
-      this._processarFila();
+    let letra = null;
+    if (/^CMD_[A-Z]$/.test(cmdStr)) {
+      letra = cmdStr.charAt(4);
+    } else if (/^[A-Z]$/.test(cmdStr)) {
+      letra = cmdStr;
     }
-  }
 
-  _limparTimerReconexao() {
-    if (this.timerReconexao) {
-      clearTimeout(this.timerReconexao);
-      this.timerReconexao = null;
+    if (letra) {
+      if (window.tecladoDatilografo) {
+        window.tecladoDatilografo.sincronizarLetraUI(letra, true);
+      } else {
+        window.libratronicBT.enviarLetra(letra);
+      }
+      return;
     }
+
+    const mapaSinaisParaLetra = {
+      CMD_AJUDA: 'B',
+      CMD_OBRIGADO: 'B',
+      CMD_AGUA: 'L',
+      CMD_BANHEIRO: 'T',
+      CMD_SOCORRO: 'B',
+      CMD_COMIDA: 'O',
+      CMD_PERIGO: 'Y',
+      CMD_PORFAVOR: 'B',
+      CMD_SIM: 'S',
+      CMD_NAO: 'D'
+    };
+    if (mapaSinaisParaLetra[cmdStr]) {
+      const lBase = mapaSinaisParaLetra[cmdStr];
+      if (window.tecladoDatilografo) {
+        window.tecladoDatilografo.sincronizarLetraUI(lBase, true);
+      } else {
+        window.libratronicBT.enviarLetra(lBase);
+      }
+      return;
+    }
+
+    window.libratronicBT._enfileirarComando(`<${cmdStr}>`, { tipo: 'custom' });
   }
 
   atualizarUI(estado, texto) {
+    const isConnected = estado === 'connected' || estado === 'conectado';
+    const isConnecting = estado === 'connecting' || estado === 'conectando';
+    this.conectado = isConnected;
+    this.conectando = isConnecting;
+
     document.querySelectorAll('.bt-dot').forEach((el) => {
       el.className =
         'bt-dot' +
-        (estado === 'connected' ? ' connected' : '') +
-        (estado === 'connecting' ? ' connecting' : '');
+        (isConnected ? ' connected' : '') +
+        (isConnecting ? ' connecting' : '');
     });
+
+    const labelPadrao = isConnected ? (texto || 'ESP32 Online') : isConnecting ? 'Conectando...' : 'Conectar ESP32';
     document.querySelectorAll('.bt-status-text').forEach((el) => {
-      el.textContent = texto;
+      el.textContent = labelPadrao;
     });
+
     const nomeEl = document.getElementById('bt-device-name');
-    if (nomeEl) nomeEl.textContent = texto;
+    if (nomeEl) {
+      nomeEl.textContent = isConnected ? `Conectado: ${texto}` : isConnecting ? 'Conectando ao ESP32...' : 'ESP32 desconectado';
+    }
   }
 }
 
 const btManager = new BluetoothManager();
-
 // ============================================================
 // 5. VISÃO COMPUTACIONAL IA: FILTRO EMA + GATE TEMPORAL (0.85s) + TRAJETÓRIA J/Z
 // ============================================================
@@ -2325,10 +2198,24 @@ document.addEventListener('DOMContentLoaded', () => {
   popularTecladoAZ();
   mostrarTela('home');
 
-  // ── NAVEGAÇÃO HOME ──
+  // ── NAVEGAÇÃO HOME (Unificada na Tradução por Texto) ──
   document.getElementById('btn-ir-texto')?.addEventListener('click', () => mostrarTela('text'));
   document.getElementById('btn-ir-camera')?.addEventListener('click', () => mostrarTela('camera'));
-  document.getElementById('btn-ir-bluetooth')?.addEventListener('click', () => mostrarTela('bluetooth'));
+  document.getElementById('btn-ir-teclado')?.addEventListener('click', () => mostrarTela('text'));
+  document.getElementById('btn-ir-bluetooth')?.addEventListener('click', () => {
+    mostrarTela('text');
+    selecionarAbaTexto('calibracao');
+  });
+
+  // Botões de status Bluetooth no topo da Home e da Câmera
+  document.getElementById('btn-home-top-bt')?.addEventListener('click', () => {
+    if (window.tecladoDatilografo) window.tecladoDatilografo.alternarConexaoBT();
+    else btManager.conectar();
+  });
+  document.getElementById('btn-cam-top-bt')?.addEventListener('click', () => {
+    if (window.tecladoDatilografo) window.tecladoDatilografo.alternarConexaoBT();
+    else btManager.conectar();
+  });
 
   // ── CONTROLES DO LABORATÓRIO 3D NA HOME ──
   document.getElementById('btn-home-3d-rotacionar')?.addEventListener('click', toggle3DRotacao);
@@ -2344,6 +2231,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const descEl = document.getElementById('home-feedback-modo');
       if (descEl) descEl.textContent = 'Arraste na cena para rodar · Scroll para zoom';
     }
+    if (window.tecladoDatilografo) window.tecladoDatilografo.aplicarRepouso(true);
   });
 
   document.querySelectorAll('.btn-pose-demo').forEach((btn) => {
@@ -2370,9 +2258,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ── TELA TEXTO & 3D ──
+  // ── TELA TEXTO, TECLADO DATILÓGRAFO & 3D ──
   document.getElementById('btn-traduzir')?.addEventListener('click', iniciarTraducao);
-  document.getElementById('btn-limpar')?.addEventListener('click', limparCampo);
+  document.getElementById('btn-limpar')?.addEventListener('click', () => {
+    limparCampo();
+    if (window.tecladoDatilografo) window.tecladoDatilografo.aplicarRepouso(true);
+  });
 
   const btnVoz = document.getElementById('btn-toggle-voz');
   if (btnVoz) {
@@ -2398,6 +2289,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const inputTexto = document.getElementById('input-texto');
+  let valorAnteriorInput = '';
   if (inputTexto) {
     inputTexto.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -2406,17 +2298,42 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Sincronização em tempo real ao digitar no campo: anima a mão 3D e move a mão física ESP32 imediatamente!
     inputTexto.addEventListener('input', function () {
       const pos = this.selectionStart;
       const limpo = this.value
         .toUpperCase()
-        .replace(/[^A-ZÀ-Ý \n]/g, '');
+        .replace(/[^A-Z\u00C0-\u00DD \n]/g, '');
       if (this.value !== limpo) {
         this.value = limpo;
         try {
           this.setSelectionRange(pos, pos);
         } catch (_) {}
       }
+
+      if (this.value.length > valorAnteriorInput.length) {
+        const ultimoChar = removerAcentosAscii(this.value.slice(-1)).toUpperCase();
+        if (/^[A-Z]$/.test(ultimoChar)) {
+          if (AppState.traduzindo) pararTraducaoAtiva();
+          if (window.tecladoDatilografo) {
+            const btnKey = document.querySelector(`#teclado-botoes-grid .key-btn[data-letra="${ultimoChar}"]`);
+            if (btnKey) window.tecladoDatilografo._animarBotao(btnKey);
+            window.tecladoDatilografo._tocarCliqueSom();
+            window.tecladoDatilografo.selecionarLetra(ultimoChar, true);
+          } else {
+            visualizarLetraUnica3D(ultimoChar);
+          }
+        } else if (ultimoChar === ' ') {
+          if (window.tecladoDatilografo) {
+            window.tecladoDatilografo.aplicarRepouso(true);
+          }
+        }
+      } else if (this.value.length === 0) {
+        if (window.tecladoDatilografo) {
+          window.tecladoDatilografo.aplicarRepouso(true);
+        }
+      }
+      valorAnteriorInput = this.value;
     });
   }
 
@@ -2428,8 +2345,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (libraHand3D && libraHand3D.pronto) {
       libraHand3D._ativarUmaMao();
       libraHand3D.posicaoNeutra();
-      setLetraAtual('');
-      setFeedbackModo('Posição neutra / repouso');
+      setLetraAtual('✋');
+      setFeedbackModo('Posição neutra / repouso (90°)');
+    }
+    if (window.tecladoDatilografo) {
+      window.tecladoDatilografo.aplicarRepouso(true);
     }
   });
 
@@ -2437,7 +2357,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.btn-palavra').forEach((btn) => {
     btn.addEventListener('click', () => {
       const palavra = btn.getAttribute('data-p');
-      if (inputTexto) inputTexto.value = palavra;
+      if (inputTexto) {
+        inputTexto.value = palavra;
+        valorAnteriorInput = palavra;
+      }
       if (AppState.traduzindo) pararTraducaoAtiva();
       iniciarTraducao();
     });
@@ -2494,7 +2417,6 @@ document.addEventListener('DOMContentLoaded', () => {
     stabilityBuffer.ultimaLetraConfirmada = '';
   });
 
-  // Adaptação dinâmica da proporção da câmera conforme rotação da tela em dispositivos móveis
   const aoMudarOrientacaoCamera = () => {
     if (!cameraAtiva) return;
     const v = document.getElementById('cameraVideo');
@@ -2503,19 +2425,9 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('orientationchange', aoMudarOrientacaoCamera, { passive: true });
   window.addEventListener('resize', aoMudarOrientacaoCamera, { passive: true });
 
-  // ── TELA BLUETOOTH & REFERÊNCIA A-Z ──
+  // ── BOTÕES BLUETOOTH NA ABA DE CALIBRAÇÃO ──
   document.getElementById('btn-bt-conectar')?.addEventListener('click', () => btManager.conectar());
   document.getElementById('btn-bt-desconectar')?.addEventListener('click', () => btManager.desconectar());
-
-  document.querySelectorAll('#ref-alfabeto-bt .chip').forEach((chip) => {
-    chip.classList.add('clickable');
-    chip.addEventListener('click', () => {
-      const letra = chip.textContent.trim();
-      mostrarTela('text');
-      selecionarAbaTexto('alfabeto');
-      timers.schedule(() => visualizarLetraUnica3D(letra), 380);
-    });
-  });
 });
 
 // ============================================================
@@ -2581,23 +2493,18 @@ function getBancoFallback() {
   };
 }
 
-
 // ============================================================
-// ============================================================
-// 13. MÓDULO CONTROLADOR: TECLADO DATILÓGRAFO & 6 SERVOS ESP32 (v7.0)
+// 13. MÓDULO CONTROLADOR UNIFICADO: TECLADO DATILÓGRAFO & 6 SERVOS ESP32 (v10.0)
 // ============================================================
 class TecladoDatilografoController {
   constructor() {
     this.audioCtx = null;
-    this.soletrando = false;
-    this.abortarSoletra = false;
     this.letraSelecionadaAtual = 'A';
     this.throttleTimer = null;
     this.init();
   }
 
   init() {
-    this._registrarBotoesNavegacao();
     this._registrarTeclasVirtuais();
     this._registrarTecladoFisico();
     this._registrarControlesFrase();
@@ -2605,8 +2512,7 @@ class TecladoDatilografoController {
     this._registrarConexaoBluetooth();
     this._sincronizarEventosBT();
 
-    // Inicia exibindo a letra A sem disparar BLE antes de conectar
-    this.selecionarLetra('A', false);
+    this.sincronizarLetraUI('A', false);
   }
 
   _tocarCliqueSom() {
@@ -2634,12 +2540,6 @@ class TecladoDatilografoController {
     } catch (_) {}
   }
 
-  _registrarBotoesNavegacao() {
-    document.getElementById('btn-ir-teclado')?.addEventListener('click', () => {
-      mostrarTela('teclado');
-    });
-  }
-
   _registrarSlidersCalibracao() {
     const nomes = ['polegar', 'indicador', 'medio', 'anelar', 'mindinho', 'pulso'];
     nomes.forEach((nome) => {
@@ -2653,17 +2553,15 @@ class TecladoDatilografoController {
       });
     });
 
-    // Botão Salvar Graus desta Letra
     document.getElementById('btn-salvar-pose-letra')?.addEventListener('click', () => {
       const angulos = this._lerSlidersAtuais();
-      if (window.libratronicBT && this.letraSelecionadaAtual) {
+      if (window.libratronicBT && this.letraSelecionadaAtual && this.letraSelecionadaAtual !== 'REPOUSO') {
         window.libratronicBT.salvarPoseLetra(this.letraSelecionadaAtual, angulos);
         mostrarNotificacaoUI(`✓ Novos graus salvos para a Letra ${this.letraSelecionadaAtual}!`, 'success');
         this.selecionarLetra(this.letraSelecionadaAtual, true);
       }
     });
 
-    // Botão Definir Pulso Atual como Neutro
     document.getElementById('btn-fixar-pulso-neutro')?.addEventListener('click', () => {
       const angulos = this._lerSlidersAtuais();
       if (window.libratronicBT) {
@@ -2673,7 +2571,6 @@ class TecladoDatilografoController {
       }
     });
 
-    // Botão Inverter Polegar <-> Indicador via Software
     document.getElementById('btn-inverter-pol-ind')?.addEventListener('click', (e) => {
       if (window.libratronicBT) {
         window.libratronicBT.inverterPolInd = !window.libratronicBT.inverterPolInd;
@@ -2688,7 +2585,6 @@ class TecladoDatilografoController {
       }
     });
 
-    // Seletor de Pino GPIO do Dedo Médio
     document.getElementById('select-pino-medio')?.addEventListener('change', (e) => {
       const novoPino = Number(e.target.value);
       if (window.libratronicBT && novoPino) {
@@ -2698,7 +2594,6 @@ class TecladoDatilografoController {
       }
     });
 
-    // Botão Restaurar Padrão
     document.getElementById('btn-resetar-calibracao')?.addEventListener('click', () => {
       if (window.libratronicBT) {
         window.libratronicBT.resetarCalibracaoPadrao();
@@ -2741,33 +2636,45 @@ class TecladoDatilografoController {
     botoes.forEach(btn => {
       const letra = btn.dataset.letra;
       btn.addEventListener('click', () => {
+        if (AppState.traduzindo) pararTraducaoAtiva();
         this._tocarCliqueSom();
         this._animarBotao(btn);
         this.selecionarLetra(letra, true);
 
-        const input = document.getElementById('teclado-frase-input');
+        const input = document.getElementById('input-texto');
         if (input) input.value += letra;
       });
     });
 
     document.getElementById('btn-teclado-space')?.addEventListener('click', (e) => {
+      if (AppState.traduzindo) pararTraducaoAtiva();
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
       this.aplicarRepouso(true);
-      const input = document.getElementById('teclado-frase-input');
+      const input = document.getElementById('input-texto');
       if (input) input.value += ' ';
     });
 
     document.getElementById('btn-teclado-backspace')?.addEventListener('click', (e) => {
+      if (AppState.traduzindo) pararTraducaoAtiva();
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
-      const input = document.getElementById('teclado-frase-input');
+      const input = document.getElementById('input-texto');
       if (input && input.value.length > 0) {
         input.value = input.value.slice(0, -1);
+        const ultimo = removerAcentosAscii(input.value.slice(-1)).toUpperCase();
+        if (/^[A-Z]$/.test(ultimo)) {
+          this.selecionarLetra(ultimo, true);
+        } else {
+          this.aplicarRepouso(true);
+        }
+      } else {
+        this.aplicarRepouso(true);
       }
     });
 
     document.getElementById('btn-teclado-modo-neutro')?.addEventListener('click', (e) => {
+      if (AppState.traduzindo) pararTraducaoAtiva();
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
       this.aplicarRepouso(true);
@@ -2786,57 +2693,55 @@ class TecladoDatilografoController {
 
   _registrarTecladoFisico() {
     window.addEventListener('keydown', (e) => {
-      if (AppState.telaAtual !== 'teclado') return;
-      if (e.target && e.target.id === 'teclado-frase-input') return;
+      if (AppState.telaAtual !== 'text') return;
+      const tag = e.target?.tagName;
+      if (tag === 'TEXTAREA' || tag === 'INPUT' || tag === 'SELECT') return;
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
 
       const key = e.key.toUpperCase();
       if (/^[A-Z]$/.test(key)) {
         e.preventDefault();
+        if (AppState.traduzindo) pararTraducaoAtiva();
         const btn = document.querySelector(`#teclado-botoes-grid .key-btn[data-letra="${key}"]`);
         if (btn) this._animarBotao(btn);
         this._tocarCliqueSom();
         this.selecionarLetra(key, true);
 
-        const input = document.getElementById('teclado-frase-input');
+        const input = document.getElementById('input-texto');
         if (input) input.value += key;
       } else if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
+        if (AppState.traduzindo) pararTraducaoAtiva();
         const btn = document.getElementById('btn-teclado-space');
         if (btn) this._animarBotao(btn);
         this._tocarCliqueSom();
         this.aplicarRepouso(true);
-        const input = document.getElementById('teclado-frase-input');
+        const input = document.getElementById('input-texto');
         if (input) input.value += ' ';
       } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        if (AppState.traduzindo) pararTraducaoAtiva();
         const btn = document.getElementById('btn-teclado-backspace');
         if (btn) this._animarBotao(btn);
         this._tocarCliqueSom();
-        const input = document.getElementById('teclado-frase-input');
+        const input = document.getElementById('input-texto');
         if (input && input.value.length > 0) {
           input.value = input.value.slice(0, -1);
+          const ultimo = removerAcentosAscii(input.value.slice(-1)).toUpperCase();
+          if (/^[A-Z]$/.test(ultimo)) {
+            this.selecionarLetra(ultimo, true);
+          } else {
+            this.aplicarRepouso(true);
+          }
         }
       }
     });
   }
 
   _registrarControlesFrase() {
-    document.getElementById('btn-teclado-soletrar')?.addEventListener('click', () => {
-      const input = document.getElementById('teclado-frase-input');
-      const texto = input ? input.value.trim() : '';
-      if (!texto) {
-        mostrarNotificacaoUI('Digite ou clique em letras para soletrar.', 'info');
-        return;
-      }
-      this.soletrarFrase(texto);
-    });
-
     document.getElementById('btn-teclado-repouso')?.addEventListener('click', () => {
+      if (AppState.traduzindo) pararTraducaoAtiva();
       this.aplicarRepouso(true);
-    });
-
-    document.getElementById('btn-teclado-limpar')?.addEventListener('click', () => {
-      const input = document.getElementById('teclado-frase-input');
-      if (input) input.value = '';
     });
   }
 
@@ -2861,18 +2766,17 @@ class TecladoDatilografoController {
 
     window.libratronicBT.on('status', ({ estado, mensagem, dispositivo }) => {
       this._atualizarUIStatusBT(estado, mensagem, dispositivo);
+      btManager.atualizarUI(estado, dispositivo || mensagem);
     });
 
     window.libratronicBT.on('conectado', ({ nome }) => {
       mostrarNotificacaoUI(`✓ Conectado ao ESP32 (${nome})`, 'success');
       log(`✓ Web Bluetooth conectado ao ESP32: ${nome}`, 'success');
-      btManager.conectado = true;
       btManager.atualizarUI('connected', nome);
     });
 
     window.libratronicBT.on('desconectado', () => {
-      btManager.conectado = false;
-      btManager.atualizarUI('disconnected', 'Desconectado');
+      btManager.atualizarUI('disconnected', 'Conectar ESP32');
     });
   }
 
@@ -2883,14 +2787,14 @@ class TecladoDatilografoController {
     const labelKey = document.querySelector('#btn-teclado-status-bt-key .key-bt-text');
     const dotKey = document.querySelector('#btn-teclado-status-bt-key .bt-dot');
 
-    const isConnected = estado === 'conectado';
-    const isConnecting = estado === 'conectando';
+    const isConnected = estado === 'conectado' || estado === 'connected';
+    const isConnecting = estado === 'conectando' || estado === 'connecting';
 
     if (labelTopo) {
-      labelTopo.textContent = isConnected ? (dispositivo || 'ESP32 Conectado') : (isConnecting ? 'Conectando...' : 'Conectar ESP32');
+      labelTopo.textContent = isConnected ? (dispositivo || 'ESP32 Online') : (isConnecting ? 'Conectando...' : 'Conectar ESP32');
     }
     if (labelKey) {
-      labelKey.textContent = isConnected ? 'ESP32 Online' : (isConnecting ? 'Buscando...' : 'ESP32 Offline');
+      labelKey.textContent = isConnected ? 'ESP32 Online' : (isConnecting ? 'Buscando...' : 'Conectar BLE');
     }
 
     [dotTopo, dotKey].forEach(dot => {
@@ -2900,12 +2804,11 @@ class TecladoDatilografoController {
     });
   }
 
-  selecionarLetra(letra, enviarBLE = true) {
+  sincronizarLetraUI(letra, enviarBLE = true) {
     letra = String(letra).trim().toUpperCase();
     this.letraSelecionadaAtual = letra;
     const tabela = window.LibraTronicBluetooth ? window.LibraTronicBluetooth.getTabelaLetras() : null;
     const info = tabela ? tabela[letra] : null;
-
     if (!info) return;
 
     const { polegar, indicador, medio, anelar, mindinho, pulso } = info.servos;
@@ -2925,6 +2828,10 @@ class TecladoDatilografoController {
     if (elDesc) elDesc.textContent = info.descricao;
     if (elCmd) elCmd.textContent = `<L:${letra}:${polegar},${indicador},${medio},${anelar},${mindinho},${pulso}>`;
 
+    document.querySelectorAll('#teclado-botoes-grid .key-btn[data-letra]').forEach((b) => {
+      b.classList.toggle('active-key', b.dataset.letra === letra);
+    });
+
     this._atualizarGauge('polegar', polegar);
     this._atualizarGauge('indicador', indicador);
     this._atualizarGauge('medio', medio);
@@ -2936,11 +2843,21 @@ class TecladoDatilografoController {
       window.libratronicBT.enviarLetra(letra);
       log(`BLE -> ESP32: Letra ${letra} [${polegar}°, ${indicador}°, ${medio}°, ${anelar}°, ${mindinho}°, Pulso:${pulso}°]`, 'info');
     }
+  }
 
-    const dadosDb = AppState.bancoDados?.letras?.[letra];
+  selecionarLetra(letra, enviarBLE = true) {
+    letra = String(letra).trim().toUpperCase();
+    this.sincronizarLetraUI(letra, enviarBLE);
+
+    const dadosDb = buscarLetra(letra);
+    setLetraAtual(letra);
+    setFeedbackModo(dadosDb?.descricao || `Letra ${letra} em Libras`);
+
     if (libraHand3D && libraHand3D.pronto && dadosDb?.rotacoes3d) {
+      libraHand3D._ativarUmaMao();
       libraHand3D.animarLetra(dadosDb.rotacoes3d, dadosDb.movimento, dadosDb.pontaRastro);
     }
+    SpeechService.falar(letra);
   }
 
   aplicarRepouso(enviarBLE = true) {
@@ -2957,12 +2874,23 @@ class TecladoDatilografoController {
     if (elDesc) elDesc.textContent = `Mão aberta com todos os 5 dedos retos em 90° e pulso alinhado em ${pulsoNeutro}°.`;
     if (elCmd)  elCmd.textContent = `<ANG:90,90,90,90,90,${pulsoNeutro}>`;
 
+    document.querySelectorAll('#teclado-botoes-grid .key-btn[data-letra]').forEach((b) => {
+      b.classList.remove('active-key');
+    });
+
     this._atualizarGauge('polegar', 90);
     this._atualizarGauge('indicador', 90);
     this._atualizarGauge('medio', 90);
     this._atualizarGauge('anelar', 90);
     this._atualizarGauge('mindinho', 90);
     this._atualizarGauge('pulso', pulsoNeutro);
+
+    if (libraHand3D && libraHand3D.pronto) {
+      libraHand3D._ativarUmaMao();
+      libraHand3D.posicaoNeutra();
+      setLetraAtual('✋');
+      setFeedbackModo(`Mão em repouso (Dedos 90° · Pulso ${pulsoNeutro}°)`);
+    }
 
     if (enviarBLE && window.libratronicBT) {
       window.libratronicBT.enviarRepouso();
@@ -2980,41 +2908,6 @@ class TecladoDatilografoController {
     if (valEl) valEl.textContent = `${angSeguro}°`;
     if (fillEl) fillEl.style.width = `${pct}%`;
     if (atualizarSlider && sliderEl) sliderEl.value = String(angSeguro);
-  }
-
-  async soletrarFrase(texto) {
-    if (this.soletrando) {
-      this.abortarSoletra = true;
-      return;
-    }
-
-    const letrasLimpos = texto.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const btnSoletrar = document.getElementById('btn-teclado-soletrar');
-
-    this.soletrando = true;
-    this.abortarSoletra = false;
-    if (btnSoletrar) btnSoletrar.textContent = '⏹ Parar Soletração';
-
-    for (let i = 0; i < letrasLimpos.length; i++) {
-      if (this.abortarSoletra) break;
-
-      const char = letrasLimpos[i];
-      if (/^[A-Z]$/.test(char)) {
-        const btn = document.querySelector(`#teclado-botoes-grid .key-btn[data-letra="${char}"]`);
-        if (btn) this._animarBotao(btn);
-        this.selecionarLetra(char, true);
-        await timers.sleep(500);
-      } else if (char === ' ') {
-        this.aplicarRepouso(true);
-        await timers.sleep(380);
-      }
-    }
-
-    this.soletrando = false;
-    this.abortarSoletra = false;
-    if (btnSoletrar) {
-      btnSoletrar.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Soletrar Palavra`;
-    }
   }
 }
 

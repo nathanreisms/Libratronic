@@ -2477,159 +2477,341 @@ kbd {
 }
 
 /* ============================================================
-   SEÇÃO DO TECLADO DATILÓGRAFO & TELEMETRIA 6 SERVOS (ESP32)
-   Estética: Luxury Cut-Glass & Aerospace Hardware Dark UI
+   SEÇÃO UNIFICADAv10.0: TRADUÇÃO POR TEXTO + TECLADO DATILÓGRAFO + BLUETOOTH + 3D
+   Estética: Luxury Cut-Glass & Aerospace Hardware Dark UI (100% Responsiva)
    ============================================================ */
 
-.highlight-pill {
-  background: linear-gradient(135deg, rgba(148, 184, 200, 0.22) 0%, rgba(204, 227, 238, 0.08) 100%) !important;
-  border-color: rgba(204, 227, 238, 0.45) !important;
-  box-shadow: 0 0 20px rgba(148, 184, 200, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+.bt-status-interactive {
+  cursor: pointer;
+  border: 1px solid rgba(148, 184, 200, 0.28);
+  background: rgba(148, 184, 200, 0.08);
+  transition: all 0.2s ease;
 }
 
-.highlight-pill:hover {
-  border-color: #cce3ee !important;
-  box-shadow: 0 0 28px rgba(148, 184, 200, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
-  transform: translateY(-2px);
+.bt-status-interactive:hover {
+  border-color: var(--accent-bright);
+  background: rgba(148, 184, 200, 0.16);
+  transform: translateY(-1px);
 }
 
-#screen-teclado {
-  min-height: 100vh;
-  padding: 1.5rem 2rem 4rem;
-  background: radial-gradient(circle at 50% 0%, rgba(148, 184, 200, 0.06) 0%, transparent 60%), var(--bg-deep);
-}
-
-.teclado-header-actions {
+.header-bt-actions {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
-.teclado-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.btn-bt-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.48rem 1rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(148, 184, 200, 0.36);
+  background: linear-gradient(135deg, rgba(148, 184, 200, 0.16) 0%, rgba(15, 19, 25, 0.85) 100%);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--edge-specular);
 }
 
-/* ── Grid Superior: Display da Letra + Telemetria dos 6 Servos ── */
-.teclado-telemetria-grid {
+.btn-bt-header:hover {
+  border-color: #cce3ee;
+  background: linear-gradient(135deg, rgba(148, 184, 200, 0.28) 0%, rgba(22, 28, 36, 0.95) 100%);
+  transform: translateY(-1px);
+}
+
+.btn-repouso-header {
+  padding: 0.46rem 0.9rem !important;
+  font-size: 0.74rem !important;
+  min-height: 34px !important;
+}
+
+/* ── Grid Principal Responsivo da Tela de Texto Unificada ── */
+.text-body {
   display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 1.25rem;
+  grid-template-columns: minmax(420px, 1.18fr) minmax(360px, 1fr);
+  align-items: start;
+  gap: 1.35rem;
+  padding: 1.25rem clamp(1rem, 3vw, 2.5rem) 3rem;
+  max-width: 1540px;
+  width: 100%;
+  margin: 0 auto;
 }
 
-.teclado-card {
-  background: var(--glass-card);
+/* Painel Direito 3D fixo (sticky) em telas de Desktop para estar sempre visível ao lado do teclado */
+@media (min-width: 1025px) {
+  .panel-right {
+    position: sticky;
+    top: 82px;
+  }
+}
+
+/* ── Teclado Datilógrafo Integrado na Aba 1 ── */
+.teclado-datilografo-inline {
+  background: rgba(8, 10, 14, 0.72);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius);
-  padding: 1.25rem;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: var(--edge-specular), 0 12px 32px rgba(0, 0, 0, 0.45);
-  position: relative;
-  overflow: hidden;
+  padding: 0.85rem 0.75rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
 }
 
-.teclado-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(204, 227, 238, 0.35), transparent);
+.teclado-inline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 0.25rem;
 }
 
-.card-eyebrow {
-  font-family: var(--font-display);
-  font-size: 0.72rem;
+.teclado-inline-title {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   color: var(--accent);
-  text-transform: uppercase;
-  margin-bottom: 0.75rem;
 }
 
-/* Card Display Letra */
-.letra-destaque-wrapper {
+.teclado-inline-badge {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: #7ec8a0;
+  background: rgba(126, 200, 160, 0.12);
+  border: 1px solid rgba(126, 200, 160, 0.3);
+  padding: 0.14rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+.teclado-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.42rem;
+  width: 100%;
+}
+
+.teclado-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.36rem;
+  width: 100%;
+}
+
+/* Teclas QWERTY Responsivas */
+.key-btn {
+  flex: 1;
+  min-width: 0;
+  max-width: 64px;
+  height: 50px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), #111318;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 3px solid rgba(0, 0, 0, 0.7);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.15rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.12s cubic-bezier(0.2, 0.8, 0.4, 1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 3px 6px rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+
+.key-btn:hover {
+  background: linear-gradient(180deg, rgba(148, 184, 200, 0.22) 0%, rgba(255, 255, 255, 0.05) 100%), #161a22;
+  border-color: rgba(204, 227, 238, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 14px rgba(148, 184, 200, 0.22);
+  transform: translateY(-1px);
+}
+
+.key-btn:active,
+.key-btn.pressed,
+.key-btn.active-key {
+  border-bottom-width: 1px;
+  transform: translateY(1px);
+  background: linear-gradient(180deg, rgba(148, 184, 200, 0.38) 0%, rgba(204, 227, 238, 0.15) 100%), #1d232c;
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 18px rgba(204, 227, 238, 0.42), inset 0 0 10px rgba(255, 255, 255, 0.28);
+}
+
+.key-letter {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.key-sub {
+  font-size: 0.54rem;
+  color: var(--text-dim);
+  letter-spacing: -0.01em;
+  margin-top: 0.14rem;
+  text-transform: uppercase;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key-btn:hover .key-sub,
+.key-btn.pressed .key-sub,
+.key-btn.active-key .key-sub {
+  color: var(--accent-bright);
+}
+
+.key-action {
+  max-width: 135px;
+  flex: 1.3;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%), #0d0f14;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex-direction: row;
+  gap: 0.35rem;
+}
+
+.key-space {
+  flex: 2.6;
+  max-width: 280px;
+}
+
+.key-space-label {
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+}
+
+.space-row {
+  margin-top: 0.15rem;
+}
+
+/* ── Barra Compacta de Telemetria da Letra & Pacote BLE ── */
+.letra-ble-mini-bar {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(5, 6, 8, 0.65);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
 }
 
-.letra-hero-char {
+.letra-ble-mini-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.letra-mini-char {
   font-family: var(--font-display);
-  font-size: 4.8rem;
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1;
   color: #ffffff;
-  text-shadow: 0 0 24px rgba(204, 227, 238, 0.5), 0 0 48px rgba(148, 184, 200, 0.3);
-  min-width: 80px;
+  min-width: 36px;
   text-align: center;
   background: linear-gradient(180deg, #ffffff 30%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.4, 1.4);
+  transition: transform 0.18s ease;
 }
 
-.letra-hero-char.pop {
+.letra-mini-char.pop {
   transform: scale(1.18);
 }
 
-.letra-meta {
-  flex: 1;
+.letra-ble-mini-texts {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.1rem;
+  min-width: 0;
 }
 
-.letra-nome-badge {
+.letra-ble-mini-texts strong {
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 0.82rem;
   color: var(--text-main);
 }
 
-.letra-desc-texto {
-  font-size: 0.84rem;
+.letra-ble-mini-texts span {
+  font-size: 0.72rem;
   color: var(--text-secondary);
-  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.comando-badge {
+.comando-mini-code {
+  font-family: var(--font-mono);
+  font-size: 0.70rem;
+  color: var(--accent-bright);
+  background: rgba(148, 184, 200, 0.08);
+  border: 1px solid rgba(148, 184, 200, 0.24);
+  padding: 0.22rem 0.5rem;
+  border-radius: 5px;
+}
+
+/* ── Aba 3: Conexão Bluetooth & Calibração dos 6 Servos ── */
+.bt-inline-connect-card {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: rgba(148, 184, 200, 0.05);
+  border: 1px solid rgba(148, 184, 200, 0.22);
+  border-radius: var(--radius-sm);
+  flex-wrap: wrap;
+}
+
+.bt-inline-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bt-inline-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.bt-inline-btns {
+  display: flex;
   gap: 0.5rem;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border-glass);
-  border-radius: 6px;
-  padding: 0.35rem 0.6rem;
-  margin-top: 0.25rem;
 }
 
-.comando-label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text-dim);
-  letter-spacing: 0.05em;
+.btn-act.sm {
+  padding: 0.5rem 0.95rem;
+  font-size: 0.78rem;
 }
 
-.comando-badge code {
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
-  color: var(--accent-bright);
+.servos-card-inline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-/* Card Telemetria dos 6 Servos */
 .servos-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.9rem;
 }
 
 .safe-badge {
@@ -2637,333 +2819,72 @@ kbd {
   align-items: center;
   gap: 0.35rem;
   font-family: var(--font-mono);
-  font-size: 0.70rem;
+  font-size: 0.66rem;
   font-weight: 600;
   color: #7ec8a0;
   background: rgba(126, 200, 160, 0.12);
   border: 1px solid rgba(126, 200, 160, 0.35);
-  padding: 0.2rem 0.55rem;
+  padding: 0.18rem 0.55rem;
   border-radius: var(--radius-pill);
-  letter-spacing: 0.04em;
 }
 
 .servos-gauges-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.85rem 1.25rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
 }
 
 .servo-gauge-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  padding: 0.55rem 0.75rem;
+  gap: 0.22rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.5rem 0.68rem;
   border-radius: var(--radius-sm);
-  transition: border-color var(--trans-fast);
-}
-
-.servo-gauge-item:hover {
-  border-color: rgba(148, 184, 200, 0.25);
 }
 
 .gauge-labels {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.35rem;
 }
 
 .servo-name {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 500;
   color: var(--text-secondary);
 }
 
 .servo-val {
   font-family: var(--font-mono);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 600;
   color: var(--accent-bright);
 }
 
 .gauge-bar-track {
   width: 100%;
-  height: 6px;
+  height: 5px;
   background: rgba(255, 255, 255, 0.07);
   border-radius: var(--radius-pill);
   overflow: hidden;
-  position: relative;
 }
 
 .gauge-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, #7ec8a0 0%, #94b8c8 50%, #cce3ee 100%);
   border-radius: var(--radius-pill);
-  transition: width 0.25s cubic-bezier(0.25, 1, 0.5, 1);
-  box-shadow: 0 0 8px rgba(148, 184, 200, 0.45);
+  transition: width 0.2s ease;
 }
 
 .gauge-ticks {
   display: flex;
   justify-content: space-between;
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   color: var(--text-dim);
   font-family: var(--font-mono);
-}
-
-/* ── Barra de Entrada de Frase e Controles ── */
-.teclado-input-bar-wrap {
-  background: var(--glass-card);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius);
-  padding: 0.85rem 1.15rem;
-  box-shadow: var(--edge-specular);
-}
-
-.teclado-input-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.teclado-frase-input {
-  flex: 1;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-sm);
-  padding: 0.7rem 1.1rem;
-  font-size: 1.05rem;
-  font-family: var(--font-mono);
-  color: #ffffff;
-  outline: none;
-  transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
-}
-
-.teclado-frase-input:focus {
-  border-color: var(--accent-border);
-  box-shadow: 0 0 16px rgba(148, 184, 200, 0.25);
-}
-
-.teclado-frase-input::placeholder {
-  color: var(--text-dim);
-  font-size: 0.9rem;
-  font-family: var(--font-sans);
-}
-
-/* ── Teclado Datilógrafo Tátil Virtual ── */
-.teclado-datilografo-wrapper {
-  background: var(--glass-surface);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-lg);
-  padding: 1.4rem;
-  box-shadow: var(--edge-specular-hi);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.teclado-instrucao-atalho {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
-.teclado-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  max-width: 980px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.teclado-row {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-/* Estilo da Tecla com Efeito Mecânico Cut-Glass */
-.key-btn {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%), #111318;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-bottom: 3px solid rgba(0, 0, 0, 0.7);
-  border-radius: 10px;
-  min-width: 68px;
-  height: 64px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35rem;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.12s cubic-bezier(0.2, 0.8, 0.4, 1);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 8px rgba(0, 0, 0, 0.4);
-  position: relative;
-}
-
-.key-btn:hover {
-  background: linear-gradient(180deg, rgba(148, 184, 200, 0.22) 0%, rgba(255, 255, 255, 0.05) 100%), #161a22;
-  border-color: rgba(204, 227, 238, 0.45);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 16px rgba(148, 184, 200, 0.25);
-  transform: translateY(-2px);
-}
-
-.key-btn:active,
-.key-btn.pressed {
-  border-bottom-width: 1px;
-  transform: translateY(2px);
-  background: linear-gradient(180deg, rgba(148, 184, 200, 0.4) 0%, rgba(204, 227, 238, 0.15) 100%), #1d232c;
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 24px rgba(204, 227, 238, 0.5), inset 0 0 12px rgba(255, 255, 255, 0.35);
-}
-
-.key-letter {
-  font-family: var(--font-display);
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1;
-}
-
-.key-sub {
-  font-size: 0.62rem;
-  color: var(--text-dim);
-  letter-spacing: -0.01em;
-  margin-top: 0.2rem;
-  text-transform: uppercase;
-  max-width: 60px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.key-btn:hover .key-sub,
-.key-btn.pressed .key-sub {
-  color: var(--accent-bright);
-}
-
-/* Teclas Especiais */
-.key-action {
-  min-width: 110px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%), #0d0f14;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.key-space {
-  flex: 1;
-  max-width: 380px;
-  min-width: 180px;
-}
-
-.key-space-label {
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  color: var(--text-secondary);
-}
-
-.space-row {
-  margin-top: 0.35rem;
-}
-
-/* ── Responsividade do Teclado Datilógrafo ── */
-@media (max-width: 1024px) {
-  .teclado-telemetria-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .servos-gauges-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .key-btn {
-    min-width: 58px;
-    height: 58px;
-  }
-}
-
-@media (max-width: 768px) {
-  #screen-teclado {
-    padding: 1.2rem 1rem 3rem;
-  }
-
-  .letra-destaque-wrapper {
-    gap: 1rem;
-  }
-
-  .letra-hero-char {
-    font-size: 3.6rem;
-    min-width: 60px;
-  }
-
-  .servos-gauges-grid {
-    grid-template-columns: 1fr;
-    gap: 0.6rem;
-  }
-
-  .teclado-input-row {
-    flex-wrap: wrap;
-  }
-
-  .teclado-frase-input {
-    width: 100%;
-  }
-
-  .teclado-row {
-    gap: 0.3rem;
-  }
-
-  .key-btn {
-    min-width: 32px;
-    flex: 1;
-    height: 52px;
-    padding: 0.2rem;
-  }
-
-  .key-letter {
-    font-size: 1.15rem;
-  }
-
-  .key-sub {
-    display: none;
-  }
-
-  .key-action {
-    min-width: 80px;
-  }
-}
-
-
-/* ── Correção de Layout v7.0 + Sliders de Calibração Ao Vivo ── */
-#screen-teclado {
-  flex-direction: column !important;
-  align-items: stretch !important;
-  justify-content: flex-start !important;
-  padding: 0 0 4rem !important;
-}
-
-#screen-teclado .screen-header {
-  width: 100%;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-}
-
-#screen-teclado .teclado-container {
-  width: 100%;
-  max-width: 1220px;
-  padding: 0 clamp(1rem, 3vw, 2.5rem);
-  margin: 0 auto;
-}
-
-.comando-badge {
-  flex-wrap: wrap;
-  word-break: break-all;
 }
 
 .servo-slider {
@@ -2974,34 +2895,27 @@ kbd {
   background: rgba(255, 255, 255, 0.12);
   border-radius: 999px;
   outline: none;
-  margin: 0.35rem 0 0.15rem;
+  margin: 0.3rem 0 0.1rem;
   cursor: pointer;
 }
 
 .servo-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: #cce3ee;
   border: 2px solid #0a0b0e;
-  box-shadow: 0 0 10px rgba(204, 227, 238, 0.8);
+  box-shadow: 0 0 8px rgba(204, 227, 238, 0.75);
   cursor: grab;
-  transition: transform 0.15s ease;
-}
-
-.servo-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  background: #ffffff;
 }
 
 .calibracao-actions-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
-  margin-top: 1rem;
-  padding-top: 0.85rem;
+  gap: 0.45rem;
+  padding-top: 0.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -3009,10 +2923,10 @@ kbd {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--text-main);
-  padding: 0.48rem 0.9rem;
-  border-radius: 8px;
+  padding: 0.42rem 0.72rem;
+  border-radius: 7px;
   font-family: var(--font-sans);
-  font-size: 0.78rem;
+  font-size: 0.73rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -3029,10 +2943,6 @@ kbd {
   color: #a8e6c3;
 }
 
-.btn-calib.primary:hover {
-  background: rgba(126, 200, 160, 0.28);
-}
-
 .btn-calib.danger {
   margin-left: auto;
   color: #e5989b;
@@ -3044,9 +2954,59 @@ kbd {
   color: var(--accent-bright);
   border: 1px solid rgba(148, 184, 200, 0.35);
   border-radius: 5px;
-  font-size: 0.70rem;
+  font-size: 0.66rem;
   font-family: var(--font-mono);
-  padding: 1px 4px;
-  margin-left: 4px;
+  padding: 1px 3px;
+  margin-left: 3px;
   cursor: pointer;
+}
+
+/* ── Responsividade Avançada para Tablets e Celulares ── */
+@media (max-width: 1080px) {
+  .text-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Em telas menores/mobile, coloca o Simulador 3D no topo ou visível junto ao teclado */
+  #hand3d-container {
+    height: clamp(230px, 34vh, 320px);
+    min-height: 230px;
+  }
+}
+
+@media (max-width: 680px) {
+  .header-bt-actions {
+    gap: 0.35rem;
+  }
+
+  .btn-repouso-header {
+    display: none !important;
+  }
+
+  .btn-bt-header {
+    padding: 0.38rem 0.7rem;
+    font-size: 0.68rem;
+  }
+
+  .servos-gauges-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .key-btn {
+    height: 44px;
+    padding: 0.15rem 0.1rem;
+  }
+
+  .key-letter {
+    font-size: 1rem;
+  }
+
+  .key-sub {
+    display: none;
+  }
+
+  .letra-ble-mini-texts span {
+    white-space: normal;
+  }
 }

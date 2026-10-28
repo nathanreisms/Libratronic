@@ -120,6 +120,15 @@
       this.filaComandos = [];
       this.inverterPolInd = false;
       this.escrevendoGatt = false;
+      this.timerSequencia = null;
+      this.ultimoAngulo = {
+        polegar: 90,
+        indicador: 90,
+        medio: 90,
+        anelar: 90,
+        mindinho: 90,
+        pulso: pulsoNeutroAtual
+      };
 
       this.ouvintes = {
         status: [],
@@ -375,13 +384,19 @@
 
     /**
      * Envia a letra juntamente com os 6 ângulos exatos mostrados no site!
-     * O envio usa fatiamento de 18 bytes para nunca ser truncado pelo BLE do navegador.
+     * Inclui proteção anti-colisão: se o Indicador precisar voltar (abrir) enquanto
+     * o Polegar estava fechado, envia primeiro a abertura do Polegar (90°) antes de mover o Indicador!
      */
     enviarLetra(letra) {
       if (!letra) return null;
       const letraLimpa = String(letra).trim().toUpperCase();
       const config = TABELA_PADRAO_6SERVOS[letraLimpa];
       if (!config) return null;
+
+      if (this.timerSequencia) {
+        clearTimeout(this.timerSequencia);
+        this.timerSequencia = null;
+      }
 
       const p  = sanitizarAngulo(config.servos.polegar);
       const i  = sanitizarAngulo(config.servos.indicador);
@@ -390,15 +405,19 @@
       const mi = sanitizarAngulo(config.servos.mindinho);
       const pu = sanitizarAngulo(config.servos.pulso);
 
+      this._executarComSegurancaPolegar(p, i, m, a, mi, pu, (pEnv, iEnv) => {
+        const comando = `<L:${letraLimpa}:${pEnv},${iEnv},${m},${a},${mi},${pu}>`;
+        this._enfileirarComando(comando, {
+          tipo: 'letra',
+          letra: letraLimpa,
+          descricao: config.descricao,
+          angulos: { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu }
+        });
+      });
+
       const pEnv = this.inverterPolInd ? i : p;
       const iEnv = this.inverterPolInd ? p : i;
       const comando = `<L:${letraLimpa}:${pEnv},${iEnv},${m},${a},${mi},${pu}>`;
-      this._enfileirarComando(comando, {
-        tipo: 'letra',
-        letra: letraLimpa,
-        descricao: config.descricao,
-        angulos: { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu }
-      });
 
       return {
         letra: letraLimpa,
@@ -406,6 +425,57 @@
         descricao: config.descricao,
         angulos: { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu }
       };
+    }
+
+    /**
+     * Garante que o Polegar SEMPRE volte (abra para 90°) antes do Indicador voltar,
+     * e que o Indicador feche antes do Polegar fechar por cima, evitando travar o fio!
+     */
+    _executarComSegurancaPolegar(p, i, m, a, mi, pu, callbackFinal) {
+      const antP = this.ultimoAngulo.polegar;
+      const antI = this.ultimoAngulo.indicador;
+
+      const indicadorVaiAbrir = (i < antI - 5);
+      const polegarVaiAbrir   = (p < antP - 5);
+      const polegarEstavaFechado = (antP > 105);
+
+      // Caso 1: O indicador vai voltar (abrir) e o dedão estava fechado (ou ambos vão abrir)
+      // -> Primeiro abre o dedão (mantendo o indicador onde estava por 240ms)
+      if ((indicadorVaiAbrir && (polegarEstavaFechado || p > 105)) || (polegarVaiAbrir && indicadorVaiAbrir)) {
+        const pSeguro = (p < 105) ? p : 90;
+        const pPre = this.inverterPolInd ? antI : pSeguro;
+        const iPre = this.inverterPolInd ? pSeguro : antI;
+        this._enfileirarComando(`<ANG:${pPre},${iPre},${m},${a},${mi},${pu}>`, { tipo: 'anti-colisao-polegar' });
+
+        this.timerSequencia = setTimeout(() => {
+          this.timerSequencia = null;
+          const pEnv = this.inverterPolInd ? i : p;
+          const iEnv = this.inverterPolInd ? p : i;
+          callbackFinal(pEnv, iEnv);
+        }, 240);
+      }
+      // Caso 2: Ambos vão fechar (ex: Repouso -> E/M/N/S) -> Fecha o indicador primeiro, depois o dedão
+      else if (i > antI + 10 && p > 115) {
+        const pSeguro = 90;
+        const pPre = this.inverterPolInd ? i : pSeguro;
+        const iPre = this.inverterPolInd ? pSeguro : i;
+        this._enfileirarComando(`<ANG:${pPre},${iPre},${m},${a},${mi},${pu}>`, { tipo: 'anti-colisao-indicador' });
+
+        this.timerSequencia = setTimeout(() => {
+          this.timerSequencia = null;
+          const pEnv = this.inverterPolInd ? i : p;
+          const iEnv = this.inverterPolInd ? p : i;
+          callbackFinal(pEnv, iEnv);
+        }, 200);
+      }
+      // Sem risco de colisão
+      else {
+        const pEnv = this.inverterPolInd ? i : p;
+        const iEnv = this.inverterPolInd ? p : i;
+        callbackFinal(pEnv, iEnv);
+      }
+
+      this.ultimoAngulo = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
     }
 
     /**
@@ -419,6 +489,7 @@
       const mi = sanitizarAngulo(mindinho);
       const pu = sanitizarAngulo(pulso);
 
+      this.ultimoAngulo = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
       const pEnv = this.inverterPolInd ? i : p;
       const iEnv = this.inverterPolInd ? p : i;
       const comando = `<ANG:${pEnv},${iEnv},${m},${a},${mi},${pu}>`;
@@ -442,11 +513,17 @@
     }
 
     enviarRepouso() {
+      if (this.timerSequencia) {
+        clearTimeout(this.timerSequencia);
+        this.timerSequencia = null;
+      }
       const pu = sanitizarAngulo(pulsoNeutroAtual);
-      const comando = `<ANG:90,90,90,90,90,${pu}>`;
-      this._enfileirarComando(comando, {
-        tipo: 'repouso',
-        angulos: { polegar: 90, indicador: 90, medio: 90, anelar: 90, mindinho: 90, pulso: pu }
+      this._executarComSegurancaPolegar(90, 90, 90, 90, 90, pu, (pEnv, iEnv) => {
+        const comando = `<ANG:${pEnv},${iEnv},90,90,90,${pu}>`;
+        this._enfileirarComando(comando, {
+          tipo: 'repouso',
+          angulos: { polegar: 90, indicador: 90, medio: 90, anelar: 90, mindinho: 90, pulso: pu }
+        });
       });
       return { polegar: 90, indicador: 90, medio: 90, anelar: 90, mindinho: 90, pulso: pu };
     }
