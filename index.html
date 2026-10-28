@@ -113,6 +113,16 @@
               <span>Tradução por Câmera</span>
             </button>
 
+                        <button id="btn-ir-teclado" class="btn-ghost-pill highlight-pill" aria-label="Abrir Teclado Datilógrafo para ESP32">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="1.6"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2" y="4" width="20" height="16" rx="2.5"/>
+                <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 16h8"/>
+              </svg>
+              <span>Teclado Datilógrafo (ESP32)</span>
+            </button>
+
             <button id="btn-ir-bluetooth" class="btn-ghost-pill" aria-label="Conectar via Bluetooth">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="1.6"
@@ -645,6 +655,228 @@
 
   </section>
 
+  <!-- ===========================================================
+       TELA 5 — TECLADO DATILÓGRAFO & CONTROLE ESP32 (6 SERVOS)
+       =========================================================== -->
+  <section id="screen-teclado" class="screen" aria-label="Teclado Datilógrafo de Libras para Mão Robótica ESP32">
+
+    <header class="screen-header">
+      <button class="btn-back" title="Voltar" aria-label="Voltar para a tela inicial">&#8592;</button>
+      <div class="header-titles">
+        <span class="header-eyebrow">CONTROLE FÍSICO ESP32 &middot; 6 SERVOMOTORES</span>
+        <h2>Teclado Datilógrafo</h2>
+      </div>
+
+      <div class="teclado-header-actions">
+        <button id="btn-teclado-conectar-bt" class="btn-ghost-pill sm" aria-label="Conectar ou desconectar Bluetooth ESP32">
+          <span class="bt-dot" aria-hidden="true"></span>
+          <span id="teclado-bt-status-label" class="bt-status-text">Conectar ESP32</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="teclado-container">
+
+      <!-- Painel Superior: Visor da Letra & Telemetria dos 6 Servos -->
+      <div class="teclado-telemetria-grid">
+
+        <!-- Card 1: Display da Letra Selecionada -->
+        <div class="teclado-card letra-display-card">
+          <div class="card-eyebrow">LETRA TRANSMITIDA</div>
+          <div class="letra-destaque-wrapper">
+            <span id="teclado-letra-ativa" class="letra-hero-char">A</span>
+            <div class="letra-meta">
+              <span id="teclado-letra-nome" class="letra-nome-badge">Letra A</span>
+              <p id="teclado-letra-desc" class="letra-desc-texto">Punho fechado com o polegar encostado paralelamente na lateral do indicador</p>
+              <div class="comando-badge">
+                <span class="comando-label">PACOTE BLE:</span>
+                <code id="teclado-comando-codigo">&lt;L:A:90,180,180,180,180,90&gt;</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Telemetria dos 6 Servomotores (90° a 180°) -->
+        <div class="teclado-card servos-card">
+          <div class="servos-card-header">
+            <div class="card-eyebrow">TELEMETRIA DOS 6 SERVOS</div>
+            <span class="safe-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              TRAVA DE SEGURANÇA: 90° (RETO) &rarr; 180° (CURVADO)
+            </span>
+          </div>
+
+          <div class="servos-gauges-grid">
+            <!-- Servo 1: Polegar -->
+            <div class="servo-gauge-item" id="gauge-polegar">
+              <div class="gauge-labels">
+                <span class="servo-name">Polegar (GPIO 13)</span>
+                <span class="servo-val" id="val-servo-polegar">90°</span>
+              </div>
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="fill-servo-polegar" style="width: 0%;"></div>
+              </div>
+              <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
+            </div>
+
+            <!-- Servo 2: Indicador -->
+            <div class="servo-gauge-item" id="gauge-indicador">
+              <div class="gauge-labels">
+                <span class="servo-name">Indicador (GPIO 12)</span>
+                <span class="servo-val" id="val-servo-indicador">180°</span>
+              </div>
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="fill-servo-indicador" style="width: 100%;"></div>
+              </div>
+              <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
+            </div>
+
+            <!-- Servo 3: Médio -->
+            <div class="servo-gauge-item" id="gauge-medio">
+              <div class="gauge-labels">
+                <span class="servo-name">Médio (GPIO 14)</span>
+                <span class="servo-val" id="val-servo-medio">180°</span>
+              </div>
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="fill-servo-medio" style="width: 100%;"></div>
+              </div>
+              <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
+            </div>
+
+            <!-- Servo 4: Anelar -->
+            <div class="servo-gauge-item" id="gauge-anelar">
+              <div class="gauge-labels">
+                <span class="servo-name">Anelar (GPIO 27)</span>
+                <span class="servo-val" id="val-servo-anelar">180°</span>
+              </div>
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="fill-servo-anelar" style="width: 100%;"></div>
+              </div>
+              <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
+            </div>
+
+            <!-- Servo 5: Mindinho -->
+            <div class="servo-gauge-item" id="gauge-mindinho">
+              <div class="gauge-labels">
+                <span class="servo-name">Mindinho (GPIO 26)</span>
+                <span class="servo-val" id="val-servo-mindinho">180°</span>
+              </div>
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="fill-servo-mindinho" style="width: 100%;"></div>
+              </div>
+              <div class="gauge-ticks"><span>90° (Reto)</span><span>180° (Curvado)</span></div>
+            </div>
+
+            <!-- Servo 6: Pulso -->
+            <div class="servo-gauge-item" id="gauge-pulso">
+              <div class="gauge-labels">
+                <span class="servo-name">Pulso (GPIO 25)</span>
+                <span class="servo-val" id="val-servo-pulso">90°</span>
+              </div>
+              <div class="gauge-bar-track">
+                <div class="gauge-bar-fill" id="fill-servo-pulso" style="width: 0%;"></div>
+              </div>
+              <div class="gauge-ticks"><span>90° (Neutro)</span><span>180° (Inclinado)</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Barra de Frase e Controles de Ação -->
+      <div class="teclado-input-bar-wrap">
+        <div class="teclado-input-row">
+          <input
+            type="text"
+            id="teclado-frase-input"
+            class="teclado-frase-input"
+            placeholder="Clique nas teclas abaixo ou digite para controlar os servos..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="btn-teclado-soletrar" class="btn-act blue" title="Soletrar cada letra sequencialmente no ESP32">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Soletrar Palavra
+          </button>
+          <button id="btn-teclado-repouso" class="btn-act gray" title="Colocar todos os dedos em 90° (Mão aberta / Neutro)">
+            ✋ Repouso (90°)
+          </button>
+          <button id="btn-teclado-limpar" class="btn-act icon-only" title="Limpar campo">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Teclado Datilógrafo Físico / Virtual -->
+      <div class="teclado-datilografo-wrapper">
+        <div class="teclado-instrucao-atalho">
+          <span>💡 Dica: Você também pode usar as teclas do seu <strong>teclado físico (A–Z)</strong> ou clicar nas teclas abaixo!</span>
+        </div>
+
+        <div class="teclado-grid" id="teclado-botoes-grid" role="region" aria-label="Teclado Datilógrafo de Libras">
+          <!-- Linha 1 (QWERTY Datilográfico Ergonômico) -->
+          <div class="teclado-row">
+            <button class="key-btn" data-letra="Q"><span class="key-letter">Q</span><span class="key-sub">G baixo</span></button>
+            <button class="key-btn" data-letra="W"><span class="key-letter">W</span><span class="key-sub">3 retos</span></button>
+            <button class="key-btn" data-letra="E"><span class="key-letter">E</span><span class="key-sub">Garra</span></button>
+            <button class="key-btn" data-letra="R"><span class="key-letter">R</span><span class="key-sub">Cruzado</span></button>
+            <button class="key-btn" data-letra="T"><span class="key-letter">T</span><span class="key-sub">Polegar in</span></button>
+            <button class="key-btn" data-letra="Y"><span class="key-letter">Y</span><span class="key-sub">Shaka</span></button>
+            <button class="key-btn" data-letra="U"><span class="key-letter">U</span><span class="key-sub">Unidos</span></button>
+            <button class="key-btn" data-letra="I"><span class="key-letter">I</span><span class="key-sub">Mindinho</span></button>
+            <button class="key-btn" data-letra="O"><span class="key-letter">O</span><span class="key-sub">Círculo</span></button>
+            <button class="key-btn" data-letra="P"><span class="key-letter">P</span><span class="key-sub">K baixo</span></button>
+          </div>
+
+          <!-- Linha 2 -->
+          <div class="teclado-row">
+            <button class="key-btn" data-letra="A"><span class="key-letter">A</span><span class="key-sub">Punho</span></button>
+            <button class="key-btn" data-letra="S"><span class="key-letter">S</span><span class="key-sub">Polegar cruz</span></button>
+            <button class="key-btn" data-letra="D"><span class="key-letter">D</span><span class="key-sub">Indicador</span></button>
+            <button class="key-btn" data-letra="F"><span class="key-letter">F</span><span class="key-sub">Polegar out</span></button>
+            <button class="key-btn" data-letra="G"><span class="key-letter">G</span><span class="key-sub">Aponta up</span></button>
+            <button class="key-btn" data-letra="H"><span class="key-letter">H</span><span class="key-sub">Giro pulso</span></button>
+            <button class="key-btn" data-letra="J"><span class="key-letter">J</span><span class="key-sub">Curva J</span></button>
+            <button class="key-btn" data-letra="K"><span class="key-letter">K</span><span class="key-sub">V impulso</span></button>
+            <button class="key-btn" data-letra="L"><span class="key-letter">L</span><span class="key-sub">Ângulo L</span></button>
+          </div>
+
+          <!-- Linha 3 -->
+          <div class="teclado-row">
+            <button class="key-btn" data-letra="Z"><span class="key-letter">Z</span><span class="key-sub">Traço Z</span></button>
+            <button class="key-btn" data-letra="X"><span class="key-letter">X</span><span class="key-sub">Gancho</span></button>
+            <button class="key-btn" data-letra="C"><span class="key-letter">C</span><span class="key-sub">Arco C</span></button>
+            <button class="key-btn" data-letra="V"><span class="key-letter">V</span><span class="key-sub">V aberto</span></button>
+            <button class="key-btn" data-letra="B"><span class="key-letter">B</span><span class="key-sub">Mão 4</span></button>
+            <button class="key-btn" data-letra="N"><span class="key-letter">N</span><span class="key-sub">2 baixo</span></button>
+            <button class="key-btn" data-letra="M"><span class="key-letter">M</span><span class="key-sub">3 baixo</span></button>
+            <button class="key-btn key-action" id="btn-teclado-backspace"><span class="key-letter">⌫</span><span class="key-sub">Apagar</span></button>
+          </div>
+
+          <!-- Linha 4: Barra de Espaço e Funções -->
+          <div class="teclado-row space-row">
+            <button class="key-btn key-action" id="btn-teclado-modo-neutro">
+              <span>✋ Mão Aberta (90°)</span>
+            </button>
+            <button class="key-btn key-space" id="btn-teclado-space">
+              <span class="key-space-label">ESPAÇO</span>
+            </button>
+            <button class="key-btn key-action" id="btn-teclado-status-bt-key">
+              <span class="bt-dot" aria-hidden="true"></span>
+              <span class="key-bt-text">ESP32 Status</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
 </div>
 
 <!-- MEDIAPIPE — carregado de forma assíncrona -->
@@ -663,6 +895,7 @@
 </script>
 
 <!-- SCRIPTS DA APLICAÇÃO -->
+<script src="bluetooth.js"></script>
 <script src="hand3d.js"></script>
 <script src="script.js"></script>
 
