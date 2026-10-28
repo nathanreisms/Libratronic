@@ -19,7 +19,7 @@
   <meta name="description" content="Uma ponte entre tecnologia e acessibilidade. O LibraTronic traduz a Língua Brasileira de Sinais em tempo real através de inteligência artificial e aciona uma prótese robótica biomimética." />
 
   <!-- CSS PRINCIPAL -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=7.0" />
 
   <!-- THREE.JS r128 -->
   <script
@@ -696,15 +696,15 @@
           </div>
         </div>
 
-        <!-- Card 2: Telemetria dos 6 Servomotores (90° a 180°) -->
+        <!-- Card 2: Telemetria e Calibração Ao Vivo dos 6 Servomotores (90° a 180°) -->
         <div class="teclado-card servos-card">
           <div class="servos-card-header">
-            <div class="card-eyebrow">TELEMETRIA DOS 6 SERVOS</div>
+            <div class="card-eyebrow">CONTROLE &amp; TELEMETRIA DOS 6 SERVOS (ARRASTE PARA CALIBRAR AO VIVO)</div>
             <span class="safe-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
               </svg>
-              TRAVA DE SEGURANÇA: 90° (RETO) &rarr; 180° (CURVADO)
+              TRAVA ATIVA: 90° (RETO) &rarr; 180° (CURVADO)
             </span>
           </div>
 
@@ -712,9 +712,10 @@
             <!-- Servo 1: Polegar -->
             <div class="servo-gauge-item" id="gauge-polegar">
               <div class="gauge-labels">
-                <span class="servo-name">Polegar (GPIO 13)</span>
+                <span class="servo-name">1. Polegar (GPIO 13)</span>
                 <span class="servo-val" id="val-servo-polegar">90°</span>
               </div>
+              <input type="range" class="servo-slider" id="slider-servo-polegar" data-servo="polegar" min="90" max="180" value="90" />
               <div class="gauge-bar-track">
                 <div class="gauge-bar-fill" id="fill-servo-polegar" style="width: 0%;"></div>
               </div>
@@ -724,9 +725,10 @@
             <!-- Servo 2: Indicador -->
             <div class="servo-gauge-item" id="gauge-indicador">
               <div class="gauge-labels">
-                <span class="servo-name">Indicador (GPIO 12)</span>
+                <span class="servo-name">2. Indicador (GPIO 12)</span>
                 <span class="servo-val" id="val-servo-indicador">180°</span>
               </div>
+              <input type="range" class="servo-slider" id="slider-servo-indicador" data-servo="indicador" min="90" max="180" value="180" />
               <div class="gauge-bar-track">
                 <div class="gauge-bar-fill" id="fill-servo-indicador" style="width: 100%;"></div>
               </div>
@@ -736,9 +738,10 @@
             <!-- Servo 3: Médio -->
             <div class="servo-gauge-item" id="gauge-medio">
               <div class="gauge-labels">
-                <span class="servo-name">Médio (GPIO 14)</span>
+                <span class="servo-name">3. Médio (GPIO 14)</span>
                 <span class="servo-val" id="val-servo-medio">180°</span>
               </div>
+              <input type="range" class="servo-slider" id="slider-servo-medio" data-servo="medio" min="90" max="180" value="180" />
               <div class="gauge-bar-track">
                 <div class="gauge-bar-fill" id="fill-servo-medio" style="width: 100%;"></div>
               </div>
@@ -748,9 +751,10 @@
             <!-- Servo 4: Anelar -->
             <div class="servo-gauge-item" id="gauge-anelar">
               <div class="gauge-labels">
-                <span class="servo-name">Anelar (GPIO 27)</span>
+                <span class="servo-name">4. Anelar (GPIO 27)</span>
                 <span class="servo-val" id="val-servo-anelar">180°</span>
               </div>
+              <input type="range" class="servo-slider" id="slider-servo-anelar" data-servo="anelar" min="90" max="180" value="180" />
               <div class="gauge-bar-track">
                 <div class="gauge-bar-fill" id="fill-servo-anelar" style="width: 100%;"></div>
               </div>
@@ -760,9 +764,10 @@
             <!-- Servo 5: Mindinho -->
             <div class="servo-gauge-item" id="gauge-mindinho">
               <div class="gauge-labels">
-                <span class="servo-name">Mindinho (GPIO 26)</span>
+                <span class="servo-name">5. Mindinho (GPIO 26)</span>
                 <span class="servo-val" id="val-servo-mindinho">180°</span>
               </div>
+              <input type="range" class="servo-slider" id="slider-servo-mindinho" data-servo="mindinho" min="90" max="180" value="180" />
               <div class="gauge-bar-track">
                 <div class="gauge-bar-fill" id="fill-servo-mindinho" style="width: 100%;"></div>
               </div>
@@ -772,14 +777,28 @@
             <!-- Servo 6: Pulso -->
             <div class="servo-gauge-item" id="gauge-pulso">
               <div class="gauge-labels">
-                <span class="servo-name">Pulso (GPIO 25)</span>
-                <span class="servo-val" id="val-servo-pulso">90°</span>
+                <span class="servo-name">6. Pulso (GPIO 25)</span>
+                <span class="servo-val" id="val-servo-pulso">150°</span>
               </div>
+              <input type="range" class="servo-slider" id="slider-servo-pulso" data-servo="pulso" min="90" max="180" value="150" />
               <div class="gauge-bar-track">
-                <div class="gauge-bar-fill" id="fill-servo-pulso" style="width: 0%;"></div>
+                <div class="gauge-bar-fill" id="fill-servo-pulso" style="width: 67%;"></div>
               </div>
-              <div class="gauge-ticks"><span>90° (Neutro)</span><span>180° (Inclinado)</span></div>
+              <div class="gauge-ticks"><span>90° (Esq)</span><span>150° (Centro)</span><span>180° (Dir)</span></div>
             </div>
+          </div>
+
+          <!-- Botões de Calibração Instantânea -->
+          <div class="calibracao-actions-row">
+            <button id="btn-salvar-pose-letra" class="btn-calib primary" title="Salva os 6 ângulos atuais dos sliders para a letra selecionada">
+              💾 Salvar Graus desta Letra
+            </button>
+            <button id="btn-fixar-pulso-neutro" class="btn-calib" title="Define o valor atual do Slider 6 (Pulso) como o centro neutro para o Repouso e demais letras">
+              🎯 Definir Pulso Atual como Reto/Neutro
+            </button>
+            <button id="btn-resetar-calibracao" class="btn-calib danger" title="Restaurar ângulos originais de fábrica">
+              ↺ Restaurar Padrão
+            </button>
           </div>
         </div>
 
@@ -895,9 +914,9 @@
 </script>
 
 <!-- SCRIPTS DA APLICAÇÃO -->
-<script src="bluetooth.js"></script>
+<script src="bluetooth.js?v=7.0"></script>
 <script src="hand3d.js"></script>
-<script src="script.js"></script>
+<script src="script.js?v=7.0"></script>
 
 <!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
 <script>

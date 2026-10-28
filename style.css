@@ -2938,3 +2938,103 @@ kbd {
     min-width: 80px;
   }
 }
+
+
+/* ── Correção de Layout v7.0 + Sliders de Calibração Ao Vivo ── */
+#screen-teclado {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  padding: 0 0 4rem !important;
+}
+
+#screen-teclado .screen-header {
+  width: 100%;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+#screen-teclado .teclado-container {
+  width: 100%;
+  max-width: 1220px;
+  padding: 0 clamp(1rem, 3vw, 2.5rem);
+  margin: 0 auto;
+}
+
+.comando-badge {
+  flex-wrap: wrap;
+  word-break: break-all;
+}
+
+.servo-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  outline: none;
+  margin: 0.35rem 0 0.15rem;
+  cursor: pointer;
+}
+
+.servo-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #cce3ee;
+  border: 2px solid #0a0b0e;
+  box-shadow: 0 0 10px rgba(204, 227, 238, 0.8);
+  cursor: grab;
+  transition: transform 0.15s ease;
+}
+
+.servo-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #ffffff;
+}
+
+.calibracao-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-calib {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-main);
+  padding: 0.48rem 0.9rem;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-calib:hover {
+  background: rgba(148, 184, 200, 0.18);
+  border-color: var(--accent-bright);
+}
+
+.btn-calib.primary {
+  background: rgba(126, 200, 160, 0.15);
+  border-color: rgba(126, 200, 160, 0.45);
+  color: #a8e6c3;
+}
+
+.btn-calib.primary:hover {
+  background: rgba(126, 200, 160, 0.28);
+}
+
+.btn-calib.danger {
+  margin-left: auto;
+  color: #e5989b;
+  border-color: rgba(217, 123, 132, 0.3);
+}

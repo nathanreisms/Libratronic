@@ -2583,13 +2583,16 @@ function getBancoFallback() {
 
 
 // ============================================================
-// 13. MÓDULO CONTROLADOR: TECLADO DATILÓGRAFO & 6 SERVOS ESP32
+// ============================================================
+// 13. MÓDULO CONTROLADOR: TECLADO DATILÓGRAFO & 6 SERVOS ESP32 (v7.0)
 // ============================================================
 class TecladoDatilografoController {
   constructor() {
     this.audioCtx = null;
     this.soletrando = false;
     this.abortarSoletra = false;
+    this.letraSelecionadaAtual = 'A';
+    this.throttleTimer = null;
     this.init();
   }
 
@@ -2598,10 +2601,11 @@ class TecladoDatilografoController {
     this._registrarTeclasVirtuais();
     this._registrarTecladoFisico();
     this._registrarControlesFrase();
+    this._registrarSlidersCalibracao();
     this._registrarConexaoBluetooth();
     this._sincronizarEventosBT();
 
-    // Inicia com a letra A em exibição segura
+    // Inicia exibindo a letra A sem disparar BLE antes de conectar
     this.selecionarLetra('A', false);
   }
 
@@ -2636,6 +2640,77 @@ class TecladoDatilografoController {
     });
   }
 
+  _registrarSlidersCalibracao() {
+    const nomes = ['polegar', 'indicador', 'medio', 'anelar', 'mindinho', 'pulso'];
+    nomes.forEach((nome) => {
+      const slider = document.getElementById(`slider-servo-${nome}`);
+      if (!slider) return;
+
+      slider.addEventListener('input', () => {
+        const val = Math.max(90, Math.min(180, Number(slider.value)));
+        this._atualizarGauge(nome, val, false);
+        this._enviarSlidersAtuaisDebounced();
+      });
+    });
+
+    // Botão Salvar Graus desta Letra
+    document.getElementById('btn-salvar-pose-letra')?.addEventListener('click', () => {
+      const angulos = this._lerSlidersAtuais();
+      if (window.libratronicBT && this.letraSelecionadaAtual) {
+        window.libratronicBT.salvarPoseLetra(this.letraSelecionadaAtual, angulos);
+        mostrarNotificacaoUI(`✓ Novos graus salvos para a Letra ${this.letraSelecionadaAtual}!`, 'success');
+        this.selecionarLetra(this.letraSelecionadaAtual, true);
+      }
+    });
+
+    // Botão Definir Pulso Atual como Neutro
+    document.getElementById('btn-fixar-pulso-neutro')?.addEventListener('click', () => {
+      const angulos = this._lerSlidersAtuais();
+      if (window.libratronicBT) {
+        const novoPulso = window.libratronicBT.setPulsoNeutro(angulos.pulso);
+        mostrarNotificacaoUI(`✓ Pulso neutro fixado em ${novoPulso}° para Repouso e letras!`, 'success');
+        this.aplicarRepouso(true);
+      }
+    });
+
+    // Botão Restaurar Padrão
+    document.getElementById('btn-resetar-calibracao')?.addEventListener('click', () => {
+      if (window.libratronicBT) {
+        window.libratronicBT.resetarCalibracaoPadrao();
+      }
+    });
+  }
+
+  _lerSlidersAtuais() {
+    const ler = (nome) => {
+      const el = document.getElementById(`slider-servo-${nome}`);
+      return el ? Math.max(90, Math.min(180, Number(el.value))) : 90;
+    };
+    return {
+      polegar: ler('polegar'),
+      indicador: ler('indicador'),
+      medio: ler('medio'),
+      anelar: ler('anelar'),
+      mindinho: ler('mindinho'),
+      pulso: ler('pulso')
+    };
+  }
+
+  _enviarSlidersAtuaisDebounced() {
+    const s = this._lerSlidersAtuais();
+    const elCmd = document.getElementById('teclado-comando-codigo');
+    if (elCmd) {
+      elCmd.textContent = `<ANG:${s.polegar},${s.indicador},${s.medio},${s.anelar},${s.mindinho},${s.pulso}>`;
+    }
+
+    if (this.throttleTimer) clearTimeout(this.throttleTimer);
+    this.throttleTimer = setTimeout(() => {
+      if (window.libratronicBT && window.libratronicBT.conectado) {
+        window.libratronicBT.enviarAngulos(s.polegar, s.indicador, s.medio, s.anelar, s.mindinho, s.pulso);
+      }
+    }, 45);
+  }
+
   _registrarTeclasVirtuais() {
     const botoes = document.querySelectorAll('#teclado-botoes-grid .key-btn[data-letra]');
     botoes.forEach(btn => {
@@ -2645,13 +2720,11 @@ class TecladoDatilografoController {
         this._animarBotao(btn);
         this.selecionarLetra(letra, true);
 
-        // Concatena no input de frase
         const input = document.getElementById('teclado-frase-input');
         if (input) input.value += letra;
       });
     });
 
-    // Tecla Espaço (Repouso 90°)
     document.getElementById('btn-teclado-space')?.addEventListener('click', (e) => {
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
@@ -2660,7 +2733,6 @@ class TecladoDatilografoController {
       if (input) input.value += ' ';
     });
 
-    // Tecla Backspace (Apagar)
     document.getElementById('btn-teclado-backspace')?.addEventListener('click', (e) => {
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
@@ -2670,14 +2742,12 @@ class TecladoDatilografoController {
       }
     });
 
-    // Tecla Modo Neutro / Mão Aberta
     document.getElementById('btn-teclado-modo-neutro')?.addEventListener('click', (e) => {
       this._tocarCliqueSom();
       this._animarBotao(e.currentTarget);
       this.aplicarRepouso(true);
     });
 
-    // Clique de status na tecla
     document.getElementById('btn-teclado-status-bt-key')?.addEventListener('click', () => {
       this.alternarConexaoBT();
     });
@@ -2692,7 +2762,7 @@ class TecladoDatilografoController {
   _registrarTecladoFisico() {
     window.addEventListener('keydown', (e) => {
       if (AppState.telaAtual !== 'teclado') return;
-      if (e.target && e.target.id === 'teclado-frase-input') return; // Digitando direto no input
+      if (e.target && e.target.id === 'teclado-frase-input') return;
 
       const key = e.key.toUpperCase();
       if (/^[A-Z]$/.test(key)) {
@@ -2725,7 +2795,6 @@ class TecladoDatilografoController {
   }
 
   _registrarControlesFrase() {
-    // Botão Soletrar Palavra
     document.getElementById('btn-teclado-soletrar')?.addEventListener('click', () => {
       const input = document.getElementById('teclado-frase-input');
       const texto = input ? input.value.trim() : '';
@@ -2736,12 +2805,10 @@ class TecladoDatilografoController {
       this.soletrarFrase(texto);
     });
 
-    // Botão Repouso 90°
     document.getElementById('btn-teclado-repouso')?.addEventListener('click', () => {
       this.aplicarRepouso(true);
     });
 
-    // Botão Limpar
     document.getElementById('btn-teclado-limpar')?.addEventListener('click', () => {
       const input = document.getElementById('teclado-frase-input');
       if (input) input.value = '';
@@ -2810,6 +2877,7 @@ class TecladoDatilografoController {
 
   selecionarLetra(letra, enviarBLE = true) {
     letra = String(letra).trim().toUpperCase();
+    this.letraSelecionadaAtual = letra;
     const tabela = window.LibraTronicBluetooth ? window.LibraTronicBluetooth.getTabelaLetras() : null;
     const info = tabela ? tabela[letra] : null;
 
@@ -2817,7 +2885,6 @@ class TecladoDatilografoController {
 
     const { polegar, indicador, medio, anelar, mindinho, pulso } = info.servos;
 
-    // 1. Atualiza Display da Letra
     const elChar = document.getElementById('teclado-letra-ativa');
     const elNome = document.getElementById('teclado-letra-nome');
     const elDesc = document.getElementById('teclado-letra-desc');
@@ -2833,7 +2900,6 @@ class TecladoDatilografoController {
     if (elDesc) elDesc.textContent = info.descricao;
     if (elCmd) elCmd.textContent = `<L:${letra}:${polegar},${indicador},${medio},${anelar},${mindinho},${pulso}>`;
 
-    // 2. Atualiza Telemetria dos 6 Servos (Validação estrita: 90° a 180°)
     this._atualizarGauge('polegar', polegar);
     this._atualizarGauge('indicador', indicador);
     this._atualizarGauge('medio', medio);
@@ -2841,18 +2907,11 @@ class TecladoDatilografoController {
     this._atualizarGauge('mindinho', mindinho);
     this._atualizarGauge('pulso', pulso);
 
-    // 3. Envia via Bluetooth para o ESP32
-    if (enviarBLE) {
-      if (window.libratronicBT) {
-        window.libratronicBT.enviarLetra(letra);
-      }
-      if (btManager && btManager.conectado) {
-        btManager.enviar(`CMD_${letra}`);
-      }
-      log(`Transmissão BLE ESP32: Letra ${letra} -> [Pol:${polegar}° Ind:${indicador}° Med:${medio}° Ane:${anelar}° Min:${mindinho}° Pul:${pulso}°]`, 'info');
+    if (enviarBLE && window.libratronicBT) {
+      window.libratronicBT.enviarLetra(letra);
+      log(`BLE -> ESP32: Letra ${letra} [${polegar}°, ${indicador}°, ${medio}°, ${anelar}°, ${mindinho}°, Pulso:${pulso}°]`, 'info');
     }
 
-    // 4. Sincroniza com a mão 3D virtual se ativa
     const dadosDb = AppState.bancoDados?.letras?.[letra];
     if (libraHand3D && libraHand3D.pronto && dadosDb?.rotacoes3d) {
       libraHand3D.animarLetra(dadosDb.rotacoes3d, dadosDb.movimento, dadosDb.pontaRastro);
@@ -2860,6 +2919,9 @@ class TecladoDatilografoController {
   }
 
   aplicarRepouso(enviarBLE = true) {
+    this.letraSelecionadaAtual = 'REPOUSO';
+    const pulsoNeutro = window.libratronicBT ? window.libratronicBT.getPulsoNeutro() : 150;
+
     const elChar = document.getElementById('teclado-letra-ativa');
     const elNome = document.getElementById('teclado-letra-nome');
     const elDesc = document.getElementById('teclado-letra-desc');
@@ -2867,37 +2929,32 @@ class TecladoDatilografoController {
 
     if (elChar) elChar.textContent = '✋';
     if (elNome) elNome.textContent = 'Posição Neutra / Repouso';
-    if (elDesc) elDesc.textContent = 'Mão totalmente aberta e relaxada: todos os 6 servos a 90° (reto seguro).';
-    if (elCmd)  elCmd.textContent = '<REST>';
+    if (elDesc) elDesc.textContent = `Mão aberta com todos os 5 dedos retos em 90° e pulso alinhado em ${pulsoNeutro}°.`;
+    if (elCmd)  elCmd.textContent = `<ANG:90,90,90,90,90,${pulsoNeutro}>`;
 
     this._atualizarGauge('polegar', 90);
     this._atualizarGauge('indicador', 90);
     this._atualizarGauge('medio', 90);
     this._atualizarGauge('anelar', 90);
     this._atualizarGauge('mindinho', 90);
-    this._atualizarGauge('pulso', 90);
+    this._atualizarGauge('pulso', pulsoNeutro);
 
-    if (enviarBLE) {
-      if (window.libratronicBT) {
-        window.libratronicBT.enviarRepouso();
-      }
-      if (btManager && btManager.conectado) {
-        btManager.enviar('CMD_REPOUSO');
-      }
-      log('Transmissão BLE ESP32: Repouso <REST> (90° em todos os 6 servos)', 'info');
+    if (enviarBLE && window.libratronicBT) {
+      window.libratronicBT.enviarRepouso();
     }
   }
 
-  _atualizarGauge(nome, angulo) {
-    // Trava de segurança no display: NUNCA menor que 90° nem maior que 180°
+  _atualizarGauge(nome, angulo, atualizarSlider = true) {
     const angSeguro = Math.max(90, Math.min(180, Math.round(Number(angulo))));
     const pct = Math.round(((angSeguro - 90) / 90) * 100);
 
     const valEl = document.getElementById(`val-servo-${nome}`);
     const fillEl = document.getElementById(`fill-servo-${nome}`);
+    const sliderEl = document.getElementById(`slider-servo-${nome}`);
 
     if (valEl) valEl.textContent = `${angSeguro}°`;
     if (fillEl) fillEl.style.width = `${pct}%`;
+    if (atualizarSlider && sliderEl) sliderEl.value = String(angSeguro);
   }
 
   async soletrarFrase(texto) {
@@ -2913,8 +2970,6 @@ class TecladoDatilografoController {
     this.abortarSoletra = false;
     if (btnSoletrar) btnSoletrar.textContent = '⏹ Parar Soletração';
 
-    log(`Iniciando soletração de "${texto}" na mão robótica ESP32...`, 'info');
-
     for (let i = 0; i < letrasLimpos.length; i++) {
       if (this.abortarSoletra) break;
 
@@ -2923,10 +2978,10 @@ class TecladoDatilografoController {
         const btn = document.querySelector(`#teclado-botoes-grid .key-btn[data-letra="${char}"]`);
         if (btn) this._animarBotao(btn);
         this.selecionarLetra(char, true);
-        await timers.sleep(850);
+        await timers.sleep(500);
       } else if (char === ' ') {
         this.aplicarRepouso(true);
-        await timers.sleep(600);
+        await timers.sleep(380);
       }
     }
 
@@ -2938,7 +2993,6 @@ class TecladoDatilografoController {
   }
 }
 
-// Inicializa o Teclado Datilógrafo assim que o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', () => {
   window.tecladoDatilografo = new TecladoDatilografoController();
 });
