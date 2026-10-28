@@ -121,6 +121,18 @@
       this.inverterPolInd = false;
       this.escrevendoGatt = false;
       this.timerSequencia = null;
+      this.timersInterpolacao = [];
+
+      // Velocidade da mão física (15% a 100%). Padrão reduzido para 55% (movimento suave e seguro)
+      this.velocidadeMao = 55;
+      try {
+        const velSalva = localStorage.getItem('libratronic_velocidade_mao');
+        if (velSalva !== null) {
+          const v = Math.round(Number(velSalva));
+          if (!isNaN(v) && v >= 15 && v <= 100) this.velocidadeMao = v;
+        }
+      } catch (_) {}
+
       this.ultimoAngulo = {
         polegar: 90,
         indicador: 90,
@@ -135,6 +147,7 @@
         conectado: [],
         desconectado: [],
         comandoEnviado: [],
+        velocidadeAlterada: [],
         erro: []
       };
 
@@ -147,6 +160,43 @@
 
     static getTabelaLetras() {
       return TABELA_PADRAO_6SERVOS;
+    }
+
+    getVelocidadeMao() {
+      return this.velocidadeMao;
+    }
+
+    setVelocidadeMao(novaVel) {
+      const v = Math.max(15, Math.min(100, Math.round(Number(novaVel) || 55)));
+      this.velocidadeMao = v;
+      try {
+        localStorage.setItem('libratronic_velocidade_mao', String(v));
+      } catch (_) {}
+      if (this.conectado && this.characteristic) {
+        this._enfileirarComando(`<VEL:${v}>`, { tipo: 'velocidade', velocidade: v });
+      }
+      this._disparar('velocidadeAlterada', { velocidade: v });
+      return v;
+    }
+
+    /**
+     * Retorna multiplicador de tempo para soletração de frases de acordo com a velocidade da mão física.
+     * Em 55% (padrão suave) retorna ~1.45x mais tempo entre letras; em 20% retorna ~2.2x; em 100% retorna 1.0x.
+     */
+    getFatorTempoMovimento() {
+      const v = this.velocidadeMao || 55;
+      return 1 + ((100 - v) / 85) * 1.25;
+    }
+
+    _cancelarInterpolacao() {
+      if (this.timerSequencia) {
+        clearTimeout(this.timerSequencia);
+        this.timerSequencia = null;
+      }
+      if (this.timersInterpolacao && this.timersInterpolacao.length > 0) {
+        this.timersInterpolacao.forEach((t) => clearTimeout(t));
+        this.timersInterpolacao = [];
+      }
     }
 
     getPulsoNeutro() {
@@ -308,6 +358,7 @@
       this._notificarStatus('conectado', `Conectado ao ESP32 (${nomeDispositivo})`, nomeDispositivo);
       this._disparar('conectado', { nome: nomeDispositivo, device: this.device });
 
+      this._enfileirarComando(`<VEL:${this.velocidadeMao}>`, { tipo: 'velocidade', velocidade: this.velocidadeMao });
       this.enviarRepouso();
     }
 
@@ -393,10 +444,7 @@
       const config = TABELA_PADRAO_6SERVOS[letraLimpa];
       if (!config) return null;
 
-      if (this.timerSequencia) {
-        clearTimeout(this.timerSequencia);
-        this.timerSequencia = null;
-      }
+      this._cancelarInterpolacao();
 
       const p  = sanitizarAngulo(config.servos.polegar);
       const i  = sanitizarAngulo(config.servos.indicador);
@@ -428,60 +476,154 @@
     }
 
     /**
+     * Executa uma fase de rampa suave dividindo o deslocamento angular em passos progressivos
+     * de acordo com `this.velocidadeMao` (15% a 100%).
+     */
+    _executarRampaFase(alvoFase, enviarUltimoPasso, aoConcluir) {
+      const orig = { ...this.ultimoAngulo };
+      const vel = Math.max(15, Math.min(100, this.velocidadeMao || 55));
+      const fatorLentidao = (100 - vel) / 85; // 0.0 (100%) a 1.0 (15%)
+
+      // Em 100%: passo máx 50°, intervalo 55ms | Em 55% (padrão): passo máx 24°, intervalo 100ms | Em 15%: passo máx 15°, intervalo 145ms
+      const passoMaxGraus = Math.max(14, Math.round(50 - fatorLentidao * 35));
+      const intervaloPassoMs = Math.round(55 + fatorLentidao * 90);
+
+      const maxDelta = Math.max(
+        Math.abs(alvoFase.polegar - orig.polegar),
+        Math.abs(alvoFase.indicador - orig.indicador),
+        Math.abs(alvoFase.medio - orig.medio),
+        Math.abs(alvoFase.anelar - orig.anelar),
+        Math.abs(alvoFase.mindinho - orig.mindinho),
+        Math.abs(alvoFase.pulso - orig.pulso)
+      );
+
+      const totalPassos = Math.max(1, Math.ceil(maxDelta / passoMaxGraus));
+
+      if (totalPassos <= 1) {
+        this.ultimoAngulo = { ...alvoFase };
+        if (enviarUltimoPasso) {
+          const pEnv = this.inverterPolInd ? alvoFase.indicador : alvoFase.polegar;
+          const iEnv = this.inverterPolInd ? alvoFase.polegar : alvoFase.indicador;
+          this._enfileirarComando(
+            `<ANG:${pEnv},${iEnv},${alvoFase.medio},${alvoFase.anelar},${alvoFase.mindinho},${alvoFase.pulso}>`,
+            { tipo: 'rampa-passo' }
+          );
+        }
+        if (aoConcluir) aoConcluir();
+        return;
+      }
+
+      const limitePassoIntermediario = enviarUltimoPasso ? totalPassos : totalPassos - 1;
+
+      for (let step = 1; step <= limitePassoIntermediario; step++) {
+        const delayMs = (step - 1) * intervaloPassoMs;
+        const timerId = setTimeout(() => {
+          const frac = step / totalPassos;
+          const pStep  = sanitizarAngulo(orig.polegar   + (alvoFase.polegar   - orig.polegar)   * frac);
+          const iStep  = sanitizarAngulo(orig.indicador + (alvoFase.indicador - orig.indicador) * frac);
+          const mStep  = sanitizarAngulo(orig.medio     + (alvoFase.medio     - orig.medio)     * frac);
+          const aStep  = sanitizarAngulo(orig.anelar    + (alvoFase.anelar    - orig.anelar)    * frac);
+          const miStep = sanitizarAngulo(orig.mindinho  + (alvoFase.mindinho  - orig.mindinho)  * frac);
+          const puStep = sanitizarAngulo(orig.pulso     + (alvoFase.pulso     - orig.pulso)     * frac);
+
+          this.ultimoAngulo = { polegar: pStep, indicador: iStep, medio: mStep, anelar: aStep, mindinho: miStep, pulso: puStep };
+
+          const pEnv = this.inverterPolInd ? iStep : pStep;
+          const iEnv = this.inverterPolInd ? pStep : iStep;
+          this._enfileirarComando(`<ANG:${pEnv},${iEnv},${mStep},${aStep},${miStep},${puStep}>`, { tipo: 'rampa-passo' });
+        }, delayMs);
+        this.timersInterpolacao.push(timerId);
+      }
+
+      const tempoTotalFase = (totalPassos - 1) * intervaloPassoMs + (enviarUltimoPasso ? intervaloPassoMs : 0);
+      const timerFim = setTimeout(() => {
+        this.ultimoAngulo = { ...alvoFase };
+        if (aoConcluir) aoConcluir();
+      }, tempoTotalFase);
+      this.timersInterpolacao.push(timerFim);
+    }
+
+    /**
      * Garante que o Polegar SEMPRE volte (abra para 90°) antes do Indicador voltar,
-     * e que o Indicador feche antes do Polegar fechar por cima, evitando travar o fio!
+     * e que o Indicador feche antes do Polegar fechar por cima, evitando travar o fio,
+     * aplicando também a rampa de velocidade suave escolhida pelo usuário!
      */
     _executarComSegurancaPolegar(p, i, m, a, mi, pu, callbackFinal) {
       const antP = this.ultimoAngulo.polegar;
       const antI = this.ultimoAngulo.indicador;
 
+      const vel = Math.max(15, Math.min(100, this.velocidadeMao || 55));
+      const fatorLentidao = (100 - vel) / 85;
+      const pausaAntiColisaoMs = Math.round(190 + fatorLentidao * 210);
+
       const indicadorVaiAbrir = (i < antI - 5);
       const polegarVaiAbrir   = (p < antP - 5);
       const polegarEstavaFechado = (antP > 105);
 
-      // Caso 1: O indicador vai voltar (abrir) e o dedão estava fechado (ou ambos vão abrir)
-      // -> Primeiro abre o dedão (mantendo o indicador onde estava por 240ms)
-      if ((indicadorVaiAbrir && (polegarEstavaFechado || p > 105)) || (polegarVaiAbrir && indicadorVaiAbrir)) {
-        const pSeguro = (p < 105) ? p : 90;
-        const pPre = this.inverterPolInd ? antI : pSeguro;
-        const iPre = this.inverterPolInd ? pSeguro : antI;
-        this._enfileirarComando(`<ANG:${pPre},${iPre},${m},${a},${mi},${pu}>`, { tipo: 'anti-colisao-polegar' });
-
-        this.timerSequencia = setTimeout(() => {
-          this.timerSequencia = null;
-          const pEnv = this.inverterPolInd ? i : p;
-          const iEnv = this.inverterPolInd ? p : i;
-          callbackFinal(pEnv, iEnv);
-        }, 240);
-      }
-      // Caso 2: Ambos vão fechar (ex: Repouso -> E/M/N/S) -> Fecha o indicador primeiro, depois o dedão
-      else if (i > antI + 10 && p > 115) {
-        const pSeguro = 90;
-        const pPre = this.inverterPolInd ? i : pSeguro;
-        const iPre = this.inverterPolInd ? pSeguro : i;
-        this._enfileirarComando(`<ANG:${pPre},${iPre},${m},${a},${mi},${pu}>`, { tipo: 'anti-colisao-indicador' });
-
-        this.timerSequencia = setTimeout(() => {
-          this.timerSequencia = null;
-          const pEnv = this.inverterPolInd ? i : p;
-          const iEnv = this.inverterPolInd ? p : i;
-          callbackFinal(pEnv, iEnv);
-        }, 200);
-      }
-      // Sem risco de colisão
-      else {
+      const dispararFinal = () => {
+        this.ultimoAngulo = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
         const pEnv = this.inverterPolInd ? i : p;
         const iEnv = this.inverterPolInd ? p : i;
         callbackFinal(pEnv, iEnv);
-      }
+      };
 
-      this.ultimoAngulo = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
+      // Caso 1: O indicador vai voltar (abrir) e o dedão estava fechado (ou ambos vão abrir)
+      // -> Fase 1: abre o dedão suavemente primeiro | Fase 2: move indicador e demais dedos
+      if ((indicadorVaiAbrir && (polegarEstavaFechado || p > 105)) || (polegarVaiAbrir && indicadorVaiAbrir)) {
+        const pSeguro = (p < 105) ? p : 90;
+        const fase1 = {
+          polegar: pSeguro,
+          indicador: antI,
+          medio: this.ultimoAngulo.medio,
+          anelar: this.ultimoAngulo.anelar,
+          mindinho: this.ultimoAngulo.mindinho,
+          pulso: pu
+        };
+
+        this._executarRampaFase(fase1, true, () => {
+          this.timerSequencia = setTimeout(() => {
+            this.timerSequencia = null;
+            if (p !== pSeguro) {
+              // Se a letra final exige o polegar fechado após o indicador abrir, abre o indicador com polegar em 90° e depois fecha o polegar
+              const fase2 = { polegar: pSeguro, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
+              this._executarRampaFase(fase2, true, () => {
+                const t3 = setTimeout(() => {
+                  const fase3 = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
+                  this._executarRampaFase(fase3, false, dispararFinal);
+                }, Math.round(pausaAntiColisaoMs * 0.75));
+                this.timersInterpolacao.push(t3);
+              });
+            } else {
+              const fase2 = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
+              this._executarRampaFase(fase2, false, dispararFinal);
+            }
+          }, pausaAntiColisaoMs);
+        });
+      }
+      // Caso 2: Ambos vão fechar (ex: Repouso -> E/M/N/S) -> Fecha o indicador e demais dedos primeiro, depois o dedão
+      else if (i > antI + 10 && p > 115) {
+        const pSeguro = 90;
+        const fase1 = { polegar: pSeguro, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
+        this._executarRampaFase(fase1, true, () => {
+          this.timerSequencia = setTimeout(() => {
+            this.timerSequencia = null;
+            const fase2 = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
+            this._executarRampaFase(fase2, false, dispararFinal);
+          }, Math.round(pausaAntiColisaoMs * 0.85));
+        });
+      }
+      // Caso 3: Sem risco de colisão -> Interpola suavemente todos os dedos até o alvo
+      else {
+        const faseUnica = { polegar: p, indicador: i, medio: m, anelar: a, mindinho: mi, pulso: pu };
+        this._executarRampaFase(faseUnica, false, dispararFinal);
+      }
     }
 
     /**
      * Envia os 6 ângulos exatos imediatamente (usado quando o usuário move um slider na tela).
      */
     enviarAngulos(polegar, indicador, medio, anelar, mindinho, pulso = pulsoNeutroAtual) {
+      this._cancelarInterpolacao();
       const p  = sanitizarAngulo(polegar);
       const i  = sanitizarAngulo(indicador);
       const m  = sanitizarAngulo(medio);
@@ -513,10 +655,7 @@
     }
 
     enviarRepouso() {
-      if (this.timerSequencia) {
-        clearTimeout(this.timerSequencia);
-        this.timerSequencia = null;
-      }
+      this._cancelarInterpolacao();
       const pu = sanitizarAngulo(pulsoNeutroAtual);
       this._executarComSegurancaPolegar(90, 90, 90, 90, 90, pu, (pEnv, iEnv) => {
         const comando = `<ANG:${pEnv},${iEnv},90,90,90,${pu}>`;

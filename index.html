@@ -328,6 +328,32 @@
             </button>
           </div>
 
+          <!-- Controle Manual de Velocidade da Mão Física (ESP32) -->
+          <div class="velocidade-mao-card" aria-label="Regulagem de velocidade da mão física">
+            <div class="vel-mao-top">
+              <span class="vel-mao-title">🦾 Velocidade da Mão Física (ESP32)</span>
+              <span id="lbl-velocidade-mao" class="vel-mao-badge">55% &middot; Suave</span>
+            </div>
+            <div class="vel-mao-controls">
+              <input
+                type="range"
+                id="slider-velocidade-mao"
+                class="servo-slider vel-slider"
+                min="15"
+                max="100"
+                step="5"
+                value="55"
+                aria-label="Velocidade da mão física de 15% a 100%"
+              />
+              <div class="vel-presets" role="group" aria-label="Atalhos de velocidade da mão física">
+                <button type="button" class="btn-vel-preset" data-vel="30" title="Movimento bem lento e cuidadoso">30% Lenta</button>
+                <button type="button" class="btn-vel-preset active" data-vel="55" title="Velocidade suave recomendada">55% Suave</button>
+                <button type="button" class="btn-vel-preset" data-vel="75" title="Velocidade moderada">75% Normal</button>
+                <button type="button" class="btn-vel-preset" data-vel="100" title="Velocidade máxima dos servos">100% Máx</button>
+              </div>
+            </div>
+          </div>
+
           <div id="fila-chips" class="queue-box"
                role="list" aria-label="Letras e sinais na fila de tradução" aria-live="polite">
           </div>
@@ -452,6 +478,24 @@
             <div class="servos-card-header">
               <span class="panel-label">Calibração ao Vivo dos 6 Servos</span>
               <span class="safe-badge">90° (RETO) &rarr; 180° (CURVADO)</span>
+            </div>
+
+            <!-- Controle de Velocidade Sincronizado também na Aba de Servos -->
+            <div class="velocidade-mao-card compact" aria-label="Velocidade da mão física na calibração">
+              <div class="vel-mao-top">
+                <span class="vel-mao-title">🦾 Velocidade dos Servos Físicos</span>
+                <span id="lbl-velocidade-mao-calib" class="vel-mao-badge">55% &middot; Suave</span>
+              </div>
+              <input
+                type="range"
+                id="slider-velocidade-mao-calib"
+                class="servo-slider vel-slider"
+                min="15"
+                max="100"
+                step="5"
+                value="55"
+                aria-label="Velocidade dos servos físicos de 15% a 100%"
+              />
             </div>
 
             <div class="servos-gauges-grid">
@@ -748,9 +792,9 @@
 </script>
 
 <!-- SCRIPTS DA APLICAÇÃO -->
-<script src="bluetooth.js?v=10.0"></script>
+<script src="bluetooth.js?v=10.1"></script>
 <script src="hand3d.js"></script>
-<script src="script.js?v=10.0"></script>
+<script src="script.js?v=10.1"></script>
 
 <!-- REMOVEDOR DE SPINNER 3D & MICRO-INTERAÇÕES DE SCROLL/PARALLAX -->
 <script>

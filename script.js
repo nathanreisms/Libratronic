@@ -1878,7 +1878,8 @@ async function traduzirSequenciaTokens(texto) {
   }
 
   let chipIdx = 0;
-  const fatorVel = 1 / (AppState.velocidadeTraducao || 1.0);
+  const fatorMaoFisica = window.libratronicBT ? window.libratronicBT.getFatorTempoMovimento() : 1.35;
+  const fatorVel = (1 / (AppState.velocidadeTraducao || 1.0)) * fatorMaoFisica;
 
   for (const item of tokens) {
     if (AppState.abortarTraducao) break;
@@ -1932,14 +1933,14 @@ async function traduzirSequenciaTokens(texto) {
           ? 2450
           : dados?.movimento === 'tracar_j'
           ? 2200
-          : 520;
+          : 950;
       await timers.sleep(Math.round(durBase * fatorVel));
     }
 
     if (AppState.abortarTraducao) break;
     marcarChip(chipIdx, 'sent');
     chipIdx++;
-    await timers.sleep(Math.round(420 * fatorVel));
+    await timers.sleep(Math.round(620 * fatorVel));
   }
 
   if (!AppState.abortarTraducao) {
@@ -1981,7 +1982,8 @@ async function traduzirGestoCompleto(palavra) {
     log(`↗ BT: ${dados.comando}`, 'success');
   }
 
-  const fatorVel = 1 / (AppState.velocidadeTraducao || 1.0);
+  const fatorMaoFisica = window.libratronicBT ? window.libratronicBT.getFatorTempoMovimento() : 1.35;
+  const fatorVel = (1 / (AppState.velocidadeTraducao || 1.0)) * fatorMaoFisica;
   await timers.sleep(Math.round(2400 * fatorVel));
   if (AppState.abortarTraducao) return;
 
@@ -2508,11 +2510,72 @@ class TecladoDatilografoController {
     this._registrarTeclasVirtuais();
     this._registrarTecladoFisico();
     this._registrarControlesFrase();
+    this._registrarControleVelocidadeMao();
     this._registrarSlidersCalibracao();
     this._registrarConexaoBluetooth();
     this._sincronizarEventosBT();
 
     this.sincronizarLetraUI('A', false);
+  }
+
+  _descreverVelocidadeMao(vel) {
+    const v = Number(vel) || 55;
+    if (v <= 35) return `${v}% · Muito Lenta`;
+    if (v <= 60) return `${v}% · Suave`;
+    if (v <= 85) return `${v}% · Normal`;
+    return `${v}% · Rápida`;
+  }
+
+  _atualizarUIVelocidadeMao(vel) {
+    const v = Math.max(15, Math.min(100, Math.round(Number(vel) || 55)));
+    const texto = this._descreverVelocidadeMao(v);
+
+    const s1 = document.getElementById('slider-velocidade-mao');
+    const s2 = document.getElementById('slider-velocidade-mao-calib');
+    const l1 = document.getElementById('lbl-velocidade-mao');
+    const l2 = document.getElementById('lbl-velocidade-mao-calib');
+
+    if (s1 && Number(s1.value) !== v) s1.value = String(v);
+    if (s2 && Number(s2.value) !== v) s2.value = String(v);
+    if (l1) l1.textContent = texto;
+    if (l2) l2.textContent = texto;
+
+    document.querySelectorAll('.btn-vel-preset').forEach((btn) => {
+      const presetVal = Number(btn.getAttribute('data-vel'));
+      btn.classList.toggle('active', presetVal === v);
+    });
+  }
+
+  _registrarControleVelocidadeMao() {
+    const velInicial = window.libratronicBT ? window.libratronicBT.getVelocidadeMao() : 55;
+    this._atualizarUIVelocidadeMao(velInicial);
+
+    const aplicarNovaVel = (val, logar = false) => {
+      const v = window.libratronicBT ? window.libratronicBT.setVelocidadeMao(val) : Math.max(15, Math.min(100, Number(val) || 55));
+      this._atualizarUIVelocidadeMao(v);
+      if (logar) {
+        log(`🦾 Velocidade da mão física ajustada para ${this._descreverVelocidadeMao(v)}`, 'info');
+      }
+    };
+
+    const s1 = document.getElementById('slider-velocidade-mao');
+    const s2 = document.getElementById('slider-velocidade-mao-calib');
+
+    if (s1) {
+      s1.addEventListener('input', () => aplicarNovaVel(s1.value, false));
+      s1.addEventListener('change', () => aplicarNovaVel(s1.value, true));
+    }
+    if (s2) {
+      s2.addEventListener('input', () => aplicarNovaVel(s2.value, false));
+      s2.addEventListener('change', () => aplicarNovaVel(s2.value, true));
+    }
+
+    document.querySelectorAll('.btn-vel-preset').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const val = Number(btn.getAttribute('data-vel'));
+        if (val) aplicarNovaVel(val, true);
+      });
+    });
   }
 
   _tocarCliqueSom() {

@@ -3010,3 +3010,89 @@ kbd {
     white-space: normal;
   }
 }
+
+
+/* ── Controle Manual de Velocidade da Mão Física (ESP32) ── */
+.velocidade-mao-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(148, 184, 200, 0.05);
+  border: 1px solid rgba(148, 184, 200, 0.16);
+}
+
+.velocidade-mao-card.compact {
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.15rem;
+}
+
+.vel-mao-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.vel-mao-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.vel-mao-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #7ec8a0;
+  background: rgba(126, 200, 160, 0.12);
+  border: 1px solid rgba(126, 200, 160, 0.3);
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+}
+
+.vel-mao-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.vel-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.35rem;
+}
+
+.btn-vel-preset {
+  padding: 0.28rem 0.35rem;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.67rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  text-align: center;
+}
+
+.btn-vel-preset:hover {
+  border-color: rgba(148, 184, 200, 0.4);
+  color: var(--text-primary);
+}
+
+.btn-vel-preset.active {
+  background: rgba(126, 200, 160, 0.16);
+  border-color: rgba(126, 200, 160, 0.45);
+  color: #7ec8a0;
+}
+
+@media (max-width: 520px) {
+  .vel-presets {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
